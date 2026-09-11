@@ -1,6 +1,15 @@
 name: FileQuay Windows qualification
 on:
   workflow_dispatch:
+    inputs:
+      dependency_mode:
+        description: Framework qualification mode (AllowPreinstalled is diagnostic only)
+        required: true
+        default: RequireClean
+        type: choice
+        options:
+          - RequireClean
+          - AllowPreinstalled
   push:
     branches: [codex/filequay]
 permissions:
@@ -16,7 +25,9 @@ jobs:
           dotnet-version: '10.0.401'
       - name: Qualify native app with temporary CI identity
         shell: pwsh
-        run: ./distribution/qualify-windows.ps1
+        env:
+          FILEQUAY_DEPENDENCY_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.dependency_mode || 'RequireClean' }}
+        run: ./distribution/qualify-windows.ps1 -DependencyMode $env:FILEQUAY_DEPENDENCY_MODE
       - name: Preserve qualification metadata only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

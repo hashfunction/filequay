@@ -9,7 +9,10 @@ if ($env:OS -ne 'Windows_NT' -or $env:CI -ne 'true') { throw 'Requires a disposa
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $identity = 'Trieflow.FileQuay.Qualification'
 $publisher = 'CN=FileQuay-CI-Qualification'
-if (Get-AppxPackage -Name $identity) { throw 'Refusing to replace an existing installation.' }
+$version = '1.0.0.0'
+$architecture = 'X64'
+$existingQualificationPackages = @(Get-AppxPackage -Name $identity)
+if ($existingQualificationPackages.Count) { throw 'Refusing to replace an existing installation.' }
 $beforePackages = @(Get-AppxPackage)
 $beforeFullNames = @($beforePackages | Select-Object -ExpandProperty PackageFullName)
 $package = Get-Item -LiteralPath $PackagePath
@@ -23,9 +26,15 @@ $record = [ordered]@{ source_commit=$env:GITHUB_SHA; unsigned_package_sha256=(Ge
     instrumented_qualification_build=$true; normal_store_binary_installation_tested=$false;
     dependency_mode=$DependencyMode; dependency_artifacts_verified=$false; framework_registration_verified=$false;
     installed=$false; main_window_verified=$false; com_activation_verified=$false; server_natural_exit_verified=$false;
-    uninstall_verified=$false; trust_removed=$false; installation_qualification_passed=$false; submitted=$false }
+    uninstall_verified=$false; trust_removed=$false; installation_qualification_passed=$false; submitted=$false;
+    add_appx_completed=$false; registration_ownership_established=$false; owned_package_full_name=$null;
+    preflight_package_full_names=@(); residual_package_full_names=@() }
 $certificate = $null; $installed = $null; $application = $null; $probe = $null; $server = $null
 $probeStem = $null; $primaryError = ''; $cleanupErrors = @()
+$packageOwnership = [ordered]@{
+    installAttempted=$false; addCompleted=$false; installedByUs=$false; ownedPackageFullName=$null
+    preflightPackageFullNames=@($existingQualificationPackages | ForEach-Object { [string]$_.PackageFullName }); residualPackageFullNames=@()
+}
 try {
     $signTool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object { [version]$_.Directory.Parent.Name } -Descending | Select-Object -First 1
     if (-not $signTool) { throw 'Windows SDK SignTool is unavailable.' }
@@ -56,9 +65,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Test signing failed: $LASTEXITCODE" }
     & $signTool.FullName verify /pa $signedCopy
     if ($LASTEXITCODE -ne 0) { throw "Test signature verification failed: $LASTEXITCODE" }
+    $packageOwnership.installAttempted = $true
     Add-AppxPackage -Path $signedCopy -DependencyPath $dependencyPaths
-    $installed = Get-AppxPackage -Name $identity
-    if (-not $installed -or $installed.Publisher -cne $publisher) { throw 'Installed identity or publisher mismatch.' }
+    $packageOwnership.addCompleted = $true
+    $installed = Set-FileQuayOwnedRegistration $packageOwnership @(Get-AppxPackage -Name $identity) $identity $publisher $version $architecture
     $record.installed = $true
     $record.installed_package_full_name = $installed.PackageFullName
     $record.signed_test_package_sha256 = (Get-FileHash $signedCopy -Algorithm SHA256).Hash
@@ -192,6 +202,13 @@ namespace FileQuayQualification {
     $primaryError = $_.Exception.ToString()
     $record.error = $primaryError
 } finally {
+    $removeOwnedRegistration = ${function:Remove-FileQuayOwnedRegistration}
+    $getQualificationPackages = { @(Get-AppxPackage -Name $identity) }.GetNewClosure()
+    $removeQualificationPackage = { param([string]$PackageFullName) Remove-AppxPackage -Package $PackageFullName }.GetNewClosure()
+    $cleanupQualificationPackage = {
+        & $removeOwnedRegistration $packageOwnership $identity $getQualificationPackages $removeQualificationPackage
+        $record.uninstall_verified = $true
+    }.GetNewClosure()
     $cleanupErrors = @(Invoke-FileQuayCleanup ([ordered]@{
         probeEvidence = {
             if ($probeStem) {
@@ -218,12 +235,7 @@ namespace FileQuayQualification {
         observationHandles = {
             foreach ($observed in @($probe, $server)) { if ($observed) { $observed.Dispose() } }
         }
-        package = {
-            $remaining = Get-AppxPackage -Name $identity
-            if ($remaining) { Remove-AppxPackage -Package $remaining.PackageFullName }
-            $record.uninstall_verified = -not [bool](Get-AppxPackage -Name $identity)
-            if (-not $record.uninstall_verified) { throw 'Owned package registration remains.' }
-        }
+        package = $cleanupQualificationPackage
         trust = { if ($certificate -and (Test-Path ('Cert:\LocalMachine\TrustedPeople\' + $certificate.Thumbprint))) { Remove-Item -LiteralPath ('Cert:\LocalMachine\TrustedPeople\' + $certificate.Thumbprint) } }
         privateCertificate = { if ($certificate -and (Test-Path ('Cert:\CurrentUser\My\' + $certificate.Thumbprint))) { Remove-Item -LiteralPath ('Cert:\CurrentUser\My\' + $certificate.Thumbprint) -DeleteKey } }
         verifyTrust = {
@@ -237,6 +249,11 @@ namespace FileQuayQualification {
             $record.full_environment_cleanup_verified = $record.new_framework_packages.Count -eq 0 -and $record.uninstall_verified -and $record.trust_removed
         }
     }))
+    $record.add_appx_completed = $packageOwnership.addCompleted
+    $record.registration_ownership_established = $packageOwnership.installedByUs
+    $record.owned_package_full_name = $packageOwnership.ownedPackageFullName
+    $record.preflight_package_full_names = @($packageOwnership.preflightPackageFullNames)
+    $record.residual_package_full_names = @($packageOwnership.residualPackageFullNames)
     $record.cleanup_errors = $cleanupErrors
     if ($cleanupErrors.Count) { $record.full_environment_cleanup_verified = $false }
     $record.generated_at_utc = [DateTime]::UtcNow.ToString('o')

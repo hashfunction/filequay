@@ -21,4 +21,71 @@ foreach ($entry in @(@('Name','Other'),@('Publisher','CN=Other'),@('Version','2.
     $copy = $package.PSObject.Copy(); $copy.($entry[0]) = $entry[1]
     if (Test-FileQuayFrameworkRegistration $copy $requirement) { throw "Incompatible $($entry[0]) was accepted." }
 }
-'Installation helper checks passed: cleanup continuation, combined errors, and exact compatible registration matching.'
+
+if (-not (Get-Command Set-FileQuayOwnedRegistration -ErrorAction SilentlyContinue) -or
+    -not (Get-Command Remove-FileQuayOwnedRegistration -ErrorAction SilentlyContinue)) {
+    throw 'Package registration ownership helpers are missing.'
+}
+
+$owned = [pscustomobject]@{
+    Name='Trieflow.FileQuay.Qualification'; Publisher='CN=FileQuay-CI-Qualification'; Version='1.0.0.0'; Architecture='X64'
+    PackageFullName='Trieflow.FileQuay.Qualification_1.0.0.0_x64__fixture'; PackageFamilyName='Trieflow.FileQuay.Qualification_fixture'
+}
+$foreign = [pscustomobject]@{
+    Name=$owned.Name; Publisher=$owned.Publisher; Version=$owned.Version; Architecture='Arm64'
+    PackageFullName='Trieflow.FileQuay.Qualification_1.0.0.0_arm64__fixture'; PackageFamilyName=$owned.PackageFamilyName
+}
+
+foreach ($scenario in @('failed-add-race','missing-capture','ambiguous-capture','wrong-architecture','owned','owned-with-foreign','remove-failed')) {
+    $fixture = [ordered]@{ registrations=@(); removed=[Collections.Generic.List[string]]::new(); removeFailure=$false }
+    $ownership = [ordered]@{
+        installAttempted=$true; addCompleted=$false; installedByUs=$false; ownedPackageFullName=$null
+        preflightPackageFullNames=@(); residualPackageFullNames=@()
+    }
+    switch ($scenario) {
+        'failed-add-race' { $fixture.registrations=@($owned) }
+        'missing-capture' { $ownership.addCompleted=$true }
+        'ambiguous-capture' {
+            $ownership.addCompleted=$true; $fixture.registrations=@($owned,$foreign)
+            try { Set-FileQuayOwnedRegistration $ownership @($fixture.registrations) $owned.Name $owned.Publisher $owned.Version 'X64'; throw 'expected ambiguous capture rejection' }
+            catch { if ($_.Exception.Message -match 'expected ambiguous') { throw } }
+        }
+        'wrong-architecture' {
+            $ownership.addCompleted=$true; $fixture.registrations=@($foreign)
+            try { Set-FileQuayOwnedRegistration $ownership @($fixture.registrations) $owned.Name $owned.Publisher $owned.Version 'X64'; throw 'expected architecture rejection' }
+            catch { if ($_.Exception.Message -match 'expected architecture') { throw } }
+        }
+        default {
+            $ownership.addCompleted=$true; $fixture.registrations=@($owned)
+            $captured = Set-FileQuayOwnedRegistration $ownership @($fixture.registrations) $owned.Name $owned.Publisher $owned.Version 'X64'
+            if ($captured.PackageFullName -cne $owned.PackageFullName) { throw "${scenario}: exact registration was not returned" }
+            if ($scenario -eq 'owned-with-foreign') { $fixture.registrations += $foreign }
+            if ($scenario -eq 'remove-failed') { $fixture.removeFailure=$true }
+        }
+    }
+    $getPackages = { @($fixture.registrations) }.GetNewClosure()
+    $removePackage = {
+        param([string]$PackageFullName)
+        $fixture.removed.Add($PackageFullName)
+        if ($fixture.removeFailure) { throw 'fixture owned removal failed' }
+        $fixture.registrations=@($fixture.registrations | Where-Object PackageFullName -CNE $PackageFullName)
+    }.GetNewClosure()
+    $cleanupFailure = $null
+    try { Remove-FileQuayOwnedRegistration $ownership $owned.Name $getPackages $removePackage }
+    catch { $cleanupFailure=$_.Exception.Message }
+    if ($scenario -eq 'owned') {
+        if ($cleanupFailure -or $fixture.removed.Count -ne 1 -or $fixture.removed[0] -cne $owned.PackageFullName -or $fixture.registrations.Count) {
+            throw 'owned: exact captured package was not removed once'
+        }
+    } elseif ($scenario -in @('owned-with-foreign','remove-failed')) {
+        if (-not $cleanupFailure -or $fixture.removed.Count -ne 1 -or $fixture.removed[0] -cne $owned.PackageFullName -or -not $fixture.registrations.Count) {
+            throw "${scenario}: exact owned removal/residue evidence is incorrect"
+        }
+    } else {
+        if (-not $cleanupFailure -or $fixture.removed.Count -or ($scenario -ne 'missing-capture' -and -not $fixture.registrations.Count)) {
+            throw "${scenario}: unresolved registration was removed or not reported"
+        }
+    }
+}
+
+'Installation helper checks passed: cleanup/error aggregation, framework matching, and seven exact registration ownership scenarios.'

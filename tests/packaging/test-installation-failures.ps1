@@ -1,7 +1,7 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 # Executes the real installer in an isolated fixture with failing AppX/certificate
 # APIs. No package, certificate store, activation API or user environment is touched.
-param([ValidateSet('InstallationAndCleanup','PreinstalledFramework')][string]$Scenario='InstallationAndCleanup')
+param([ValidateSet('InstallationAndCleanup','PreinstalledFramework','FailedAddRace')][string]$Scenario='InstallationAndCleanup')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $source = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -24,8 +24,13 @@ Write-TestArchive (Join-Path $temporary 'package/Dependencies/x64/runtime.msix')
 $fakeSignTool = Join-Path $temporary 'sign.ps1'
 Set-Content $fakeSignTool '$global:LASTEXITCODE = 0'
 $certificateAttempts = [System.Collections.Generic.List[string]]::new()
+$packageRemovalAttempts = [System.Collections.Generic.List[string]]::new()
+$global:FileQuayRaceRegistration = $null
 function Get-AppxPackage {
     param($Name)
+    if ($Scenario -eq 'FailedAddRace' -and $Name -eq 'Trieflow.FileQuay.Qualification' -and $global:FileQuayRaceRegistration) {
+        return $global:FileQuayRaceRegistration
+    }
     if ($Scenario -eq 'PreinstalledFramework' -and (-not $Name -or $Name -eq 'Microsoft.WindowsAppRuntime.2.4')) {
         [pscustomobject]@{ Name='Microsoft.WindowsAppRuntime.2.4';Publisher='CN=Microsoft';Version='2.4.0.0';Architecture='X64';IsFramework=$true;PackageFullName='Microsoft.WindowsAppRuntime.2.4_2.4.0.0_x64__fixture' }
     }
@@ -33,7 +38,17 @@ function Get-AppxPackage {
 function New-SelfSignedCertificate { param($Type,$Subject,$KeyUsage,$KeyExportPolicy,$CertStoreLocation,$TextExtension,$NotAfter) [pscustomobject]@{Thumbprint='FIXTURE'} }
 function Export-Certificate { param($Cert,$FilePath) }
 function Import-Certificate { param($FilePath,$CertStoreLocation) }
-function Add-AppxPackage { param($Path,$DependencyPath) throw 'primary fixture installation error' }
+function Add-AppxPackage {
+    param($Path,$DependencyPath)
+    if ($Scenario -eq 'FailedAddRace') {
+        $global:FileQuayRaceRegistration = [pscustomobject]@{
+            Name='Trieflow.FileQuay.Qualification';Publisher='CN=FileQuay-CI-Qualification';Version='1.0.0.0';Architecture='X64';IsFramework=$false
+            PackageFullName='Trieflow.FileQuay.Qualification_1.0.0.0_x64__raced';PackageFamilyName='Trieflow.FileQuay.Qualification_raced'
+        }
+    }
+    throw 'primary fixture installation error'
+}
+function Remove-AppxPackage { param($Package) $packageRemovalAttempts.Add($Package) }
 function Get-ChildItem {
     param($Path,$LiteralPath,[switch]$File)
     if ($Path -like '*Windows Kits*') { return [pscustomobject]@{FullName=$fakeSignTool;Directory=[pscustomobject]@{Parent=[pscustomobject]@{Name='10.0.26100.0'}}} }
@@ -67,6 +82,13 @@ try {
             throw "RequireClean failed to reject and record the pre-existing framework: $failure"
         }
         'Actual installer preinstalled-framework test passed: dependency artifact matched, prior registration recorded, installation refused.'
+    } elseif ($Scenario -eq 'FailedAddRace') {
+        if (-not $failure.Contains('primary fixture installation error') -or -not $failure.Contains('registrations preserved') -or
+            $packageRemovalAttempts.Count -ne 0 -or $record.registration_ownership_established -or $record.owned_package_full_name -or
+            $record.residual_package_full_names.Count -ne 1 -or $record.installation_qualification_passed) {
+            throw "Failed-Add race did not preserve the foreign registration and both error classes: $failure"
+        }
+        'Actual installer failed-Add race test passed: exact matching foreign registration preserved and reported.'
     } else {
         if (-not $failure.Contains('primary fixture installation error') -or -not $failure.Contains('Cleanup failed:') -or $certificateAttempts.Count -ne 2) {
             throw "Installer did not preserve the original failure and enforce both certificate cleanup failures. Actual: $failure"
@@ -78,4 +100,5 @@ try {
     $env:OS = $priorOS; $env:CI = $priorCI
     [Environment]::SetEnvironmentVariable('ProgramFiles(x86)', $priorProgramFiles)
     Microsoft.PowerShell.Management\Remove-Item -LiteralPath $temporary -Recurse -Force
+    Remove-Variable FileQuayRaceRegistration -Scope Global -ErrorAction SilentlyContinue
 }

@@ -1,3 +1,6 @@
+[CmdletBinding()]
+param([ValidateSet('RequireClean','AllowPreinstalled')][string]$DependencyMode='RequireClean')
+
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 if (-not $IsWindows -or $env:CI -ne 'true') { throw 'Requires an isolated Windows CI runner.' }
@@ -29,6 +32,7 @@ Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/
 if ($LASTEXITCODE -ne 0) { throw "Actual process exit observation tests failed with $LASTEXITCODE" }
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','PreinstalledFramework')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','FailedAddRace')
 Invoke-Checked dotnet @('publish','tests/Files.SQLiteQualification/Files.SQLiteQualification.csproj','--framework','net10.0-windows10.0.26100.0','--configuration','Release','--runtime','win-x64','--self-contained','false','--output','artifacts/sqlite-qualification','-p:RestoreLockedMode=true')
 & ./artifacts/sqlite-qualification/Files.SQLiteQualification.exe --native-evidence-self-test | Set-Content artifacts/qualification/sqlite-native-evidence-tests.json -Encoding utf8NoBOM
 if ($LASTEXITCODE -ne 0) { throw "SQLite module evidence regression checks failed with $LASTEXITCODE" }
@@ -56,5 +60,5 @@ Get-ChildItem -Recurse -Filter project.assets.json | ForEach-Object {
 Get-ChildItem -Recurse -File -Include '*.msix','*.appx','*.msixbundle','*.appxbundle' | ForEach-Object {
   @{ path=[IO.Path]::GetRelativePath((Get-Location).Path, $_.FullName); bytes=$_.Length; sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash }
 } | ConvertTo-Json -Depth 3 | Set-Content artifacts/qualification/package-inventory.json -Encoding utf8NoBOM
-Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','.github/scripts/Test-CIInstallation.ps1','-PackagePath',$mainPackages[0].FullName)
-@{ source_commit=$env:GITHUB_SHA; generated_at_utc=[DateTime]::UtcNow.ToString('o'); identity='Trieflow.FileQuay.Qualification'; publisher='CN=FileQuay-CI-Qualification'; native_build=$true; store_identity=$false; installation_qualification_passed=$true; instrumented_qualification_build=$true; normal_store_binary_installation_tested=$false; native_source_clearance=$false; submitted=$false } | ConvertTo-Json | Set-Content artifacts/qualification/build-result.json -Encoding utf8NoBOM
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','.github/scripts/Test-CIInstallation.ps1','-PackagePath',$mainPackages[0].FullName,'-DependencyMode',$DependencyMode)
+@{ source_commit=$env:GITHUB_SHA; generated_at_utc=[DateTime]::UtcNow.ToString('o'); identity='Trieflow.FileQuay.Qualification'; publisher='CN=FileQuay-CI-Qualification'; native_build=$true; store_identity=$false; installation_qualification_passed=$true; instrumented_qualification_build=$true; normal_store_binary_installation_tested=$false; dependency_mode=$DependencyMode; dependency_installation_from_artifacts_verified=($DependencyMode -eq 'RequireClean'); dependency_resolution_only=($DependencyMode -eq 'AllowPreinstalled'); clean_framework_installation_gate_passed=($DependencyMode -eq 'RequireClean'); store_clean_environment_gate_pending=($DependencyMode -eq 'AllowPreinstalled'); native_source_clearance=$false; submitted=$false } | ConvertTo-Json | Set-Content artifacts/qualification/build-result.json -Encoding utf8NoBOM
