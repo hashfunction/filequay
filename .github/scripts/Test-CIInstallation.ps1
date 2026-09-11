@@ -1,5 +1,5 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
-# PowerShell 5.1 supplies Windows AppX and UI Automation APIs.
+# PowerShell 7 supplies Windows AppX and UI Automation APIs.
 param([Parameter(Mandatory=$true)][string]$PackagePath,
       [ValidateSet('RequireClean','AllowPreinstalled')][string]$DependencyMode='RequireClean')
 $ErrorActionPreference = 'Stop'
@@ -146,6 +146,10 @@ namespace FileQuayQualification {
     if ($record.client_activation_hresult -lt 0) { throw ('Packaged probe activation failed: 0x{0:X8}' -f $record.client_activation_hresult) }
     $probe = Get-Process -Id $probeId
     if ($probe.Path -ine $executable) { throw 'Activation returned a process outside the installed FileQuay package.' }
+    # This Process was attached by PID, not started by this component. Retain its
+    # OS handle while alive so exit status remains queryable after it terminates.
+    $probeHandle = $probe.SafeHandle
+    if ($probeHandle.IsInvalid -or $probeHandle.IsClosed) { throw 'Cannot retain the live installed client handle.' }
     $record.probe_process_id = $probeId
     $deadline = (Get-Date).AddSeconds(45)
     while (-not (Test-Path -LiteralPath ($probeStem + '.json')) -and (Get-Date) -lt $deadline) {
@@ -166,6 +170,8 @@ namespace FileQuayQualification {
     $servers = @(Get-Process -Name Files.App.Server -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $serverExecutable })
     if ($servers.Count -ne 1) { throw "Expected exactly one activated packaged server; found $($servers.Count)." }
     $server = $servers[0]
+    $serverHandle = $server.SafeHandle
+    if ($serverHandle.IsInvalid -or $serverHandle.IsClosed) { throw 'Cannot retain the live installed server handle.' }
     $serverModules = @($server.Modules | ForEach-Object { @{ name=$_.ModuleName; path=$_.FileName } })
     $serverClr = @($serverModules | Where-Object { $_.name -ieq 'coreclr.dll' })
     if ($serverClr.Count -ne 1 -or $serverClr[0].path -ine (Join-Path $installed.InstallLocation 'Files.App.Server\coreclr.dll')) { throw 'COM server did not load its own packaged CoreCLR.' }
@@ -176,8 +182,10 @@ namespace FileQuayQualification {
     $record.com_activation_verified = $true
     $serverModules | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $evidence 'installed-server-modules.json') -Encoding UTF8
     Set-Content -LiteralPath ($probeStem + '.release') -Value 'Exit the monitored client normally.' -Encoding UTF8
-    if (-not $probe.WaitForExit(15000) -or $probe.ExitCode -ne 0) { throw 'The monitored client did not exit normally after release.' }
-    if (-not $server.WaitForExit(15000) -or $server.ExitCode -ne 0) { throw 'The COM server did not exit naturally after its monitored client exited.' }
+    $record.client_exit = Get-FileQuayProcessExitEvidence $probe 15000
+    if (-not $record.client_exit.normal_exit) { throw ('The monitored client did not exit normally after release: ' + ($record.client_exit | ConvertTo-Json -Compress)) }
+    $record.server_exit = Get-FileQuayProcessExitEvidence $server 15000
+    if (-not $record.server_exit.normal_exit) { throw ('The COM server did not exit naturally after its monitored client exited: ' + ($record.server_exit | ConvertTo-Json -Compress)) }
     if (@(Get-Process -Name Files.App.Server -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $serverExecutable }).Count) { throw 'A packaged server remained after client exit.' }
     $record.server_natural_exit_verified = $true
 } catch {
@@ -206,6 +214,9 @@ namespace FileQuayQualification {
                 }
                 if ($processErrors.Count) { throw ($processErrors -join '; ') }
             }
+        }
+        observationHandles = {
+            foreach ($observed in @($probe, $server)) { if ($observed) { $observed.Dispose() } }
         }
         package = {
             $remaining = Get-AppxPackage -Name $identity

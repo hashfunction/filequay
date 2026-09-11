@@ -25,6 +25,8 @@ Invoke-Checked dotnet @('test','--project','tests/Files.App.UnitTests/Files.App.
 Invoke-Checked $msbuild @('Files.slnx','-t:Restore','-p:Platform=x64','-p:Configuration=Release','-p:PublishReadyToRun=true','-p:RestorePackagesWithLockFile=true','-v:minimal')
 Invoke-Checked python @('-m','unittest','discover','-s','tests/packaging','-v')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-helpers.ps1')
+& $qualificationPowerShell -NoProfile -File tests/packaging/test-process-observation.ps1 | Set-Content artifacts/qualification/process-observation-tests.json -Encoding utf8NoBOM
+if ($LASTEXITCODE -ne 0) { throw "Actual process exit observation tests failed with $LASTEXITCODE" }
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','PreinstalledFramework')
 Invoke-Checked dotnet @('publish','tests/Files.SQLiteQualification/Files.SQLiteQualification.csproj','--framework','net10.0-windows10.0.26100.0','--configuration','Release','--runtime','win-x64','--self-contained','false','--output','artifacts/sqlite-qualification','-p:RestoreLockedMode=true')

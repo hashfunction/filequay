@@ -67,3 +67,9 @@ The SQLite provider remains an open shipping gate: the current
 version of that legacy package and calls for SQLite >=3.50.2. A provider/native
 distribution migration needs separate build, database compatibility and runtime
 binary/source verification; this packaging repair does not suppress the warning.
+
+### Attached-process exit evidence
+
+Run34598100997 reached successful packaged StartMonitor activation and a client release receipt, then failed the combined exit condition. That report cannot distinguish timeout, nonzero exit, or an unavailable exit status. Qualification now retains each live client/server SafeHandle before release and records wait completion, numeric exit code and observation errors separately. Handles are disposed after owned-process cleanup. This preserves Windows exit information for PID-attached Process components; it does not make an otherwise failing process pass. See Microsoft's Process.WaitForExit documentation: https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process.waitforexit?view=net-10.0 .
+
+The actual-process regression attaches independently, disposes the launcher component, then verifies zero exit, exit7 and a live timeout. It runs both locally and on the Windows runner before the native app build. The exact installed-client/server retry remains authoritative; normal Store binary qualification is still pending.

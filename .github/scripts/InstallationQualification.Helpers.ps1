@@ -18,3 +18,16 @@ function Test-FileQuayFrameworkRegistration($Package, $Requirement) {
         [version]$Package.Version -ge [version]$Requirement.MinVersion -and
         $Package.Architecture.ToString().ToLowerInvariant() -in @('x64', 'neutral')
 }
+function Get-FileQuayProcessExitEvidence([Diagnostics.Process]$Process, [int]$TimeoutMilliseconds) {
+    $evidence = [ordered]@{ process_id=$Process.Id; wait_completed=$false; exit_code=$null; normal_exit=$false; observation_error=$null }
+    try {
+        $evidence.wait_completed = $Process.WaitForExit($TimeoutMilliseconds)
+        if ($evidence.wait_completed) {
+            # Invoke the getter explicitly: PowerShell can turn a failed property
+            # getter into null, concealing the difference from a nonzero exit.
+            $evidence.exit_code = $Process.get_ExitCode()
+            $evidence.normal_exit = $evidence.exit_code -eq 0
+        }
+    } catch { $evidence.observation_error = $_.Exception.ToString() }
+    return [pscustomobject]$evidence
+}
