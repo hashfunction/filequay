@@ -6,11 +6,87 @@ function Invoke-FileQuayCleanup([System.Collections.IDictionary]$Steps) {
     }
     return $failures.ToArray()
 }
-function Get-FileQuayQualificationFailure([string]$PrimaryError, [string[]]$CleanupErrors) {
+function Get-FileQuayQualificationFailure {
+    param(
+        [string]$PrimaryError,
+        [string[]]$CleanupErrors = @(),
+        [string[]]$EvidenceErrors = @(),
+        [string[]]$ReportingErrors = @()
+    )
     $parts = [System.Collections.Generic.List[string]]::new()
     if ($PrimaryError) { $parts.Add('Qualification failed: ' + $PrimaryError) }
-    if ($CleanupErrors.Count) { $parts.Add('Cleanup failed: ' + ($CleanupErrors -join '; ')) }
+    if (@($CleanupErrors).Count) { $parts.Add('Cleanup failed: ' + ($CleanupErrors -join '; ')) }
+    if (@($EvidenceErrors).Count) { $parts.Add('Evidence failed: ' + ($EvidenceErrors -join '; ')) }
+    if (@($ReportingErrors).Count) { $parts.Add('Reporting failed: ' + ($ReportingErrors -join '; ')) }
     return $parts -join "`n"
+}
+function Test-FileQuayAutomationTreeCapture([object[]]$Nodes, [string]$ExpectedAutomationId) {
+    $successful = @($Nodes | Where-Object {
+        -not $_.PSObject.Properties['observation_error'] -and
+        $_.PSObject.Properties['depth'] -and $_.PSObject.Properties['control_type']
+    })
+    $roots = @($successful | Where-Object { [int]$_.depth -eq 0 -and [string]$_.control_type })
+    $expected = @($successful | Where-Object {
+        $_.PSObject.Properties['automation_id'] -and [string]$_.automation_id -ceq $ExpectedAutomationId -and
+        [string]$_.control_type
+    })
+    return $roots.Count -eq 1 -and $expected.Count -ge 1
+}
+function Test-FileQuayWindowDisappearance(
+    [bool]$ProcessHasExited,
+    [IntPtr]$MainWindowHandle,
+    [bool]$OffscreenObserved,
+    [bool]$IsOffscreen
+) {
+    return $ProcessHasExited -or $MainWindowHandle -eq [IntPtr]::Zero -or ($OffscreenObserved -and $IsOffscreen)
+}
+function New-FileQuayQualificationStagePath([string]$Path) {
+    return $Path + '.' + [Guid]::NewGuid().ToString('N') + '.tmp'
+}
+function Remove-FileQuayQualificationStage([string]$Path) {
+    [IO.File]::Delete($Path)
+}
+function Write-FileQuayQualificationRecord(
+    [Parameter(Mandatory=$true)][string]$Path,
+    [Parameter(Mandatory=$true)][System.Collections.IDictionary]$Record,
+    [int]$Depth = 9
+) {
+    $stage = New-FileQuayQualificationStagePath $Path
+    $stream = $null
+    $ownsStage = $false
+    $publicationException = $null
+    $cleanupFailures = [System.Collections.Generic.List[string]]::new()
+    try {
+        $payload = ($Record | ConvertTo-Json -Depth $Depth) + [Environment]::NewLine
+        $bytes = [Text.UTF8Encoding]::new($false).GetBytes($payload)
+        $stream = [IO.File]::Open($stage, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+        $ownsStage = $true
+        $stream.Write($bytes, 0, $bytes.Length)
+        $stream.Flush($true)
+        $stream.Dispose(); $stream = $null
+        [IO.File]::Move($stage, $Path, $false)
+        $ownsStage = $false
+    } catch {
+        $publicationException = $_.Exception
+    } finally {
+        if ($stream) {
+            try { $stream.Dispose() } catch { $cleanupFailures.Add('stage stream: ' + $_.Exception.ToString()) }
+        }
+        if ($ownsStage -and [IO.File]::Exists($stage)) {
+            try { Remove-FileQuayQualificationStage $stage }
+            catch { $cleanupFailures.Add('owned stage: ' + $_.Exception.ToString()) }
+        }
+    }
+    if ($publicationException -and $cleanupFailures.Count) {
+        throw [InvalidOperationException]::new(
+            "Qualification record publication failed for ${Path}: $($publicationException.ToString())`nOwned stage cleanup failed: $($cleanupFailures -join '; ')",
+            $publicationException
+        )
+    }
+    if ($publicationException) { throw $publicationException }
+    if ($cleanupFailures.Count) {
+        throw [InvalidOperationException]::new("Qualification record owned-stage cleanup failed for ${Path}: $($cleanupFailures -join '; ')")
+    }
 }
 function Test-FileQuayFrameworkRegistration($Package, $Requirement) {
     return $Package.Name -ceq $Requirement.Name -and
@@ -79,4 +155,84 @@ function Get-FileQuayProcessExitEvidence([Diagnostics.Process]$Process, [int]$Ti
         }
     } catch { $evidence.observation_error = $_.Exception.ToString() }
     return [pscustomobject]$evidence
+}
+function Stop-FileQuayOwnedProcess([Diagnostics.Process]$Process, [int]$TimeoutMilliseconds) {
+    $Process.Refresh()
+    if (-not $Process.HasExited) {
+        $handle = $Process.SafeHandle
+        if ($handle.IsInvalid -or $handle.IsClosed) { throw 'Cannot terminate a process without its retained live handle.' }
+        $Process.Kill()
+        if (-not $Process.WaitForExit($TimeoutMilliseconds)) { throw "Owned process $($Process.Id) remained after cleanup." }
+    }
+    return $Process.HasExited
+}
+function Get-FileQuayManagedBuildKindEvidence(
+    [Parameter(Mandatory=$true)][string]$AssemblyPath,
+    [Parameter(Mandatory=$true)][ValidateSet('Instrumented','Consumer')][string]$ExpectedBuildKind
+) {
+    $assembly = Get-Item -LiteralPath $AssemblyPath
+    $stream = [IO.File]::Open($assembly.FullName, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+    $peReader = $null
+    try {
+        $peReader = [Reflection.PortableExecutable.PEReader]::new($stream)
+        if (-not $peReader.HasMetadata) { throw 'The supplied assembly does not contain managed metadata.' }
+        $metadata = [Reflection.Metadata.PEReaderExtensions]::GetMetadataReader($peReader)
+        $probePresent = $false
+        foreach ($handle in $metadata.TypeDefinitions) {
+            $definition = $metadata.GetTypeDefinition($handle)
+            if ($metadata.GetString($definition.Namespace) -ceq 'Files.App.Utils.Qualification' -and
+                $metadata.GetString($definition.Name) -ceq 'CiComActivationProbe') {
+                $probePresent = $true
+                break
+            }
+        }
+        $actualBuildKind = if ($probePresent) { 'Instrumented' } else { 'Consumer' }
+        if ($actualBuildKind -cne $ExpectedBuildKind) {
+            throw "Managed build kind mismatch: expected $ExpectedBuildKind but metadata proves $actualBuildKind."
+        }
+        return [pscustomobject][ordered]@{
+            expected_build_kind = $ExpectedBuildKind
+            actual_build_kind = $actualBuildKind
+            ci_probe_type = 'Files.App.Utils.Qualification.CiComActivationProbe'
+            ci_probe_type_present = $probePresent
+            assembly_path = $assembly.FullName
+            assembly_bytes = $assembly.Length
+            assembly_sha256 = (Get-FileHash -LiteralPath $assembly.FullName -Algorithm SHA256).Hash
+        }
+    } finally {
+        if ($peReader) { $peReader.Dispose() }
+        $stream.Dispose()
+    }
+}
+function Get-FileQuayBuildKindConfiguration(
+    [Parameter(Mandatory=$true)][string]$Root,
+    [Parameter(Mandatory=$true)][ValidateSet('Instrumented','Consumer')][string]$BuildKind
+) {
+    return [pscustomobject][ordered]@{
+        build_kind = $BuildKind
+        qualification_property = $(if ($BuildKind -eq 'Instrumented') { 'true' } else { 'false' })
+        appx_output = Join-Path $Root 'artifacts/appx' $BuildKind
+        validation_output = Join-Path $Root 'artifacts/validated-package' $BuildKind
+        evidence_output = Join-Path $Root 'artifacts/qualification' $BuildKind
+    }
+}
+function Test-FileQuayInstallationAcceptance(
+    [Parameter(Mandatory=$true)][System.Collections.IDictionary]$Record,
+    [Parameter(Mandatory=$true)][ValidateSet('Instrumented','Consumer')][string]$BuildKind
+) {
+    $common = $Record.installed -and $Record.managed_build_kind_verified -and
+        $Record.actual_build_kind -ceq $BuildKind -and $Record.dependency_artifacts_verified -and
+        $Record.framework_registration_verified -and $Record.main_window_verified -and
+        $Record.registration_ownership_established -and $Record.uninstall_verified -and
+        $Record.trust_removed -and @($Record.cleanup_errors).Count -eq 0
+    if (-not $common) { return $false }
+    if ($BuildKind -eq 'Instrumented') {
+        return $Record.ci_probe_type_present -and $Record.com_activation_verified -and
+            $Record.server_natural_exit_verified
+    }
+    return -not $Record.ci_probe_type_present -and -not $Record.consumer_com_probe_invoked -and
+        $Record.broker_process_identity_verified -and $Record.ui_tree_captured -and
+        $Record.screenshot_captured -and $Record.window_close_requested -and
+        $Record.window_disappeared -and $Record.consumer_process_outcome_accepted -and
+        $Record.owned_process_cleanup_verified
 }

@@ -1,12 +1,12 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 # Executes the real installer in an isolated fixture with failing AppX/certificate
 # APIs. No package, certificate store, activation API or user environment is touched.
-param([ValidateSet('InstallationAndCleanup','PreinstalledFramework','FailedAddRace')][string]$Scenario='InstallationAndCleanup')
+param([ValidateSet('InstallationAndCleanup','PreinstalledFramework','FailedAddRace','PackageChanged','ReportingFailure')][string]$Scenario='InstallationAndCleanup')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $source = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $temporary = Join-Path ([IO.Path]::GetTempPath()) ('filequay-install-failure-' + [Guid]::NewGuid().ToString('N'))
-$null = New-Item -ItemType Directory -Path (Join-Path $temporary '.github/scripts'), (Join-Path $temporary 'distribution'), (Join-Path $temporary 'package/Dependencies/x64'), (Join-Path $temporary 'artifacts/qualification') -Force
+$null = New-Item -ItemType Directory -Path (Join-Path $temporary '.github/scripts'), (Join-Path $temporary 'distribution'), (Join-Path $temporary 'package/Dependencies/x64'), (Join-Path $temporary 'validated'), (Join-Path $temporary 'artifacts/qualification') -Force
 $installerSource = Join-Path $source '.github/scripts/Test-CIInstallation.ps1'
 if ($env:FILEQUAY_INSTALLER_SOURCE) { $installerSource = $env:FILEQUAY_INSTALLER_SOURCE }
 Copy-Item $installerSource (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1')
@@ -21,6 +21,7 @@ function Write-TestArchive([string]$Path, [string]$Manifest) {
 $namespace = 'http://schemas.microsoft.com/appx/manifest/foundation/windows10'
 Write-TestArchive (Join-Path $temporary 'package/main.msix') "<Package xmlns='$namespace'><Identity Name='Trieflow.FileQuay.Qualification' ProcessorArchitecture='x64' /><Dependencies><PackageDependency Name='Microsoft.WindowsAppRuntime.2.4' Publisher='CN=Microsoft' MinVersion='2.4.0.0' /></Dependencies></Package>"
 Write-TestArchive (Join-Path $temporary 'package/Dependencies/x64/runtime.msix') "<Package xmlns='$namespace'><Identity Name='Microsoft.WindowsAppRuntime.2.4' Publisher='CN=Microsoft' Version='2.4.0.0' ProcessorArchitecture='x64' /><Properties><Framework>true</Framework></Properties></Package>"
+Add-Type -TypeDefinition 'namespace Files.App { public sealed class ConsumerFixture {} }' -OutputAssembly (Join-Path $temporary 'validated/FileQuay.dll')
 $fakeSignTool = Join-Path $temporary 'sign.ps1'
 Set-Content $fakeSignTool '$global:LASTEXITCODE = 0'
 $certificateAttempts = [System.Collections.Generic.List[string]]::new()
@@ -45,6 +46,13 @@ function Add-AppxPackage {
             Name='Trieflow.FileQuay.Qualification';Publisher='CN=FileQuay-CI-Qualification';Version='1.0.0.0';Architecture='X64';IsFramework=$false
             PackageFullName='Trieflow.FileQuay.Qualification_1.0.0.0_x64__raced';PackageFamilyName='Trieflow.FileQuay.Qualification_raced'
         }
+    }
+    if ($Scenario -eq 'PackageChanged') {
+        [IO.File]::AppendAllText((Join-Path $temporary 'package/main.msix'), 'changed after preflight')
+    }
+    if ($Scenario -eq 'ReportingFailure') {
+        $resultPath = Join-Path $temporary 'artifacts/qualification/Consumer/installation-result.json'
+        [IO.File]::WriteAllBytes($resultPath, [Text.Encoding]::UTF8.GetBytes('previous qualification evidence'))
     }
     throw 'primary fixture installation error'
 }
@@ -72,10 +80,11 @@ try {
     # Process-local mock preconditions; native APIs above remain test doubles.
     $env:OS = 'Windows_NT'; $env:CI = 'true'
     [Environment]::SetEnvironmentVariable('ProgramFiles(x86)', $temporary)
+    $resultPath = Join-Path $temporary 'artifacts/qualification/Consumer/installation-result.json'
     $failure = ''
-    try { & (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1') -PackagePath (Join-Path $temporary 'package/main.msix') }
+    try { & (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1') -PackagePath (Join-Path $temporary 'package/main.msix') -ValidatedPackageDirectory (Join-Path $temporary 'validated') -BuildKind Consumer }
     catch { $failure = $_.Exception.Message }
-    $record = Get-Content (Join-Path $temporary 'artifacts/qualification/installation-result.json') -Raw | ConvertFrom-Json
+    $record = if ($Scenario -ne 'ReportingFailure') { Get-Content $resultPath -Raw | ConvertFrom-Json } else { $null }
     if ($Scenario -eq 'PreinstalledFramework') {
         if (-not $failure.Contains('already registered') -or $certificateAttempts.Count -ne 0 -or $record.installed -or
             $record.installation_qualification_passed -or $record.frameworks[0].compatible_preexisting_full_names.Count -ne 1) {
@@ -89,11 +98,32 @@ try {
             throw "Failed-Add race did not preserve the foreign registration and both error classes: $failure"
         }
         'Actual installer failed-Add race test passed: exact matching foreign registration preserved and reported.'
+    } elseif ($Scenario -eq 'PackageChanged') {
+        if (-not $failure.Contains('primary fixture installation error') -or -not $failure.Contains('Cleanup failed:') -or
+            -not $failure.Contains('unsigned package changed') -or $record.unsigned_package_unchanged -or
+            -not $record.unsigned_package_final_sha256 -or $record.unsigned_package_final_sha256 -ceq $record.unsigned_package_sha256 -or
+            $record.installation_qualification_passed) {
+            throw "Final input hash failure did not preserve the primary and cleanup failures: $failure"
+        }
+        'Actual installer input-mutation test passed: final hash differs and all failure classes were preserved.'
+    } elseif ($Scenario -eq 'ReportingFailure') {
+        $oldBytes = [Text.Encoding]::UTF8.GetString([IO.File]::ReadAllBytes($resultPath))
+        if ($oldBytes -cne 'previous qualification evidence' -or -not $failure.Contains('primary fixture installation error') -or
+            -not $failure.Contains('Cleanup failed:') -or -not $failure.Contains('Reporting failed:') -or
+            -not $failure.Contains('Cert:\LocalMachine\TrustedPeople\FIXTURE') -or
+            -not $failure.Contains('Cert:\CurrentUser\My\FIXTURE') -or
+            -not $failure.Contains('installation-result.json')) {
+            throw "Exclusive result publication did not preserve old bytes and all failure classes: $failure"
+        }
+        'Actual installer reporting-failure test passed: existing evidence survived and primary, cleanup and reporting failures were preserved.'
     } else {
         if (-not $failure.Contains('primary fixture installation error') -or -not $failure.Contains('Cleanup failed:') -or $certificateAttempts.Count -ne 2) {
             throw "Installer did not preserve the original failure and enforce both certificate cleanup failures. Actual: $failure"
         }
         if ($record.trust_removed -or $record.cleanup_errors.Count -lt 2 -or $record.installation_qualification_passed) { throw 'Failure evidence claimed successful cleanup or qualification.' }
+        if (-not $record.unsigned_package_unchanged -or $record.unsigned_package_final_sha256 -cne $record.unsigned_package_sha256) {
+            throw 'Failure evidence did not reverify the unchanged unsigned package.'
+        }
         'Actual installer failure-path test passed: primary error retained, both certificate removals attempted, cleanup failures enforced.'
     }
 } finally {

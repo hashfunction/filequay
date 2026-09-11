@@ -14,6 +14,10 @@ foreach ($expected in @('activation failed','registration remains','trust remain
     if (-not $message.Contains($expected)) { throw "Combined failure lost $expected" }
 }
 if (Get-FileQuayQualificationFailure '' @()) { throw 'Successful cleanup reported failure.' }
+$allClasses = Get-FileQuayQualificationFailure 'primary' @('cleanup') @('evidence') @('reporting')
+foreach ($expected in @('Qualification failed: primary','Cleanup failed: cleanup','Evidence failed: evidence','Reporting failed: reporting')) {
+    if (-not $allClasses.Contains($expected)) { throw "Combined failure lost $expected" }
+}
 $requirement = [pscustomobject]@{ Name='Microsoft.WindowsAppRuntime.2.4';Publisher='CN=Microsoft';MinVersion='2.4.1.0' }
 $package = [pscustomobject]@{ Name=$requirement.Name;Publisher=$requirement.Publisher;Version='2.4.10.0';Architecture='X64' }
 if (-not (Test-FileQuayFrameworkRegistration $package $requirement)) { throw 'Compatible pre-existing registration was missed.' }

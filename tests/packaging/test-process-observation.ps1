@@ -44,5 +44,27 @@ try {
             $launcher.Dispose()
         }
     }
+    $ownedCode = 'while ($true) { Start-Sleep -Milliseconds 20 }'
+    $ownedStart = [Diagnostics.ProcessStartInfo]::new($powerShell)
+    $ownedStart.UseShellExecute = $false
+    foreach ($argument in @('-NoProfile','-NonInteractive','-EncodedCommand',[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($ownedCode)))) { $ownedStart.ArgumentList.Add($argument) }
+    $ownedLauncher = [Diagnostics.Process]::Start($ownedStart)
+    $owned = $null
+    try {
+        $owned = [Diagnostics.Process]::GetProcessById($ownedLauncher.Id)
+        $ownedHandle = $owned.SafeHandle
+        if ($ownedHandle.IsInvalid -or $ownedHandle.IsClosed) { throw 'No live owned process handle.' }
+        $ownedLauncher.Dispose()
+        if (-not (Stop-FileQuayOwnedProcess $owned 15000) -or -not $owned.HasExited) {
+            throw 'Exact retained-handle consumer cleanup did not terminate the owned process.'
+        }
+        $results.Add([pscustomobject]@{ name='owned-cleanup'; process_id=$owned.Id; terminated=$owned.HasExited })
+    } finally {
+        if ($owned) {
+            if (-not $owned.HasExited) { $owned.Kill(); $null = $owned.WaitForExit(15000) }
+            $owned.Dispose()
+        }
+        $ownedLauncher.Dispose()
+    }
 } finally { Remove-Item -LiteralPath $temporary -Recurse -Force }
 $results | ConvertTo-Json -Depth 5

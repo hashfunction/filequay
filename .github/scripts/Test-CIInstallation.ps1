@@ -1,6 +1,8 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 # PowerShell 7 supplies Windows AppX and UI Automation APIs.
 param([Parameter(Mandatory=$true)][string]$PackagePath,
+      [Parameter(Mandatory=$true)][string]$ValidatedPackageDirectory,
+      [Parameter(Mandatory=$true)][ValidateSet('Instrumented','Consumer')][string]$BuildKind,
       [ValidateSet('RequireClean','AllowPreinstalled')][string]$DependencyMode='RequireClean')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -17,20 +19,35 @@ $beforePackages = @(Get-AppxPackage)
 $beforeFullNames = @($beforePackages | Select-Object -ExpandProperty PackageFullName)
 $package = Get-Item -LiteralPath $PackagePath
 $work = Join-Path $root ('artifacts/install-test/' + [Guid]::NewGuid().ToString('N'))
-$evidence = Join-Path $root 'artifacts/qualification'
+$evidence = Join-Path $root ('artifacts/qualification/' + $BuildKind)
 New-Item -ItemType Directory -Path $work -Force | Out-Null
 New-Item -ItemType Directory -Path $evidence -Force | Out-Null
+$resultPath = Join-Path $evidence 'installation-result.json'
+if (Test-Path -LiteralPath $resultPath) { throw "Refusing to replace existing qualification evidence: $resultPath" }
 $signedCopy = Join-Path $work 'FileQuay-test.msix'
 $publicCertificate = Join-Path $work 'test.cer'
+$packagedAssembly = Get-Item -LiteralPath (Join-Path $ValidatedPackageDirectory 'FileQuay.dll')
+$managedBuild = Get-FileQuayManagedBuildKindEvidence $packagedAssembly.FullName $BuildKind
+$managedBuild | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $evidence 'managed-build-kind.json') -Encoding UTF8
 $record = [ordered]@{ source_commit=$env:GITHUB_SHA; unsigned_package_sha256=(Get-FileHash $package.FullName -Algorithm SHA256).Hash;
-    instrumented_qualification_build=$true; normal_store_binary_installation_tested=$false;
+    unsigned_package_final_sha256=$null; unsigned_package_unchanged=$false; evidence_errors=@(); reporting_errors=@();
+    requested_build_kind=$BuildKind; actual_build_kind=$managedBuild.actual_build_kind;
+    managed_build_kind_verified=$true; ci_probe_type_present=$managedBuild.ci_probe_type_present;
+    packaged_managed_assembly_sha256=$managedBuild.assembly_sha256;
+    instrumented_qualification_build=($BuildKind -eq 'Instrumented'); normal_store_binary_installation_tested=$false;
     dependency_mode=$DependencyMode; dependency_artifacts_verified=$false; framework_registration_verified=$false;
-    installed=$false; main_window_verified=$false; com_activation_verified=$false; server_natural_exit_verified=$false;
+    installed=$false; main_window_verified=$false; broker_process_identity_verified=$false;
+    ui_tree_captured=$false; screenshot_captured=$false; screenshot_error=$null;
+    window_close_requested=$false; window_disappeared=$false; consumer_process_outcome_accepted=$false;
+    consumer_background_process_observed=$false; process_exit_acceptance_pending=$false;
+    normal_process_exit_verified=$false; owned_process_cleanup_verified=$false; consumer_com_probe_invoked=$false;
+    com_activation_verified=$false; server_natural_exit_verified=$false;
     uninstall_verified=$false; trust_removed=$false; installation_qualification_passed=$false; submitted=$false;
     add_appx_completed=$false; registration_ownership_established=$false; owned_package_full_name=$null;
     preflight_package_full_names=@(); residual_package_full_names=@() }
 $certificate = $null; $installed = $null; $application = $null; $probe = $null; $server = $null
-$probeStem = $null; $primaryError = ''; $cleanupErrors = @()
+$consumerProcessOwned = $false; $consumerActivationAttempted = $false
+$probeStem = $null; $primaryError = ''; $cleanupErrors = @(); $evidenceErrors = @(); $reportingErrors = @()
 $packageOwnership = [ordered]@{
     installAttempted=$false; addCompleted=$false; installedByUs=$false; ownedPackageFullName=$null
     preflightPackageFullNames=@($existingQualificationPackages | ForEach-Object { [string]$_.PackageFullName }); residualPackageFullNames=@()
@@ -96,13 +113,69 @@ try {
     foreach ($relative in @('FileQuay.exe','coreclr.dll','hostfxr.dll','Files.App.Server\Files.App.Server.exe','Files.App.Server.winmd')) {
         if (-not (Test-Path -LiteralPath (Join-Path $installed.InstallLocation $relative))) { throw "Installed runtime file missing: $relative" }
     }
+    $installedManagedBuild = Get-FileQuayManagedBuildKindEvidence (Join-Path $installed.InstallLocation 'FileQuay.dll') $BuildKind
+    if ($installedManagedBuild.assembly_sha256 -cne $managedBuild.assembly_sha256) { throw 'Installed managed assembly differs from the metadata-inspected package bytes.' }
+    $record.installed_managed_assembly_sha256 = $installedManagedBuild.assembly_sha256
     $aumid = $installed.PackageFamilyName + '!' + $appNodes[0].Id
     Add-Type -AssemblyName UIAutomationClient
     Add-Type -AssemblyName UIAutomationTypes
-    Start-Process explorer.exe -ArgumentList ('shell:AppsFolder\' + $aumid)
+    Add-Type -AssemblyName System.Drawing
+    Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+namespace FileQuayQualification {
+ [ComImport, Guid("2E941141-7F97-4756-BA1D-9DECDE894A3D"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+ interface IApplicationActivationManager {
+  [PreserveSig] int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string id, [MarshalAs(UnmanagedType.LPWStr)] string arguments, uint options, out uint processId);
+  [PreserveSig] int ActivateForFile(string id, IntPtr items, string verb, out uint processId);
+  [PreserveSig] int ActivateForProtocol(string id, IntPtr items, out uint processId);
+ }
+ [ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")] class ApplicationActivationManager { }
+ public static class Activation {
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode)] static extern int GetPackageFullName(IntPtr process, ref uint length, StringBuilder name);
+  public static int Run(string id, string arguments, out uint processId) {
+   var manager = (IApplicationActivationManager)new ApplicationActivationManager();
+   try { return manager.ActivateApplication(id, arguments, 2, out processId); }
+   finally { Marshal.ReleaseComObject(manager); }
+  }
+  public static string PackageFullName(IntPtr process) {
+   uint length = 0;
+   int result = GetPackageFullName(process, ref length, null);
+   if (result != 122 || length == 0) throw new InvalidOperationException("GetPackageFullName sizing failed: " + result);
+   var value = new StringBuilder((int)length);
+   result = GetPackageFullName(process, ref length, value);
+   if (result != 0) throw new InvalidOperationException("GetPackageFullName failed: " + result);
+   return value.ToString();
+  }
+ }
+}
+'@
+    if ($BuildKind -eq 'Consumer') {
+        [uint32]$applicationId = 0
+        $consumerActivationAttempted = $true
+        $record.consumer_activation_arguments = ''
+        $record.broker_activation_hresult = [FileQuayQualification.Activation]::Run($aumid, '', [ref]$applicationId)
+        if ($record.broker_activation_hresult -lt 0) { throw ('Normal packaged activation failed: 0x{0:X8}' -f $record.broker_activation_hresult) }
+        $application = Get-Process -Id $applicationId
+        $applicationHandle = $application.SafeHandle
+        if ($applicationHandle.IsInvalid -or $applicationHandle.IsClosed) { throw 'Cannot retain the live consumer process handle.' }
+        if ($application.Path -ine $executable) { throw 'Normal activation returned a process outside the installed package.' }
+        $record.activated_package_full_name = [FileQuayQualification.Activation]::PackageFullName($applicationHandle.DangerousGetHandle())
+        if ($record.activated_package_full_name -cne $installed.PackageFullName) { throw 'The activated process does not carry the installed package identity.' }
+        $expectedExecutableHash = (Get-FileHash (Join-Path $ValidatedPackageDirectory 'FileQuay.exe') -Algorithm SHA256).Hash
+        $record.executable_sha256 = (Get-FileHash $executable -Algorithm SHA256).Hash
+        if ($record.executable_sha256 -cne $expectedExecutableHash) { throw 'Activated executable differs from the validated packaged bytes.' }
+        $consumerProcessOwned = $true
+        $record.broker_process_identity_verified = $true
+    } else {
+        Start-Process explorer.exe -ArgumentList ('shell:AppsFolder\' + $aumid)
+    }
     $deadline = (Get-Date).AddSeconds(90); $window = $null; $control = $null
     while ((Get-Date) -lt $deadline) {
-        $application = Get-Process -Name FileQuay -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $executable } | Select-Object -First 1
+        if ($BuildKind -eq 'Instrumented') {
+            $application = Get-Process -Name FileQuay -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $executable } | Select-Object -First 1
+        }
         if ($application) {
             $application.Refresh()
             if ($application.MainWindowHandle -ne [IntPtr]::Zero) {
@@ -124,31 +197,108 @@ try {
     $record.main_window_verified = $true; $record.window_title = $application.MainWindowTitle; $record.process_id = $application.Id
     $record.visible_automation_id = $control.Current.AutomationId
     $record.executable_sha256 = (Get-FileHash $executable -Algorithm SHA256).Hash
-    $modules | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $evidence 'installed-modules.json') -Encoding UTF8
-    Stop-Process -Id $application.Id -Force
-    if (-not $application.WaitForExit(15000)) { throw 'The main application did not exit before the independent COM probe.' }
-    $application = $null
-    if (@(Get-Process -Name Files.App.Server -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $serverExecutable }).Count) { throw 'An owned server was already running before explicit activation.' }
-    Add-Type -TypeDefinition @'
-using System;
-using System.Runtime.InteropServices;
-namespace FileQuayQualification {
- [ComImport, Guid("2E941141-7F97-4756-BA1D-9DECDE894A3D"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
- interface IApplicationActivationManager {
-  [PreserveSig] int ActivateApplication([MarshalAs(UnmanagedType.LPWStr)] string id, [MarshalAs(UnmanagedType.LPWStr)] string arguments, uint options, out uint processId);
-  [PreserveSig] int ActivateForFile(string id, IntPtr items, string verb, out uint processId);
-  [PreserveSig] int ActivateForProtocol(string id, IntPtr items, out uint processId);
- }
- [ComImport, Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C")] class ApplicationActivationManager { }
- public static class Activation {
-  public static int Run(string id, string arguments, out uint processId) {
-   var manager = (IApplicationActivationManager)new ApplicationActivationManager();
-   try { return manager.ActivateApplication(id, arguments, 2, out processId); }
-   finally { Marshal.ReleaseComObject(manager); }
-  }
- }
-}
-'@
+    $moduleEvidence = @($modules | Where-Object { $_.path -and ([string]$_.path).StartsWith($installed.InstallLocation, [StringComparison]::OrdinalIgnoreCase) } | ForEach-Object {
+        @{ name=$_.name; path=$_.path; sha256=(Get-FileHash -LiteralPath $_.path -Algorithm SHA256).Hash }
+    })
+    $moduleEvidence | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $evidence 'installed-modules.json') -Encoding UTF8
+    $record.packaged_module_count = $moduleEvidence.Count
+    $record.packaged_coreclr_sha256 = (Get-FileHash -LiteralPath $coreclr[0].path -Algorithm SHA256).Hash
+
+    if ($BuildKind -eq 'Consumer') {
+        if (-not $application.MainWindowTitle.EndsWith('FileQuay', [StringComparison]::Ordinal)) {
+            throw "Unexpected main window title: $($application.MainWindowTitle)"
+        }
+        $bounds = $window.Current.BoundingRectangle
+        if ($bounds.Width -lt 1 -or $bounds.Height -lt 1 -or $bounds.Width -gt 8192 -or $bounds.Height -gt 8192 -or
+            $bounds.Width * $bounds.Height -gt 33554432) { throw 'The FileQuay window dimensions are outside the bounded screenshot budget.' }
+        $record.window_bounds = @{ x=$bounds.X; y=$bounds.Y; width=$bounds.Width; height=$bounds.Height }
+        $record.consumer_expected_close_behavior = 'Release default LeaveAppRunning=true: close may hide the final window while the verified process remains alive.'
+        $automationNodes = [Collections.Generic.List[object]]::new()
+        $pendingNodes = [Collections.Generic.Queue[object]]::new()
+        $pendingNodes.Enqueue([pscustomobject]@{ element=$window; depth=0 })
+        while ($pendingNodes.Count -and $automationNodes.Count -lt 256) {
+            $entry = $pendingNodes.Dequeue(); $element = $entry.element
+            try {
+                $current = $element.Current
+                $automationNodes.Add([pscustomobject]@{ depth=$entry.depth; name=$current.Name; automation_id=$current.AutomationId;
+                    control_type=$current.ControlType.ProgrammaticName; is_offscreen=$current.IsOffscreen })
+                if ($entry.depth -lt 6) {
+                    $child = [System.Windows.Automation.TreeWalker]::ControlViewWalker.GetFirstChild($element)
+                    while ($child -and $automationNodes.Count + $pendingNodes.Count -lt 256) {
+                        $pendingNodes.Enqueue([pscustomobject]@{ element=$child; depth=$entry.depth + 1 })
+                        $child = [System.Windows.Automation.TreeWalker]::ControlViewWalker.GetNextSibling($child)
+                    }
+                }
+            } catch {
+                $automationNodes.Add([pscustomobject]@{ depth=$entry.depth; observation_error=$_.Exception.Message })
+            }
+        }
+        $automationNodes | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $evidence 'ui-automation-tree.json') -Encoding UTF8
+        $record.ui_tree_successful_node_count = @($automationNodes | Where-Object { -not $_.PSObject.Properties['observation_error'] }).Count
+        $record.ui_tree_observation_errors = @($automationNodes | Where-Object { $_.PSObject.Properties['observation_error'] } | ForEach-Object { $_.observation_error })
+        $record.ui_tree_captured = Test-FileQuayAutomationTreeCapture @($automationNodes) 'ShowStatusCenterButton'
+        if (-not $record.ui_tree_captured) {
+            throw 'The UI Automation evidence lacks a successful window root and source-backed Status Center control.'
+        }
+        try {
+            $width = [Math]::Max(1, [int][Math]::Ceiling($bounds.Width)); $height = [Math]::Max(1, [int][Math]::Ceiling($bounds.Height))
+            $bitmap = [Drawing.Bitmap]::new($width, $height)
+            try {
+                $graphics = [Drawing.Graphics]::FromImage($bitmap)
+                try { $graphics.CopyFromScreen([int]$bounds.X, [int]$bounds.Y, 0, 0, $bitmap.Size) }
+                finally { $graphics.Dispose() }
+                $bitmap.Save((Join-Path $evidence 'main-window.png'), [Drawing.Imaging.ImageFormat]::Png)
+            } finally { $bitmap.Dispose() }
+            $record.screenshot_captured = $true
+        } catch {
+            $record.screenshot_error = $_.Exception.ToString()
+            throw 'The genuine FileQuay window could not be captured for qualification evidence.'
+        }
+    }
+
+    if ($BuildKind -eq 'Consumer') {
+        $windowPattern = [System.Windows.Automation.WindowPattern]$window.GetCurrentPattern([System.Windows.Automation.WindowPattern]::Pattern)
+        $windowPattern.Close(); $record.window_close_requested = $true
+        $deadline = (Get-Date).AddSeconds(15)
+        $windowObservationErrors = [Collections.Generic.List[string]]::new()
+        $windowObservationErrorCount = 0
+        while ((Get-Date) -lt $deadline) {
+            $application.Refresh()
+            $offscreen = $false; $offscreenObserved = $false
+            try { $offscreen = $window.Current.IsOffscreen; $offscreenObserved = $true }
+            catch {
+                $windowObservationErrorCount++
+                if ($windowObservationErrors.Count -lt 16) { $windowObservationErrors.Add($_.Exception.ToString()) }
+            }
+            if (Test-FileQuayWindowDisappearance $application.HasExited $application.MainWindowHandle $offscreenObserved $offscreen) {
+                $record.window_disappeared=$true
+                $record.window_disappearance_basis = if ($application.HasExited) { 'process-exited' } elseif ($application.MainWindowHandle -eq [IntPtr]::Zero) { 'main-window-handle-zero' } else { 'uia-offscreen-observed' }
+                break
+            }
+            Start-Sleep -Milliseconds 100
+        }
+        $record.window_disappearance_observation_error_count = $windowObservationErrorCount
+        $record.window_disappearance_observation_errors = @($windowObservationErrors)
+        $record.window_disappearance_final_process_exited = $application.HasExited
+        $record.window_disappearance_final_main_window_handle = [int64]$application.MainWindowHandle
+        if (-not $record.window_disappeared) {
+            throw "The normal FileQuay window remained after its close request; UIA observation errors: $windowObservationErrorCount."
+        }
+        $record.consumer_exit = Get-FileQuayProcessExitEvidence $application 3000
+        if ($record.consumer_exit.wait_completed) {
+            if (-not $record.consumer_exit.normal_exit) { throw ('Normal FileQuay exited with a failure: ' + ($record.consumer_exit | ConvertTo-Json -Compress)) }
+            $record.normal_process_exit_verified = $true
+        } else {
+            if ($record.consumer_exit.observation_error) { throw ('Normal FileQuay process state could not be observed: ' + $record.consumer_exit.observation_error) }
+            $record.consumer_background_process_observed = $true
+            $record.process_exit_acceptance_pending = $true
+        }
+        $record.consumer_process_outcome_accepted = $record.normal_process_exit_verified -or $record.consumer_background_process_observed
+    } else {
+        Stop-Process -Id $application.Id -Force
+        if (-not $application.WaitForExit(15000)) { throw 'The main application did not exit before the independent COM probe.' }
+        $application.Dispose(); $application = $null
+        if (@(Get-Process -Name Files.App.Server -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $serverExecutable }).Count) { throw 'An owned server was already running before explicit activation.' }
     $nonce = [Guid]::NewGuid().ToString('N')
     $probeStem = Join-Path $env:LOCALAPPDATA ('Packages/' + $installed.PackageFamilyName + '/LocalState/com-probe-' + $nonce)
     [uint32]$probeId = 0
@@ -198,6 +348,7 @@ namespace FileQuayQualification {
     if (-not $record.server_exit.normal_exit) { throw ('The COM server did not exit naturally after its monitored client exited: ' + ($record.server_exit | ConvertTo-Json -Compress)) }
     if (@(Get-Process -Name Files.App.Server -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $serverExecutable }).Count) { throw 'A packaged server remained after client exit.' }
     $record.server_natural_exit_verified = $true
+    }
 } catch {
     $primaryError = $_.Exception.ToString()
     $record.error = $primaryError
@@ -220,7 +371,14 @@ namespace FileQuayQualification {
             }
         }
         ownedProcesses = {
-            if ($installed) {
+            if ($BuildKind -eq 'Consumer') {
+                if ($consumerActivationAttempted -and -not $consumerProcessOwned) {
+                    throw 'Consumer activation occurred but exact live-handle process ownership was not established; no process was terminated.'
+                }
+                if ($consumerProcessOwned) {
+                    $record.owned_process_cleanup_verified = Stop-FileQuayOwnedProcess $application 15000
+                }
+            } elseif ($installed) {
                 $paths = @((Join-Path $installed.InstallLocation 'FileQuay.exe'), (Join-Path $installed.InstallLocation 'Files.App.Server\Files.App.Server.exe'))
                 $processErrors = [System.Collections.Generic.List[string]]::new()
                 foreach ($process in @(Get-Process -Name FileQuay,Files.App.Server -ErrorAction SilentlyContinue | Where-Object { $_.Path -in $paths })) {
@@ -233,7 +391,7 @@ namespace FileQuayQualification {
             }
         }
         observationHandles = {
-            foreach ($observed in @($probe, $server)) { if ($observed) { $observed.Dispose() } }
+            foreach ($observed in @($application, $probe, $server)) { if ($observed) { $observed.Dispose() } }
         }
         package = $cleanupQualificationPackage
         trust = { if ($certificate -and (Test-Path ('Cert:\LocalMachine\TrustedPeople\' + $certificate.Thumbprint))) { Remove-Item -LiteralPath ('Cert:\LocalMachine\TrustedPeople\' + $certificate.Thumbprint) } }
@@ -256,11 +414,25 @@ namespace FileQuayQualification {
     $record.residual_package_full_names = @($packageOwnership.residualPackageFullNames)
     $record.cleanup_errors = $cleanupErrors
     if ($cleanupErrors.Count) { $record.full_environment_cleanup_verified = $false }
+    $evidenceFailures = [Collections.Generic.List[string]]::new()
+    try {
+        $record.unsigned_package_final_sha256 = (Get-FileHash -LiteralPath $package.FullName -Algorithm SHA256).Hash
+        $record.unsigned_package_unchanged = $record.unsigned_package_final_sha256 -ceq $record.unsigned_package_sha256
+        if (-not $record.unsigned_package_unchanged) { $evidenceFailures.Add('The unsigned package changed after its initial hash was recorded.') }
+    } catch {
+        $record.unsigned_package_final_sha256 = $null
+        $record.unsigned_package_unchanged = $false
+        $evidenceFailures.Add('The unsigned package final hash could not be verified: ' + $_.Exception.Message)
+    }
+    $evidenceErrors = $evidenceFailures.ToArray()
+    $record.evidence_errors = $evidenceErrors
+    $record.reporting_errors = @()
     $record.generated_at_utc = [DateTime]::UtcNow.ToString('o')
-    $record.installation_qualification_passed = -not $primaryError -and $cleanupErrors.Count -eq 0 -and $record.main_window_verified -and
-        $record.com_activation_verified -and $record.server_natural_exit_verified -and $record.dependency_artifacts_verified -and $record.framework_registration_verified
-    $record | ConvertTo-Json -Depth 9 | Set-Content (Join-Path $evidence 'installation-result.json') -Encoding UTF8
+    $record.installation_qualification_passed = -not $primaryError -and -not $cleanupErrors.Count -and -not $evidenceErrors.Count -and (Test-FileQuayInstallationAcceptance $record $BuildKind)
+    $record.normal_store_binary_installation_tested = $BuildKind -eq 'Consumer' -and $record.installation_qualification_passed
+    try { Write-FileQuayQualificationRecord $resultPath $record }
+    catch { $reportingErrors = @('installation-result.json: ' + $_.Exception.ToString()) }
 }
-$failure = Get-FileQuayQualificationFailure $primaryError $cleanupErrors
+$failure = Get-FileQuayQualificationFailure $primaryError $cleanupErrors $evidenceErrors $reportingErrors
 if ($failure) { throw $failure }
 if (-not $record.installation_qualification_passed) { throw 'Installation qualification did not pass every required gate.' }

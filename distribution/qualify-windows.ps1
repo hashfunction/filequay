@@ -1,5 +1,6 @@
 [CmdletBinding()]
-param([ValidateSet('RequireClean','AllowPreinstalled')][string]$DependencyMode='RequireClean')
+param([ValidateSet('RequireClean','AllowPreinstalled')][string]$DependencyMode='RequireClean',
+      [Parameter(Mandatory=$true)][ValidateSet('Instrumented','Consumer')][string]$BuildKind)
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -7,6 +8,10 @@ if (-not $IsWindows -or $env:CI -ne 'true') { throw 'Requires an isolated Window
 if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'Qualification requires PowerShell 7 or later.' }
 $qualificationPowerShell = (Get-Process -Id $PID).Path
 Set-Location (Split-Path $PSScriptRoot -Parent)
+. ./.github/scripts/InstallationQualification.Helpers.ps1
+$buildConfiguration = Get-FileQuayBuildKindConfiguration (Get-Location).Path $BuildKind
+$qualificationEvidence = $buildConfiguration.evidence_output
+New-Item -ItemType Directory -Path $qualificationEvidence -Force | Out-Null
 ./distribution/check-prerequisites.ps1
 foreach ($file in @(Get-ChildItem distribution -Filter '*.ps1') + @(Get-ChildItem .github/scripts -Filter '*.ps1')) {
   $parseTokens = $null; $parseErrors = $null
@@ -28,37 +33,49 @@ Invoke-Checked dotnet @('test','--project','tests/Files.App.UnitTests/Files.App.
 Invoke-Checked $msbuild @('Files.slnx','-t:Restore','-p:Platform=x64','-p:Configuration=Release','-p:PublishReadyToRun=true','-p:RestorePackagesWithLockFile=true','-v:minimal')
 Invoke-Checked python @('-m','unittest','discover','-s','tests/packaging','-v')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-helpers.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-build-kind-acceptance.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-observation.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-qualification-record-publication.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-managed-build-kind.ps1')
 & $qualificationPowerShell -NoProfile -File tests/packaging/test-process-observation.ps1 | Set-Content artifacts/qualification/process-observation-tests.json -Encoding utf8NoBOM
 if ($LASTEXITCODE -ne 0) { throw "Actual process exit observation tests failed with $LASTEXITCODE" }
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','PreinstalledFramework')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','FailedAddRace')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','PackageChanged')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','ReportingFailure')
 Invoke-Checked dotnet @('publish','tests/Files.SQLiteQualification/Files.SQLiteQualification.csproj','--framework','net10.0-windows10.0.26100.0','--configuration','Release','--runtime','win-x64','--self-contained','false','--output','artifacts/sqlite-qualification','-p:RestoreLockedMode=true')
 & ./artifacts/sqlite-qualification/Files.SQLiteQualification.exe --native-evidence-self-test | Set-Content artifacts/qualification/sqlite-native-evidence-tests.json -Encoding utf8NoBOM
 if ($LASTEXITCODE -ne 0) { throw "SQLite module evidence regression checks failed with $LASTEXITCODE" }
 & ./artifacts/sqlite-qualification/Files.SQLiteQualification.exe | Set-Content artifacts/qualification/sqlite-execution.json -Encoding utf8NoBOM
 if ($LASTEXITCODE -ne 0) { throw "Actual Windows SQLite qualification failed with $LASTEXITCODE" }
-Invoke-Checked $msbuild @('src/Files.App/Files.App.csproj','-t:Build','-p:Configuration=Release','-p:Platform=x64','-p:AppxBundlePlatforms=x64','-p:AppxBundle=Never','-p:GenerateAppxPackageOnBuild=true','-p:FileQuayCIQualification=true','-p:UapAppxPackageBuildMode=SideloadOnly','-p:AppxPackageDir=artifacts/appx/','-p:AppxPackageSigningEnabled=false','-v:minimal')
-$mainPackages = @(Get-ChildItem -Recurse -File -Include '*.msix','*.appx' | Where-Object { $_.FullName -notmatch '[\\/]Dependencies[\\/]' })
+$buildOutput = $buildConfiguration.appx_output
+if (Test-Path -LiteralPath $buildOutput) { throw "Refusing a non-fresh build output: $buildOutput" }
+$qualificationProperty = $buildConfiguration.qualification_property
+Invoke-Checked $msbuild @('src/Files.App/Files.App.csproj','-t:Build','-p:Configuration=Release','-p:Platform=x64','-p:AppxBundlePlatforms=x64','-p:AppxBundle=Never','-p:GenerateAppxPackageOnBuild=true',("-p:FileQuayCIQualification=$qualificationProperty"),'-p:UapAppxPackageBuildMode=SideloadOnly',("-p:AppxPackageDir=$buildOutput\"),'-p:AppxPackageSigningEnabled=false','-v:minimal')
+$mainPackages = @(Get-ChildItem -LiteralPath $buildOutput -Recurse -File | Where-Object { $_.Extension -in @('.msix','.appx') -and $_.FullName -notmatch '[\\/]Dependencies[\\/]' })
 if ($mainPackages.Count -ne 1) { throw "Expected one main package; found $($mainPackages.Count)." }
-./distribution/verify-package.ps1 -PackagePath $mainPackages[0].FullName -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' -OutputDirectory (Join-Path (Get-Location) 'artifacts/validated-package')
+$validatedPackage = $buildConfiguration.validation_output
+./distribution/verify-package.ps1 -PackagePath $mainPackages[0].FullName -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' -OutputDirectory $validatedPackage
+$managedBuild = Get-FileQuayManagedBuildKindEvidence (Join-Path $validatedPackage 'FileQuay.dll') $BuildKind
+$managedBuild | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $qualificationEvidence 'managed-build-kind.json') -Encoding utf8NoBOM
 $sqliteAssets = Get-Content src/Files.App/obj/project.assets.json -Raw | ConvertFrom-Json
-Invoke-Checked python @('distribution/verify-sqlite-assets.py','--assets','src/Files.App/obj/project.assets.json','--package-cache',$sqliteAssets.project.restore.packagesPath,'--package-root','artifacts/validated-package','--output','artifacts/qualification/sqlite-package-assets.json')
-Copy-Item artifacts/validated-package.files.json,artifacts/validated-package.validation.json artifacts/qualification/
-Get-ChildItem artifacts/validated-package -Recurse -File | Where-Object { $_.Name -like '*.runtimeconfig.json' -or $_.Name -like '*.deps.json' } | ForEach-Object {
-  $relative = [IO.Path]::GetRelativePath((Join-Path (Get-Location) 'artifacts/validated-package'), $_.FullName)
-  $target = Join-Path 'artifacts/qualification/package-runtime-metadata' $relative
+Invoke-Checked python @('distribution/verify-sqlite-assets.py','--assets','src/Files.App/obj/project.assets.json','--package-cache',$sqliteAssets.project.restore.packagesPath,'--package-root',$validatedPackage,'--output',(Join-Path $qualificationEvidence 'sqlite-package-assets.json'))
+Copy-Item ($validatedPackage + '.files.json'),($validatedPackage + '.validation.json') $qualificationEvidence
+Get-ChildItem $validatedPackage -Recurse -File | Where-Object { $_.Name -like '*.runtimeconfig.json' -or $_.Name -like '*.deps.json' } | ForEach-Object {
+  $relative = [IO.Path]::GetRelativePath($validatedPackage, $_.FullName)
+  $target = Join-Path $qualificationEvidence 'package-runtime-metadata' $relative
   New-Item -ItemType Directory -Force (Split-Path $target -Parent) | Out-Null
   Copy-Item $_.FullName $target
 }
 Get-ChildItem -Recurse -Filter project.assets.json | ForEach-Object {
   $relative = [IO.Path]::GetRelativePath((Get-Location).Path, $_.FullName)
-  $target = Join-Path 'artifacts/qualification/resolved-assets' $relative
+  $target = Join-Path $qualificationEvidence 'resolved-assets' $relative
   New-Item -ItemType Directory -Force (Split-Path $target -Parent) | Out-Null
   Copy-Item $_.FullName $target
 }
-Get-ChildItem -Recurse -File -Include '*.msix','*.appx','*.msixbundle','*.appxbundle' | ForEach-Object {
+Get-ChildItem -LiteralPath $buildOutput -Recurse -File | Where-Object { $_.Extension -in @('.msix','.appx','.msixbundle','.appxbundle') } | ForEach-Object {
   @{ path=[IO.Path]::GetRelativePath((Get-Location).Path, $_.FullName); bytes=$_.Length; sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash }
-} | ConvertTo-Json -Depth 3 | Set-Content artifacts/qualification/package-inventory.json -Encoding utf8NoBOM
-Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','.github/scripts/Test-CIInstallation.ps1','-PackagePath',$mainPackages[0].FullName,'-DependencyMode',$DependencyMode)
-@{ source_commit=$env:GITHUB_SHA; generated_at_utc=[DateTime]::UtcNow.ToString('o'); identity='Trieflow.FileQuay.Qualification'; publisher='CN=FileQuay-CI-Qualification'; native_build=$true; store_identity=$false; installation_qualification_passed=$true; instrumented_qualification_build=$true; normal_store_binary_installation_tested=$false; dependency_mode=$DependencyMode; dependency_installation_from_artifacts_verified=($DependencyMode -eq 'RequireClean'); dependency_resolution_only=($DependencyMode -eq 'AllowPreinstalled'); clean_framework_installation_gate_passed=($DependencyMode -eq 'RequireClean'); store_clean_environment_gate_pending=($DependencyMode -eq 'AllowPreinstalled'); native_source_clearance=$false; submitted=$false } | ConvertTo-Json | Set-Content artifacts/qualification/build-result.json -Encoding utf8NoBOM
+} | ConvertTo-Json -Depth 3 | Set-Content (Join-Path $qualificationEvidence 'package-inventory.json') -Encoding utf8NoBOM
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','.github/scripts/Test-CIInstallation.ps1','-PackagePath',$mainPackages[0].FullName,'-ValidatedPackageDirectory',$validatedPackage,'-BuildKind',$BuildKind,'-DependencyMode',$DependencyMode)
+@{ source_commit=$env:GITHUB_SHA; generated_at_utc=[DateTime]::UtcNow.ToString('o'); identity='Trieflow.FileQuay.Qualification'; publisher='CN=FileQuay-CI-Qualification'; native_build=$true; store_identity=$false; installation_qualification_passed=$true; requested_build_kind=$BuildKind; actual_build_kind=$managedBuild.actual_build_kind; managed_build_kind_verified=$true; instrumented_qualification_build=($BuildKind -eq 'Instrumented'); normal_store_binary_installation_tested=($BuildKind -eq 'Consumer'); dependency_mode=$DependencyMode; dependency_installation_from_artifacts_verified=($DependencyMode -eq 'RequireClean'); dependency_resolution_only=($DependencyMode -eq 'AllowPreinstalled'); clean_framework_installation_gate_passed=($DependencyMode -eq 'RequireClean'); store_clean_environment_gate_pending=($DependencyMode -eq 'AllowPreinstalled'); native_source_clearance=$false; submitted=$false } | ConvertTo-Json | Set-Content (Join-Path $qualificationEvidence 'build-result.json') -Encoding utf8NoBOM
