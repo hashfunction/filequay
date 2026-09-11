@@ -46,6 +46,7 @@ namespace Files.App.UserControls.StatusCenter
 					CloseButtonText = Strings.Cancel.GetLocalizedResource(),
 					DefaultButton = ContentDialogButton.Close
 				};
+				Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(confirmation, "ReceiptExportConfirmationDialog");
 				if (await confirmation.TryShowAsync() == ContentDialogResult.Primary)
 					await ViewModel.ExportReceiptsAsync(file.Path, selected);
 			}

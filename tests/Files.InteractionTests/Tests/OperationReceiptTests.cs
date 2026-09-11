@@ -146,10 +146,17 @@ public sealed class OperationReceiptTests
 			var filename = desktop.FindElementByAccessibilityId("1001"); filename.Clear(); filename.SendKeys(csvPath);
 			desktop.FindElementByAccessibilityId("1").Click();
 		}
-		TestHelper.WaitForElementByName("Export receipts…");
+		var confirmation = TestHelper.GetElementById("ReceiptExportConfirmationDialog");
+		AppiumWebElement primary = null;
+		WaitFor(() =>
+		{
+			primary = confirmation.FindElementsByAccessibilityId("PrimaryButton").FirstOrDefault(button => button.Displayed && button.Enabled);
+			return confirmation.Displayed && primary is not null
+				&& confirmation.FindElementsByTagName("Text").Any(text => text.Displayed && text.Text.Contains(csvPath, StringComparison.Ordinal));
+		}, "snapshot completed and the selected path is shown in the export confirmation dialog");
 		Assert.IsTrue(File.Exists(csvPath), "Qualify the Windows picker-created destination fixture.");
 		File.Move(csvPath, csvPath + ".selected"); File.WriteAllText(csvPath, "unapproved replacement");
-		TestHelper.InvokeDialogPrimaryButton("Export receipts…");
+		primary.Click();
 		WaitFor(() => TestHelper.GetElementById("ReceiptStorageErrorBar").Displayed && TestHelper.GetElementsOfTypeWithContent("Text", csvPath).Count > 0, "export conflict and affected path shown");
 		Assert.AreEqual("unapproved replacement", File.ReadAllText(csvPath));
 		Assert.AreEqual("keep this original", File.ReadAllText(Path.Combine(source, "original.txt")));
