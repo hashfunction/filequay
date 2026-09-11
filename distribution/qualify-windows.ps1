@@ -3,6 +3,12 @@ Set-StrictMode -Version Latest
 if (-not $IsWindows -or $env:CI -ne 'true') { throw 'Requires an isolated Windows CI runner.' }
 Set-Location (Split-Path $PSScriptRoot -Parent)
 ./distribution/check-prerequisites.ps1
+foreach ($file in Get-ChildItem distribution -Filter '*.ps1') {
+  $parseTokens = $null; $parseErrors = $null
+  $null = [Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$parseTokens, [ref]$parseErrors)
+  if ($parseErrors.Count) { throw "PowerShell syntax errors in $($file.Name): $parseErrors" }
+}
+./distribution/test-manifest.ps1
 ./distribution/restore-vendor-inputs.ps1
 # This identity is for disposable build qualification. It is not a Store reservation.
 ./.github/scripts/Configure-AppxManifest.ps1 -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' -Protocol filequay
@@ -16,6 +22,10 @@ function Invoke-Checked([string]$Program, [string[]]$Arguments) {
 Invoke-Checked dotnet @('test','--project','tests/Files.App.UnitTests/Files.App.UnitTests.csproj','-c','Release','--report-trx','--results-directory','artifacts/qualification/unit-tests')
 Invoke-Checked $msbuild @('Files.slnx','-t:Restore','-p:Platform=x64','-p:Configuration=Release','-p:PublishReadyToRun=true','-p:RestorePackagesWithLockFile=true','-v:minimal')
 Invoke-Checked $msbuild @('src/Files.App/Files.App.csproj','-t:Build','-p:Configuration=Release','-p:Platform=x64','-p:AppxBundlePlatforms=x64','-p:AppxBundle=Never','-p:GenerateAppxPackageOnBuild=true','-p:UapAppxPackageBuildMode=SideloadOnly','-p:AppxPackageDir=artifacts/appx/','-p:AppxPackageSigningEnabled=false','-v:minimal')
+$mainPackages = @(Get-ChildItem -Recurse -File -Include '*.msix','*.appx' | Where-Object { $_.FullName -notmatch '[\\/]Dependencies[\\/]' })
+if ($mainPackages.Count -ne 1) { throw "Expected one main package; found $($mainPackages.Count)." }
+./distribution/verify-package.ps1 -PackagePath $mainPackages[0].FullName -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' -OutputDirectory (Join-Path (Get-Location) 'artifacts/validated-package')
+Copy-Item artifacts/validated-package.files.json,artifacts/validated-package.validation.json artifacts/qualification/
 Get-ChildItem -Recurse -Filter project.assets.json | ForEach-Object {
   $relative = [IO.Path]::GetRelativePath((Get-Location).Path, $_.FullName)
   $target = Join-Path 'artifacts/qualification/resolved-assets' $relative

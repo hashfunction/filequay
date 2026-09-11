@@ -4,7 +4,6 @@
 using Files.App.Helpers.Application;
 using Files.App.Services.Git;
 using Files.App.Services.SizeProvider;
-using Files.App.Utils.Logger;
 using Files.App.Utils.StatusCenter.Receipts;
 using Files.App.ViewModels.Settings;
 using Microsoft.Extensions.DependencyInjection;
