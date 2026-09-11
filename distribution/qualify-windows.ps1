@@ -28,6 +28,8 @@ Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','PreinstalledFramework')
 Invoke-Checked dotnet @('publish','tests/Files.SQLiteQualification/Files.SQLiteQualification.csproj','--framework','net10.0-windows10.0.26100.0','--configuration','Release','--runtime','win-x64','--self-contained','false','--output','artifacts/sqlite-qualification','-p:RestoreLockedMode=true')
+& ./artifacts/sqlite-qualification/Files.SQLiteQualification.exe --native-evidence-self-test | Set-Content artifacts/qualification/sqlite-native-evidence-tests.json -Encoding utf8NoBOM
+if ($LASTEXITCODE -ne 0) { throw "SQLite module evidence regression checks failed with $LASTEXITCODE" }
 & ./artifacts/sqlite-qualification/Files.SQLiteQualification.exe | Set-Content artifacts/qualification/sqlite-execution.json -Encoding utf8NoBOM
 if ($LASTEXITCODE -ne 0) { throw "Actual Windows SQLite qualification failed with $LASTEXITCODE" }
 Invoke-Checked $msbuild @('src/Files.App/Files.App.csproj','-t:Build','-p:Configuration=Release','-p:Platform=x64','-p:AppxBundlePlatforms=x64','-p:AppxBundle=Never','-p:GenerateAppxPackageOnBuild=true','-p:FileQuayCIQualification=true','-p:UapAppxPackageBuildMode=SideloadOnly','-p:AppxPackageDir=artifacts/appx/','-p:AppxPackageSigningEnabled=false','-v:minimal')

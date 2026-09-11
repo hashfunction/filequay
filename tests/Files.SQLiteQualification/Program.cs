@@ -7,6 +7,12 @@ using System.Text.Json;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
+if (args.SequenceEqual(new[] { "--native-evidence-self-test" }))
+{
+	NativeEvidenceSelfTest.Run();
+	return;
+}
+
 string Resource(string name)
 {
 	using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name) ?? throw new Exception("Missing qualification resource: " + name);
@@ -31,8 +37,8 @@ try
 	Check(version == dependencyLock.RootElement.GetProperty("nativeVersion").GetString(), "exact native version");
 	Check(sourceId == dependencyLock.RootElement.GetProperty("nativeSourceId").GetString(), "exact upstream source ID");
 	var modules = Native.LoadedSQLite();
-	Check(modules.Length == 1, "one loaded e_sqlite3 library");
-	Check(Path.GetFullPath(modules[0]).StartsWith(Path.GetFullPath(AppContext.BaseDirectory), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal), "native library loaded from owned output");
+	Check(modules.Length == 1, "one loaded e_sqlite3 library; observed: " + JsonSerializer.Serialize(modules));
+	Check(Native.IsWithinOutput(modules[0], AppContext.BaseDirectory), "native library loaded from owned output");
 	var runtimeId = RuntimeInformation.RuntimeIdentifier;
 	var nativeHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(modules[0]))).ToLowerInvariant();
 	Check(nativeHash == dependencyLock.RootElement.GetProperty("nativeExecutionSha256").GetProperty(runtimeId).GetString(), "exact executed native bytes");
@@ -101,7 +107,15 @@ static class Native
 	[DllImport("/usr/lib/libSystem.B.dylib")] static extern IntPtr _dyld_get_image_name(uint index);
 	internal static string[] LoadedSQLite()
 	{
-		if (OperatingSystem.IsMacOS()) return Enumerable.Range(0, (int)_dyld_image_count()).Select(i => Marshal.PtrToStringUTF8(_dyld_get_image_name((uint)i))!).Where(p => p.EndsWith("/libe_sqlite3.dylib", StringComparison.Ordinal)).ToArray();
-		return Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Select(m => m.FileName).Where(p => p.EndsWith("e_sqlite3.dll", StringComparison.OrdinalIgnoreCase)).ToArray();
+		if (OperatingSystem.IsMacOS()) return SelectSQLite(Enumerable.Range(0, (int)_dyld_image_count()).Select(i => Marshal.PtrToStringUTF8(_dyld_get_image_name((uint)i))!), false);
+		return SelectSQLite(Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Select(m => m.FileName), true);
+	}
+	internal static string[] SelectSQLite(IEnumerable<string> paths, bool windows) => paths.Where(p =>
+		string.Equals(Path.GetFileName(windows ? p.Replace('\\', '/') : p), windows ? "e_sqlite3.dll" : "libe_sqlite3.dylib",
+			windows ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)).ToArray();
+	internal static bool IsWithinOutput(string module, string output)
+	{
+		var relative = Path.GetRelativePath(Path.GetFullPath(output), Path.GetFullPath(module));
+		return relative != "." && relative != ".." && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal) && !Path.IsPathRooted(relative);
 	}
 }

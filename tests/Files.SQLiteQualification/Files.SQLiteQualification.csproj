@@ -12,6 +12,7 @@
   <Import Project="../../distribution/FileQuay.SQLite.props" />
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="NativeEvidenceSelfTest.cs" />
     <EmbeddedResource Include="../../distribution/sqlite-dependencies.lock.json" LogicalName="sqlite-dependencies.lock.json" />
     <EmbeddedResource Include="../../src/Files.App/Utils/Cloud/Detector/GoogleDriveCloudDetector.cs" LogicalName="GoogleDriveCloudDetector.cs" />
     <EmbeddedResource Include="../../src/Files.App/Utils/Cloud/Detector/SynologyDriveCloudDetector.cs" LogicalName="SynologyDriveCloudDetector.cs" />
