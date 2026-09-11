@@ -24,7 +24,7 @@
     <!-- Note, 0.31 causes issues with repos cloned via ssh -->
     <PackageVersion Include="LibGit2Sharp" Version="0.30.0" />
     <PackageVersion Include="MessageFormat" Version="7.1.3" />
-    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="[10.0.2]" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.2" />
@@ -33,7 +33,8 @@
     <PackageVersion Include="OwlCore.Storage" Version="0.14.0.999" />
     <PackageVersion Include="SevenZipSharp" Version="1.0.3" />
     <PackageVersion Include="SharpZipLib" Version="1.4.2" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
+    <PackageVersion Include="SQLitePCLRaw.config.e_sqlite3" Version="[3.0.5]" />
+    <PackageVersion Include="SQLite" Version="[3.53.4]" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
     <PackageVersion Include="Microsoft.Graphics.Win2D" Version="1.3.2" />
     <PackageVersion Include="TagLibSharp" Version="2.3.0" />

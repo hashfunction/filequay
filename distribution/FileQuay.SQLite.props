@@ -1,0 +1,25 @@
+<!-- Copyright (c) Trieflow LLC. Licensed under the MIT License. -->
+<Project>
+  <PropertyGroup><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile></PropertyGroup>
+  <ItemGroup>
+    <!-- Shared by the app and real SQLite qualification: no second provider selection. -->
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" />
+    <PackageReference Include="SQLitePCLRaw.config.e_sqlite3" />
+    <PackageReference Include="SQLite" />
+    <!-- Retain the pinned input bytes for the four managed SQLite assemblies. -->
+    <PublishReadyToRunExclude Include="Microsoft.Data.Sqlite.dll;SQLitePCLRaw.batteries_v2.dll;SQLitePCLRaw.core.dll;SQLitePCLRaw.provider.e_sqlite3.dll" />
+    <Content Include="$(MSBuildThisFileDirectory)sqlite-dependencies.lock.json" Link="Licenses/SQLite/sqlite-dependencies.lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(MSBuildThisFileDirectory)licenses/SQLite/**" Link="Licenses/SQLite/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <!-- SDK 10.0.401 ignores PublishReadyToRunExclude in composite mode.
+       Keep these assemblies as compiler references without rewriting their pinned bytes.
+       _PrepareForReadyToRunCompilation copies this metadata after its dependencies run. -->
+  <Target Name="PreserveFileQuaySQLiteAssemblyBytes" BeforeTargets="_PrepareForReadyToRunCompilation">
+    <ItemGroup>
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)"
+          Condition="'%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'Microsoft.Data.Sqlite.dll' or '%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'SQLitePCLRaw.batteries_v2.dll' or '%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'SQLitePCLRaw.core.dll' or '%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'SQLitePCLRaw.provider.e_sqlite3.dll'">
+        <ReferenceOnly>true</ReferenceOnly>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>

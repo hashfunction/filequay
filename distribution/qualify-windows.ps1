@@ -27,10 +27,15 @@ Invoke-Checked python @('-m','unittest','discover','-s','tests/packaging','-v')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-helpers.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','PreinstalledFramework')
+Invoke-Checked dotnet @('publish','tests/Files.SQLiteQualification/Files.SQLiteQualification.csproj','--framework','net10.0-windows10.0.26100.0','--configuration','Release','--runtime','win-x64','--self-contained','false','--output','artifacts/sqlite-qualification','-p:RestoreLockedMode=true')
+& ./artifacts/sqlite-qualification/Files.SQLiteQualification.exe | Set-Content artifacts/qualification/sqlite-execution.json -Encoding utf8NoBOM
+if ($LASTEXITCODE -ne 0) { throw "Actual Windows SQLite qualification failed with $LASTEXITCODE" }
 Invoke-Checked $msbuild @('src/Files.App/Files.App.csproj','-t:Build','-p:Configuration=Release','-p:Platform=x64','-p:AppxBundlePlatforms=x64','-p:AppxBundle=Never','-p:GenerateAppxPackageOnBuild=true','-p:FileQuayCIQualification=true','-p:UapAppxPackageBuildMode=SideloadOnly','-p:AppxPackageDir=artifacts/appx/','-p:AppxPackageSigningEnabled=false','-v:minimal')
 $mainPackages = @(Get-ChildItem -Recurse -File -Include '*.msix','*.appx' | Where-Object { $_.FullName -notmatch '[\\/]Dependencies[\\/]' })
 if ($mainPackages.Count -ne 1) { throw "Expected one main package; found $($mainPackages.Count)." }
 ./distribution/verify-package.ps1 -PackagePath $mainPackages[0].FullName -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' -OutputDirectory (Join-Path (Get-Location) 'artifacts/validated-package')
+$sqliteAssets = Get-Content src/Files.App/obj/project.assets.json -Raw | ConvertFrom-Json
+Invoke-Checked python @('distribution/verify-sqlite-assets.py','--assets','src/Files.App/obj/project.assets.json','--package-cache',$sqliteAssets.project.restore.packagesPath,'--package-root','artifacts/validated-package','--output','artifacts/qualification/sqlite-package-assets.json')
 Copy-Item artifacts/validated-package.files.json,artifacts/validated-package.validation.json artifacts/qualification/
 Get-ChildItem artifacts/validated-package -Recurse -File | Where-Object { $_.Name -like '*.runtimeconfig.json' -or $_.Name -like '*.deps.json' } | ForEach-Object {
   $relative = [IO.Path]::GetRelativePath((Join-Path (Get-Location) 'artifacts/validated-package'), $_.FullName)

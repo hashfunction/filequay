@@ -46,6 +46,7 @@
     </PropertyGroup>
 
     <Import Project="..\..\distribution\FileQuay.Runtime.props" />
+    <Import Project="..\..\distribution\FileQuay.SQLite.props" />
 
     <ItemGroup>
         <Manifest Include="app.manifest" />
@@ -92,7 +93,6 @@
         <PackageReference Include="FluentFTP" />
         <PackageReference Include="LibGit2Sharp" />
         <PackageReference Include="MessageFormat" />
-        <PackageReference Include="Microsoft.Data.Sqlite.Core" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Microsoft.Extensions.Hosting" />
         <PackageReference Include="Microsoft.Extensions.Logging" />
@@ -101,7 +101,6 @@
 
         <PackageReference Include="SevenZipSharp" />
         <PackageReference Include="SharpZipLib" />
-        <PackageReference Include="SQLitePCLRaw.bundle_green" />
         <PackageReference Include="Microsoft.WindowsAppSDK" />
         <PackageReference Include="Microsoft.Graphics.Win2D" />
         <PackageReference Include="TagLibSharp" />

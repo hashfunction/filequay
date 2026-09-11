@@ -79,7 +79,16 @@ namespace Files.App
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 			WinRT.ComWrappersSupport.InitializeComWrappers();
 #if FILEQUAY_CI_QUALIFICATION
-			if (Utils.Qualification.CiComActivationProbe.TryRun(GetCommandLineArgs(AppInstance.GetCurrent().GetActivatedEventArgs())))
+			// Broker activation supplies its argument string without an executable
+			// prefix. The normal terminal parser intentionally rejects that shape.
+			var ciActivation = AppInstance.GetCurrent().GetActivatedEventArgs();
+			string? ciArguments = ciActivation.Data switch
+			{
+				ILaunchActivatedEventArgs launch => launch.Arguments,
+				ICommandLineActivatedEventArgs command => command.Operation.Arguments,
+				_ => null
+			};
+			if (Utils.Qualification.CiComActivationProbe.TryRun(ciArguments))
 				return;
 #endif
 

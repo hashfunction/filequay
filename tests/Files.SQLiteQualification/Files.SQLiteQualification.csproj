@@ -1,0 +1,19 @@
+<!-- Copyright (c) Trieflow LLC. Licensed under the MIT License. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net10.0;net10.0-windows10.0.26100.0</TargetFrameworks>
+    <RuntimeIdentifiers>osx-arm64;win-x64</RuntimeIdentifiers>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <Import Project="../../distribution/FileQuay.SQLite.props" />
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <EmbeddedResource Include="../../distribution/sqlite-dependencies.lock.json" LogicalName="sqlite-dependencies.lock.json" />
+    <EmbeddedResource Include="../../src/Files.App/Utils/Cloud/Detector/GoogleDriveCloudDetector.cs" LogicalName="GoogleDriveCloudDetector.cs" />
+    <EmbeddedResource Include="../../src/Files.App/Utils/Cloud/Detector/SynologyDriveCloudDetector.cs" LogicalName="SynologyDriveCloudDetector.cs" />
+  </ItemGroup>
+</Project>

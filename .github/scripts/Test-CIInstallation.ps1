@@ -149,8 +149,15 @@ namespace FileQuayQualification {
     $record.probe_process_id = $probeId
     $deadline = (Get-Date).AddSeconds(45)
     while (-not (Test-Path -LiteralPath ($probeStem + '.json')) -and (Get-Date) -lt $deadline) {
+        $probe.Refresh()
         if ($probe.HasExited) { throw 'The packaged probe exited before recording its COM activation result.' }
         Start-Sleep -Milliseconds 100
+    }
+    if (-not (Test-Path -LiteralPath ($probeStem + '.json'))) {
+        $probe.Refresh()
+        $record.probe_timeout_window_title = $probe.MainWindowTitle
+        $record.probe_timeout_process_alive = -not $probe.HasExited
+        throw 'The installed client did not record its CI COM probe result within 45 seconds; inspect activation arguments and probe logs.'
     }
     $activation = Get-Content -LiteralPath ($probeStem + '.json') -Raw | ConvertFrom-Json
     $record.com_activation = $activation

@@ -373,6 +373,14 @@ permanent authorization for you to choose that version for the
 Library.
 ```
 
+## FileQuay SQLite composition
+
+FileQuay uses Microsoft.Data.Sqlite.Core 10.0.2, SQLitePCLRaw configuration/core/provider 3.0.5, and the native SQLite 3.53.4 package. SQLitePCLRaw retains its Apache-2.0 license and upstream NOTICE; SQLite's deliverable code is public domain. Exact component/source hashes are recorded in `Licenses/SQLite/sqlite-dependencies.lock.json`. The original notices are included alongside that record. Native vendor build reproducibility remains unverified.
+
+- SQLite source: https://sqlite.org/2026/sqlite-src-3530400.zip
+- SQLitePCLRaw core/provider: https://github.com/ericsink/SQLitePCL.raw/tree/ed046114d5a30534e13294d94d78eb73de896ad4
+- SQLitePCLRaw configuration: https://github.com/ericsink/SQLitePCL.raw/tree/96043b8cff323f21919df86a431c136655d81b4a
+
 ## SQLitePCLRaw
 
 **Source**: [https://github.com/ericsink/SQLitePCL.raw](https://github.com/ericsink/SQLitePCL.raw)

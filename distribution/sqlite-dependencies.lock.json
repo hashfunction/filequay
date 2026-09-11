@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "nativeVersion": "3.53.4",
+  "nativeSourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "nativeBuildProvenance": "open: vendor compiler/build recipe not reproduced",
+  "packages": {
+    "Microsoft.Data.Sqlite.Core": {
+      "version": "10.0.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.data.sqlite.core/10.0.2/microsoft.data.sqlite.core.10.0.2.nupkg",
+      "archiveSha256": "82902b5e48c54a4eb6340f3c658c167349b8ff652c27277dffc4c202c23cbb8c",
+      "assetKind": "runtime",
+      "asset": "lib/net8.0/Microsoft.Data.Sqlite.dll",
+      "assetSha256": "df6ba270c6320e672c40c616cd5c558365ce87630439346f74f5398db3cb9fac",
+      "packagedName": "Microsoft.Data.Sqlite.dll",
+      "nugetContentHash": "/8ubtRdyED4qyxmL1CAu3UZZUEgc9l0dPCItW5tlOkYlKOb3QNhjGuEeb7uTKAqm8L7kwFOx1fCsndiylrzZAg=="
+    },
+    "SQLitePCLRaw.config.e_sqlite3": {
+      "version": "3.0.5",
+      "url": "https://api.nuget.org/v3-flatcontainer/sqlitepclraw.config.e_sqlite3/3.0.5/sqlitepclraw.config.e_sqlite3.3.0.5.nupkg",
+      "archiveSha256": "1c3908111a4a14e898839836bea9c4da390edc669b297c404de92422abee3ab1",
+      "assetKind": "runtime",
+      "asset": "lib/net8.0/SQLitePCLRaw.batteries_v2.dll",
+      "assetSha256": "1ee3c6ff4d39171690d6ff6f84b4d876ed038ca28e39bb6e74995f52d2aacf8b",
+      "packagedName": "SQLitePCLRaw.batteries_v2.dll",
+      "nugetContentHash": "aSk8WE5tF2MybESMgtZAEyMVCAWA0nBqOMc48HFoa9UoSdtm3goDXVzNRnefeKIwE6bV9NaNXptn1F9ReMQI0Q=="
+    },
+    "SQLitePCLRaw.core": {
+      "version": "3.0.5",
+      "url": "https://api.nuget.org/v3-flatcontainer/sqlitepclraw.core/3.0.5/sqlitepclraw.core.3.0.5.nupkg",
+      "archiveSha256": "7476b4b8e067d88c4cb598a31893b511037b88e05c28d524f4b4433fe9f69048",
+      "assetKind": "runtime",
+      "asset": "lib/net8.0/SQLitePCLRaw.core.dll",
+      "assetSha256": "b72c9dfe1479a568d6b84e249eaf949e76c757888f8056fb6ddb9c0480e0dd25",
+      "packagedName": "SQLitePCLRaw.core.dll",
+      "nugetContentHash": "k81AYXXRCw3Zj8rOhyBoCsx/U97KYDFI2CSKr/ijl5BwpsW/hX/4kBiDmerFaoust8nxBwa0IHQFw8MmSHRtnQ=="
+    },
+    "SQLitePCLRaw.provider.e_sqlite3": {
+      "version": "3.0.5",
+      "url": "https://api.nuget.org/v3-flatcontainer/sqlitepclraw.provider.e_sqlite3/3.0.5/sqlitepclraw.provider.e_sqlite3.3.0.5.nupkg",
+      "archiveSha256": "10c6d3daac432bb382dda06c35e5f7ffcce3618792141bd91656527f06ef5b25",
+      "assetKind": "runtime",
+      "asset": "lib/net8.0-windows7.0/SQLitePCLRaw.provider.e_sqlite3.dll",
+      "assetSha256": "6d6cb90de643c6b4b15f973d1e304f7dd91e8bf053c35013e4ea095d85b53655",
+      "packagedName": "SQLitePCLRaw.provider.e_sqlite3.dll",
+      "nugetContentHash": "um8YSWduhhuskTG2bHfZrBqMNQOydfU8pcseT+cu5RivOGyoUbCrGXxgoRNTmRYw2VbMWnEZVVFcneZT/5dsBg=="
+    },
+    "SQLite": {
+      "version": "3.53.4",
+      "url": "https://api.nuget.org/v3-flatcontainer/sqlite/3.53.4/sqlite.3.53.4.nupkg",
+      "archiveSha256": "5641eb58e88429fd73d09fc294bdaa610a6e99099f4141de912a5e4aa6d773ca",
+      "assetKind": "native",
+      "asset": "runtimes/win-x64/native/e_sqlite3.dll",
+      "assetSha256": "6ad8e149f8ce3ed3716402b4b3a2268ebbdc7b64391b5fafed747e03bb1b9418",
+      "packagedName": "e_sqlite3.dll",
+      "nugetContentHash": "KN7jeWqgUPeBRe1FlcpZURzxomuKKEKHmBBQfg+Nx7NkY1LjKhzHvH+3ASkNvhayESE34nMBinL9CV21JfPRJw=="
+    }
+  },
+  "notices": {
+    "SQLitePCLRaw-LICENSE.TXT": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "SQLite-LICENSE.txt": "99464c3a88df7b708ce59e462cdcb85f72dfc9b1335b4fcc68be56131b634b95",
+    "SQLitePCLRaw-NOTICE.TXT": "5a1ab2f670f86dd2f8d42e40a8459cc278ca6d5225a7e2a5fa3ea0184396a6d9"
+  },
+  "nativeExecutionSha256": {
+    "osx-arm64": "2b27f45233818ae11d97016ca2a16dffcf63a53c46f60bcd52b342fc187b0c83",
+    "win-x64": "6ad8e149f8ce3ed3716402b4b3a2268ebbdc7b64391b5fafed747e03bb1b9418"
+  },
+  "sourceArchives": [
+    {
+      "component": "SQLite full source",
+      "url": "https://sqlite.org/2026/sqlite-src-3530400.zip",
+      "sha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b",
+      "commit": "bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+    },
+    {
+      "component": "SQLite amalgamation",
+      "url": "https://sqlite.org/2026/sqlite-amalgamation-3530400.zip",
+      "sha256": "1e71ddf93849c6a6ecf58b827c0692073d2dd7ee40196158068f7b29f422e87d",
+      "sqlite3CSha3_256": "67f423e9ebbbdc473cbc4772c872ee6b89f31fde4ed0279a5c25d5f65c043a16"
+    },
+    {
+      "component": "SQLitePCLRaw core/provider",
+      "url": "https://codeload.github.com/ericsink/SQLitePCL.raw/tar.gz/ed046114d5a30534e13294d94d78eb73de896ad4",
+      "sha256": "ddffa96a244998223773aec90c764223d041aef65d7208a6551eafb65ffce914",
+      "commit": "ed046114d5a30534e13294d94d78eb73de896ad4"
+    },
+    {
+      "component": "SQLitePCLRaw configuration",
+      "url": "https://codeload.github.com/ericsink/SQLitePCL.raw/tar.gz/96043b8cff323f21919df86a431c136655d81b4a",
+      "sha256": "c60d8d125479a9c6a28bb4295a515695572d0282f20404a824a87bb8217bea77",
+      "commit": "96043b8cff323f21919df86a431c136655d81b4a"
+    }
+  ]
+}
