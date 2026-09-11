@@ -40,7 +40,7 @@ class ServerRuntimeConfigurationTests(unittest.TestCase):
             result = subprocess.run([os.environ.get('FILEQUAY_DOTNET', 'dotnet'), 'msbuild', str(harness),
                 '-t:GenerateBuildRuntimeConfigurationFiles', '-nologo', '-v:quiet'], cwd=SOURCE, capture_output=True, text=True)
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-            self.assertEqual(['Files.App.Server.runtimeconfig.json', str(root / 'Files.App.Server.runtimeconfig.json')],
+            self.assertEqual(['Files.App.Server.runtimeconfig.json', (root / 'Files.App.Server.runtimeconfig.json').as_posix()],
                              output.read_text().replace('\\', '/').splitlines())
 
 
