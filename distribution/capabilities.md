@@ -19,3 +19,7 @@ manifest on Windows. Do not restore capabilities based on assumption alone.
 The out-of-process Files.App.Server COM activation remains an internal code name
 required by existing app-instance monitoring. Package identity and visible product
 marks are independent. Explorer/default-dialog registration is excluded.
+
+## Required owned activation protocol
+
+Source inspection found that new-window, dragged-tab, restart and tray activation use a URI protocol. Qualification explicitly passes `-Protocol filequay` and all active launcher entrypoints now use `filequay:`. This narrowly retained declaration preserves existing core navigation; it does not replace Explorer, register file associations, add an execution alias, or start the app at login. The configurator still requires an explicit protocol argument. Entry points: `NavigationHelpers`, `BaseOpenInNewWindowAction`, `GeneralViewModel`, `SystemTrayIcon` and crash restart in `AppLifecycleHelper`; routing remains in `MainWindow.InitializeApplicationAsync`. Malformed empty protocol queries are ignored. Test new windows, tab tear-off and restart on the installed Windows package.

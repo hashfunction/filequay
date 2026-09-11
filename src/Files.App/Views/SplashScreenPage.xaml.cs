@@ -11,13 +11,7 @@ namespace Files.App.Views
 	/// </summary>
 	public sealed partial class SplashScreenPage : Page
 	{
-		private string BranchLabel =>
-			AppLifecycleHelper.AppEnvironment switch
-			{
-				AppEnvironment.Dev => "Dev",
-				AppEnvironment.SideloadPreview or AppEnvironment.StorePreview => "Preview",
-				_ => string.Empty,
-			};
+		private string BranchLabel => string.Empty;
 
 		public SplashScreenPage()
 		{

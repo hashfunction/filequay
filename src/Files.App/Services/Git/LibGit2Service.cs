@@ -1,6 +1,5 @@
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -8,9 +7,8 @@ namespace Files.App.Services.Git;
 
 internal sealed partial class LibGit2Service // : IVersionControl
 {
-	private const string GIT_RESOURCE_NAME = "Files:https://github.com";
+	private const string GIT_RESOURCE_NAME = "FileQuay:https://github.com";
 	private const string GIT_RESOURCE_USERNAME = "Personal Access Token";
-	private const string CLIENT_ID_SECRET = Constants.AutomatedWorkflowInjectionKeys.GitHubClientId;
 
 	private const int END_OF_ORIGIN_PREFIX = 7;
 	private const int MAX_NUMBER_OF_BRANCHES = 30;
@@ -18,9 +16,6 @@ internal sealed partial class LibGit2Service // : IVersionControl
 	private static readonly SemaphoreSlim GitOperationSemaphore = new(1, 1);
 	private static readonly FetchOptions _fetchOptions = new() { Prune = true };
 	private static readonly PullOptions _pullOptions = new();
-	private static readonly string _clientId = AppLifecycleHelper.AppEnvironment is AppEnvironment.Dev
-		? string.Empty
-		: CLIENT_ID_SECRET;
 
 	private bool _isExecutingGitAction;
 
@@ -186,7 +181,6 @@ internal sealed partial class LibGit2Service // : IVersionControl
 
 	public async Task<bool> Checkout(string? repositoryPath, string? branch)
 	{
-		SentrySdk.Metrics.EmitCounter("Triggered git checkout", 1);
 
 		if (string.IsNullOrWhiteSpace(repositoryPath) || !IsRepoValid(repositoryPath))
 			return false;
@@ -283,7 +277,6 @@ internal sealed partial class LibGit2Service // : IVersionControl
 
 	public async Task CreateNewBranchAsync(string repositoryPath, string activeBranch)
 	{
-		SentrySdk.Metrics.EmitCounter("Triggered create git branch", 1);
 
 		var viewModel = new AddBranchDialogViewModel(repositoryPath, activeBranch);
 		var loadBranchesTask = viewModel.LoadBranches();
@@ -313,7 +306,6 @@ internal sealed partial class LibGit2Service // : IVersionControl
 
 	public async Task DeleteBranchAsync(string? repositoryPath, string? activeBranch, string? branchToDelete)
 	{
-		SentrySdk.Metrics.EmitCounter("Triggered delete git branch", 1);
 
 		if (string.IsNullOrWhiteSpace(repositoryPath) ||
 			string.IsNullOrWhiteSpace(activeBranch) ||

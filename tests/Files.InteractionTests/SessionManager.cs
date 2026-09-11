@@ -14,11 +14,7 @@ namespace Files.InteractionTests
 	public sealed class SessionManager
 	{
 		private const string WindowsApplicationDriverUrl = "http://127.0.0.1:4723";
-		private static string[] FilesAppIDs = [
-			"FilesDev_ykqwq8d6ps0ag!App", // Needed to run on the local end and/or the CI
-			"FilesDev_9bhem8es8z4gp!App", // Needed to run on the local end and/or the CI
-			"FilesDev_dwm5abbcs5pn0!App", // Needed to run on the CI
-		];
+		private static string[] FilesAppIDs = [Environment.GetEnvironmentVariable("FILEQUAY_TEST_APP_ID") ?? throw new InvalidOperationException("Set FILEQUAY_TEST_APP_ID to the installed qualification package AUMID.")];
 
 		private static uint appIdIndex = 0;
 

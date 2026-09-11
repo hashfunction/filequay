@@ -57,13 +57,11 @@ namespace Files.App.Actions
 				await confirmationDialog.TryShowAsync() is ContentDialogResult.Primary)
 			{
 				var banner = StatusCenterHelper.AddCard_EmptyRecycleBin(ReturnResult.InProgress);
+				using var completion = StatusCenterViewModel.TrackCompletion(banner);
 
 				bool result = await Task.Run(StorageTrashBinService.EmptyTrashBin);
 
-				StatusCenterViewModel.RemoveItem(banner);
-
-				// Post a status based on the result
-				StatusCenterHelper.AddCard_EmptyRecycleBin(result ? ReturnResult.Success : ReturnResult.Failed);
+				StatusCenterViewModel.CompleteItem(banner, result ? ReturnResult.Success : ReturnResult.Failed);
 			}
 		}
 

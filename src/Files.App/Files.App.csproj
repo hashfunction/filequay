@@ -6,7 +6,7 @@
         <PublishProfile>Properties\PublishProfiles\win-$(Platform).pubxml</PublishProfile>
         <TargetFramework>$(WindowsTargetFramework)</TargetFramework>
         <OutputType>WinExe</OutputType>
-        <AssemblyName>Files</AssemblyName>
+        <AssemblyName>FileQuay</AssemblyName>
         <DefaultLanguage>en-US</DefaultLanguage>
         <AppxBundleAutoResourcePackageQualifiers>Scale|DXFeatureLevel</AppxBundleAutoResourcePackageQualifiers>
         <AppxDefaultResourceQualifiers>Language=en-US;af;ar;be-BY;bg;ca;cs-CZ;da;de-DE;el;en-GB;es-ES;es-419;fa-IR;fi-FI;fil-PH;fr-FR;he-IL;hi-IN;hr-HR;hu-HU;hy-AM;id-ID;it-IT;ja-JP;ka;km-KH;ko-KR;lt-LT;lv-LV;ms-MY;nb-NO;nl-NL;pl-PL;pt-BR;pt-PT;ro-RO;ru-RU;sk-SK;sq-AL;sr-Cyrl;sv-SE;ta;th-TH;tr-TR;uk-UA;vi;zh-Hans;zh-Hant</AppxDefaultResourceQualifiers>
@@ -41,19 +41,15 @@
     <PropertyGroup>
         <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     </PropertyGroup>
-  
+
     <ItemGroup>
         <Manifest Include="app.manifest" />
+        <Content Remove="Assets\FilesOpenDialog\**;Assets\AppTiles\**" />
+        <Compile Remove="Utils\Logger\SentryLogger.cs;Utils\Logger\SentryLoggerProvider.cs;Helpers\Application\ActiveSessionTracker.cs;Services\App\AppUpdateSideloadService.cs;Services\App\AppUpdateStoreService.cs" />
+        <Content Include="..\..\.github\NOTICE.md" Link="NOTICE.md" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="..\..\LICENSE-MIT" Link="LICENSE-MIT" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="..\..\LICENSE-MPL" Link="LICENSE-MPL" CopyToOutputDirectory="PreserveNewest" />
         <Content Update="Assets\Resources\**">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Update="Assets\FilesOpenDialog\SetFilesAsDefault.reg">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Update="Assets\FilesOpenDialog\UnsetFilesAsDefault.reg">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Update="Assets\FilesOpenDialog\Files.App.Launcher.exe">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <Content Include="7z.dll" Condition="'$(Platform)' == 'x86'">
@@ -97,7 +93,7 @@
         <PackageReference Include="Microsoft.Extensions.Logging" />
         <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" />
-        <PackageReference Include="Sentry" />
+
         <PackageReference Include="SevenZipSharp" />
         <PackageReference Include="SharpZipLib" />
         <PackageReference Include="SQLitePCLRaw.bundle_green" />
@@ -137,7 +133,7 @@
 
     <ItemGroup>
         <TrimmerRootAssembly Include="Files.App.BackgroundTasks" />
-        <TrimmerRootAssembly Include="Files" />
+        <TrimmerRootAssembly Include="FileQuay" />
         <TrimmerRootAssembly Include="Files.App.Storage" />
         <TrimmerRootAssembly Include="Files.Core" />
         <TrimmerRootAssembly Include="Files.Core.Storage" />

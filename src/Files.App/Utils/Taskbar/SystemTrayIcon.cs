@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Files Community
 // Licensed under the MIT License.
 
-using Sentry;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using Windows.ApplicationModel;
@@ -274,7 +273,7 @@ namespace Files.App.Utils.Taskbar
 			{
 				_lastLaunchDate = DateTime.Now;
 
-				_ = Launcher.LaunchUriAsync(new Uri("files-dev:"));
+				_ = Launcher.LaunchUriAsync(new Uri("filequay:"));
 			}
 			else
 				MainWindow.Instance.Activate();
@@ -289,7 +288,7 @@ namespace Files.App.Utils.Taskbar
 		{
 			Microsoft.Windows.AppLifecycle.AppInstance.Restart("");
 
-			var pool = new Semaphore(0, 1, $"Files-{AppLifecycleHelper.AppEnvironment}-Instance", out var isNew);
+			var pool = new Semaphore(0, 1, $"FileQuay-{Windows.ApplicationModel.Package.Current.Id.Name}-Instance", out var isNew);
 			if (!isNew)
 				pool.Release();
 
@@ -304,7 +303,7 @@ namespace Files.App.Utils.Taskbar
 
 				App.AppModel.ForceProcessTermination = true;
 
-				var pool = new Semaphore(0, 1, $"Files-{AppLifecycleHelper.AppEnvironment}-Instance", out var isNew);
+				var pool = new Semaphore(0, 1, $"FileQuay-{Windows.ApplicationModel.Package.Current.Id.Name}-Instance", out var isNew);
 				if (!isNew)
 					pool.Release();
 				else
@@ -312,14 +311,7 @@ namespace Files.App.Utils.Taskbar
 			}
 			catch (Exception ex)
 			{
-				SentrySdk.CaptureException(ex, scope =>
-				{
-					scope.Level = SentryLevel.Fatal;
-					scope.SetTag("location", "SystemTrayIcon.OnQuitClicked");
-					scope.SetExtra("AppModelIsNull", App.AppModel is null);
-					scope.SetExtra("AppCurrentIsNull", App.Current is null);
-					scope.SetExtra("ProgramPoolIsNull", Program.Pool is null);
-				});
+				App.Logger.LogError(ex, "Error closing FileQuay.");
 
 				// The user requested quit; force termination as a last resort
 				Environment.Exit(0);

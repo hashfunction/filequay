@@ -1,9 +1,10 @@
-﻿using System.Net.Http;
+﻿// FileQuay does not contact an upstream update or release-note service.
 
 namespace Files.App.Services
 {
 	internal sealed partial class DummyUpdateService : ObservableObject, IUpdateService
 	{
+		public Task CheckForReleaseNotesAsync() => Task.CompletedTask;
 		public bool IsUpdateAvailable => false;
 
 		public bool IsUpdating => false;
@@ -31,20 +32,6 @@ namespace Files.App.Services
 			return Task.CompletedTask;
 		}
 
-		public async Task CheckForReleaseNotesAsync()
-		{
-			using var client = new HttpClient();
-
-			try
-			{
-				var response = await client.GetAsync(Constants.ExternalUrl.ReleaseNotesUrl);
-				AreReleaseNotesAvailable = response.IsSuccessStatusCode;
-			}
-			catch
-			{
-				AreReleaseNotesAvailable = false;
-			}
-		}
 
 		public Task DownloadMandatoryUpdatesAsync()
 		{

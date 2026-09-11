@@ -68,6 +68,7 @@ namespace Files.App.Services
 				archivePath.CreateEnumerable(),
 				ReturnResult.InProgress,
 				compressionModel.Sources.Count());
+			using var completion = StatusCenterViewModel.TrackCompletion(banner);
 
 			compressionModel.Progress = banner.ProgressEventSource;
 			compressionModel.CancellationToken = banner.CancellationToken;
@@ -84,15 +85,10 @@ namespace Files.App.Services
 				inProgressArchives.TryRemove(archivePath, out _);
 			}
 
-			StatusCenterViewModel.RemoveItem(banner);
 
 			if (isSuccess)
 			{
-				StatusCenterHelper.AddCard_Compress(
-					compressionModel.Sources,
-					archivePath.CreateEnumerable(),
-					ReturnResult.Success,
-					compressionModel.Sources.Count());
+				StatusCenterViewModel.CompleteItem(banner, ReturnResult.Success);
 
 				CompressionCompleted?.Invoke(this, archivePath);
 			}
@@ -100,13 +96,9 @@ namespace Files.App.Services
 			{
 				PInvoke.DeleteFileFromApp(archivePath);
 
-				StatusCenterHelper.AddCard_Compress(
-					compressionModel.Sources,
-					archivePath.CreateEnumerable(),
-					compressionModel.CancellationToken.IsCancellationRequested || compressionModel.IsCancelled
+				StatusCenterViewModel.CompleteItem(banner, compressionModel.CancellationToken.IsCancellationRequested || compressionModel.IsCancelled
 						? ReturnResult.Cancelled
-						: ReturnResult.Failed,
-					compressionModel.Sources.Count());
+						: ReturnResult.Failed);
 			}
 
 			return isSuccess;
@@ -139,6 +131,7 @@ namespace Files.App.Services
 				archiveFilePath.CreateEnumerable(),
 				destinationFolderPath.CreateEnumerable(),
 				ReturnResult.InProgress);
+			using var completion = StatusCenterViewModel.TrackCompletion(statusCard);
 
 			// Check if the decompress operation canceled
 			if (statusCard.CancellationToken.IsCancellationRequested)
@@ -210,27 +203,7 @@ namespace Files.App.Services
 			}
 			finally
 			{
-				// Remove the in-progress status card
-				StatusCenterViewModel.RemoveItem(statusCard);
-
-				if (isSuccess)
-				{
-					// Successful
-					StatusCenterHelper.AddCard_Decompress(
-						archiveFilePath.CreateEnumerable(),
-						destinationFolderPath.CreateEnumerable(),
-						ReturnResult.Success);
-				}
-				else
-				{
-					// Error
-					StatusCenterHelper.AddCard_Decompress(
-						archiveFilePath.CreateEnumerable(),
-						destinationFolderPath.CreateEnumerable(),
-						statusCard.CancellationToken.IsCancellationRequested
-							? ReturnResult.Cancelled
-							: ReturnResult.Failed);
-				}
+				StatusCenterViewModel.CompleteItem(statusCard, isSuccess ? ReturnResult.Success : ReturnResult.Failed);
 			}
 
 			return isSuccess;
@@ -253,6 +226,7 @@ namespace Files.App.Services
 				archiveFilePath.CreateEnumerable(),
 				destinationFolderPath.CreateEnumerable(),
 				ReturnResult.InProgress);
+			using var completion = StatusCenterViewModel.TrackCompletion(statusCard);
 
 			// Check if the decompress operation canceled
 			if (statusCard.CancellationToken.IsCancellationRequested)
@@ -327,27 +301,7 @@ namespace Files.App.Services
 			}
 			finally
 			{
-				// Remove the in-progress status card
-				StatusCenterViewModel.RemoveItem(statusCard);
-
-				if (isSuccess)
-				{
-					// Successful
-					StatusCenterHelper.AddCard_Decompress(
-						archiveFilePath.CreateEnumerable(),
-						destinationFolderPath.CreateEnumerable(),
-						ReturnResult.Success);
-				}
-				else
-				{
-					// Error
-					StatusCenterHelper.AddCard_Decompress(
-						archiveFilePath.CreateEnumerable(),
-						destinationFolderPath.CreateEnumerable(),
-						statusCard.CancellationToken.IsCancellationRequested
-							? ReturnResult.Cancelled
-							: ReturnResult.Failed);
-				}
+				StatusCenterViewModel.CompleteItem(statusCard, isSuccess ? ReturnResult.Success : ReturnResult.Failed);
 
 				if (zipFile != null)
 				{

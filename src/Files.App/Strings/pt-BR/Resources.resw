@@ -313,7 +313,7 @@
     <value>Fixar na barra lateral</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>Bem-vindo ao Files!</value>
+    <value>Bem-vindo ao FileQuay!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>Conceder permissão</value>
@@ -609,7 +609,7 @@
     <value>{0} - atalho</value>
   </data>
   <data name="ExceptionNotificationBody" xml:space="preserve">
-    <value>O Files encontrou um problema para o qual os desenvolvedores ainda não se prepararam.</value>
+    <value>O FileQuay encontrou um problema para o qual os desenvolvedores ainda não se prepararam.</value>
   </data>
   <data name="ExceptionNotificationHeader" xml:space="preserve">
     <value>Algo deu errado!</value>
@@ -1833,10 +1833,10 @@
     <value>Enviar relatório de erro</value>
   </data>
   <data name="SettingsSetAsDefaultFileManager" xml:space="preserve">
-    <value>Definir o Files como o gerenciador de arquivos padrão</value>
+    <value>Definir o FileQuay como o gerenciador de arquivos padrão</value>
   </data>
   <data name="SettingsSetAsOpenDialog" xml:space="preserve">
-    <value>Usar o Files como diálogo para Abrir Arquivos</value>
+    <value>Usar o FileQuay como diálogo para Abrir Arquivos</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>Etiqueta</value>
@@ -1875,7 +1875,7 @@
     <value>Restaurar padrão</value>
   </data>
   <data name="OpenTabInExistingInstance" xml:space="preserve">
-    <value>Abrir aba na janela existente ao abrir o Files a partir de outro programa</value>
+    <value>Abrir aba na janela existente ao abrir o FileQuay a partir de outro programa</value>
   </data>
   <data name="StartupSettings" xml:space="preserve">
     <value>Configurações de inicialização</value>
@@ -1974,7 +1974,7 @@
     <value>Arquivos recentes</value>
   </data>
   <data name="SettingsOpenInLogin" xml:space="preserve">
-    <value>Executar o Files na inicialização do Windows</value>
+    <value>Executar o FileQuay na inicialização do Windows</value>
   </data>
   <data name="Attributes" xml:space="preserve">
     <value>Atributos</value>
@@ -2112,10 +2112,10 @@
     <value>Olá!</value>
   </data>
   <data name="ReviewFilesSubtitle" xml:space="preserve">
-    <value>Gostando do Files? Considere fazer uma avaliação na Microsoft Store.</value>
+    <value>Gostando do FileQuay? Considere fazer uma avaliação na Microsoft Store.</value>
   </data>
   <data name="SponsorSubtitle" xml:space="preserve">
-    <value>Gostando do Files? Por favor, considere apoiar o projeto no GitHub.</value>
+    <value>Gostando do FileQuay? Por favor, considere apoiar o projeto no GitHub.</value>
   </data>
   <data name="Sponsor" xml:space="preserve">
     <value>Patrocinador</value>
@@ -3404,7 +3404,7 @@
     <value>Digite o seguinte código no link abaixo para começar a trabalhar com repositórios GitHub.</value>
   </data>
   <data name="CannotReachGitHubError" xml:space="preserve">
-    <value>Files não pode acessar o GitHub neste momento.</value>
+    <value>FileQuay não pode acessar o GitHub neste momento.</value>
   </data>
   <data name="OpenInIDE" xml:space="preserve">
     <value>Abrir pasta no {0}</value>
@@ -3519,7 +3519,7 @@
     <value>Não mostrar novamente</value>
   </data>
   <data name="FilesRunningAsAdmin" xml:space="preserve">
-    <value>Files está sendo executado como administrador</value>
+    <value>FileQuay está sendo executado como administrador</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
     <value>Devido a uma limitação com Windows e WinAppSdk, arrastar e soltar não está disponível ao executar Arquivos como administrador. Se você deseja usar arrastar e soltar, você pode contornar essa limitação abrindo UAC (Controle de Conta do Usuário) no menu inicial e selecionando o terceiro nível e reiniciando o Windows. Caso contrário, você pode continuar usando Arquivos sem arrastar e soltar.</value>
@@ -3617,7 +3617,7 @@
     <value>itens</value>
   </data>
   <data name="CannotInitializeGitRepo" xml:space="preserve">
-    <value>O Files não pode inicializar este diretório como um repositório Git.</value>
+    <value>O FileQuay não pode inicializar este diretório como um repositório Git.</value>
   </data>
   <data name="ContributingArtist" xml:space="preserve">
     <value>Artista Contribuidor</value>
@@ -3885,7 +3885,7 @@
     <value>Nenhuma operação de arquivo em andamento</value>
   </data>
   <data name="OpenOnStartupDisabled" xml:space="preserve">
-    <value>A opção de abrir Files no Windows Startup não está disponível devido às configurações do sistema ou à política de grupo. Para habilitar novamente, abra a página de inicialização no Gerenciador de Tarefas.</value>
+    <value>A opção de abrir FileQuay no Windows Startup não está disponível devido às configurações do sistema ou à política de grupo. Para habilitar novamente, abra a página de inicialização no Gerenciador de Tarefas.</value>
   </data>
   <data name="FailedToRestore" xml:space="preserve">
     <value>Falha ao restaurar itens da Lixeira</value>
@@ -3981,10 +3981,10 @@
     <value>Editar permissões</value>
   </data>
   <data name="BackgroundRunningNotificationBody" xml:space="preserve">
-    <value>Files ainda está em execução em segundo plano para melhorar o desempenho da inicialização.</value>
+    <value>FileQuay ainda está em execução em segundo plano para melhorar o desempenho da inicialização.</value>
   </data>
   <data name="BackgroundRunningNotificationHeader" xml:space="preserve">
-    <value>Aonde o Files foi?</value>
+    <value>Aonde o FileQuay foi?</value>
   </data>
   <data name="QuestionsAndDiscussions" xml:space="preserve">
     <value>Perguntas &amp; discussões</value>
@@ -4255,7 +4255,7 @@
     <value>Vertical</value>
   </data>
   <data name="ShowSystemTrayIcon" xml:space="preserve">
-    <value>Mostrar ícone do Files na bandeja do sistema</value>
+    <value>Mostrar ícone do FileQuay na bandeja do sistema</value>
   </data>
   <data name="CPUThreads" xml:space="preserve">
     <value>Núcleos da CPU</value>

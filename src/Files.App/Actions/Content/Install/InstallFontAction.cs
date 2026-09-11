@@ -41,15 +41,14 @@ namespace Files.App.Actions
 			if (context.ShellPage?.ShellViewModel?.WorkingDirectory is not { } workingDirectory)
 				return;
 
-			var banner = StatusCenterHelper.AddCard_InstallFont(workingDirectory.CreateEnumerable(), ReturnResult.InProgress, context.SelectedItems.Count);
+			var paths = context.SelectedItems.Select(item => item.ItemPath!).ToArray();
+			var banner = StatusCenterHelper.AddCard_InstallFont(paths, ReturnResult.InProgress, paths.Length);
+			using var completion = StatusCenterViewModel.TrackCompletion(banner);
 			banner.IsCancelable = false;
 
-			var paths = context.SelectedItems.Select(item => item.ItemPath!).ToArray();
 			await Win32Helper.InstallFontsAsync(paths, false);
 
-			StatusCenterViewModel.RemoveItem(banner);
-			var currentWorkingDirectory = context.ShellPage.GetRequiredShellViewModel().WorkingDirectory!;
-			StatusCenterHelper.AddCard_InstallFont(currentWorkingDirectory.CreateEnumerable(), ReturnResult.Success, context.SelectedItems.Count);
+			StatusCenterViewModel.CompleteItem(banner, ReturnResult.Success);
 		}
 
 		public void Context_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

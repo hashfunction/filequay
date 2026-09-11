@@ -73,36 +73,6 @@
 				</wctcontrols:SettingsCard.ActionIcon>
 			</wctcontrols:SettingsCard>
 
-			<!--  Open on Windows startup  -->
-			<StackPanel>
-				<!--  Startup disabled InfoBar  -->
-				<InfoBar
-					x:Name="OpenOnStartupInfoBar"
-					x:Load="{x:Bind ViewModel.CanOpenOnWindowsStartup, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"
-					IsClosable="False"
-					IsIconVisible="True"
-					IsOpen="True"
-					Message="{helpers:ResourceString Name=OpenOnStartupDisabled}"
-					Severity="Warning" />
-
-				<!--  Setting block  -->
-				<wctcontrols:SettingsCard Header="{helpers:ResourceString Name=SettingsOpenInLogin}">
-					<wctcontrols:SettingsCard.HeaderIcon>
-						<FontIcon Glyph="&#xE7E8;" />
-					</wctcontrols:SettingsCard.HeaderIcon>
-					<ToggleSwitch
-						AutomationProperties.Name="{helpers:ResourceString Name=SettingsOpenInLogin}"
-						IsEnabled="{x:Bind ViewModel.CanOpenOnWindowsStartup, Mode=OneWay}"
-						IsOn="{x:Bind ViewModel.OpenOnWindowsStartup, Mode=TwoWay}">
-						<i:Interaction.Behaviors>
-							<i:EventTriggerBehavior EventName="Toggled">
-								<i:InvokeCommandAction Command="{x:Bind ViewModel.OpenFilesOnWindowsStartupCommand, Mode=OneWay}" />
-							</i:EventTriggerBehavior>
-						</i:Interaction.Behaviors>
-					</ToggleSwitch>
-				</wctcontrols:SettingsCard>
-			</StackPanel>
-
 			<!--  Leave App Running  -->
 			<wctcontrols:SettingsCard Header="{helpers:ResourceString Name=SettingsLeaveAppRunning}">
 				<wctcontrols:SettingsCard.HeaderIcon>
@@ -125,40 +95,6 @@
 				FontSize="16"
 				FontWeight="Medium"
 				Text="{helpers:ResourceString Name=ExperimentalFeatureFlags}" />
-
-			<!--  Replace File Explorer  -->
-			<wctcontrols:SettingsCard
-				x:Name="SetAsDefaultSettingsBlockControl"
-				Description="{helpers:ResourceString Name=SettingsSetAsDefaultFileManagerDescription}"
-				Header="{helpers:ResourceString Name=SettingsSetAsDefaultFileManager}">
-				<wctcontrols:SettingsCard.HeaderIcon>
-					<FontIcon Glyph="&#xEC50;" />
-				</wctcontrols:SettingsCard.HeaderIcon>
-				<ToggleSwitch AutomationProperties.Name="{helpers:ResourceString Name=SettingsSetAsDefaultFileManager}" IsOn="{x:Bind ViewModel.IsSetAsDefaultFileManager, Mode=TwoWay}">
-					<i:Interaction.Behaviors>
-						<i:EventTriggerBehavior EventName="Toggled">
-							<i:InvokeCommandAction Command="{x:Bind ViewModel.SetAsDefaultExplorerCommand, Mode=OneWay}" />
-						</i:EventTriggerBehavior>
-					</i:Interaction.Behaviors>
-				</ToggleSwitch>
-			</wctcontrols:SettingsCard>
-
-			<!--  Replace Open File Dialog  -->
-			<wctcontrols:SettingsCard
-				x:Name="ReplaceOpenFileDialogSetting"
-				x:Load="{x:Bind ViewModel.IsAppEnvironmentDev}"
-				Header="{helpers:ResourceString Name=SettingsSetAsOpenDialog}">
-				<wctcontrols:SettingsCard.HeaderIcon>
-					<FontIcon Glyph="&#xE8E5;" />
-				</wctcontrols:SettingsCard.HeaderIcon>
-				<ToggleSwitch IsEnabled="{x:Bind ViewModel.IsSetAsDefaultFileManager, Mode=OneWay}" IsOn="{x:Bind ViewModel.IsSetAsOpenFileDialog, Mode=TwoWay}">
-					<i:Interaction.Behaviors>
-						<i:EventTriggerBehavior EventName="Toggled">
-							<i:InvokeCommandAction Command="{x:Bind ViewModel.SetAsOpenFileDialogCommand, Mode=OneWay}" />
-						</i:EventTriggerBehavior>
-					</i:Interaction.Behaviors>
-				</ToggleSwitch>
-			</wctcontrols:SettingsCard>
 
 			<!--  Thumbnail Caching  -->
 			<wctcontrols:SettingsExpander

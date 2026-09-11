@@ -7,17 +7,6 @@ namespace Files.App
 {
 	public static class Constants
 	{
-		// The following constants will be replaced with actual values by the Files CI workflow
-		public static class AutomatedWorkflowInjectionKeys
-		{
-
-			public const string GitHubClientId = "githubclientid.secret";
-
-			public const string BingMapsSecret = "bingmapskey.secret";
-
-			public const string SentrySecret = "sentry.secret";
-		}
-
 		public static class KnownImageFormats
 		{
 			public const string BITMAP_IMAGE_FORMAT = "bitmapimage";
@@ -60,9 +49,9 @@ namespace Files.App
 
 		public static class AssetPaths
 		{
-			public const string DevLogo = "Assets/AppTiles/Dev/Logo.ico";
-			public const string PreviewLogo = "Assets/AppTiles/Preview/Logo.ico";
-			public const string StableLogo = "Assets/AppTiles/Release/Logo.ico";
+			public const string DevLogo = "Assets/FileQuay/Logo.ico";
+			public const string PreviewLogo = "Assets/FileQuay/Logo.ico";
+			public const string StableLogo = "Assets/FileQuay/Logo.ico";
 		}
 
 		public static class UI
@@ -167,15 +156,15 @@ namespace Files.App
 
 		public static class ExternalUrl
 		{
-			public const string GitHubRepoUrl = @"https://github.com/files-community/Files";
-			public const string DocumentationUrl = @"https://files.community/docs";
-			public const string DiscordUrl = @"https://discord.gg/files";
-			public const string FeatureRequestUrl = @"https://discord.gg/files";
-			public const string BugReportUrl = @"https://github.com/files-community/Files/issues/new?labels=bug&template=bug_report.yml";
-			public const string PrivacyPolicyUrl = @"https://files.community/privacy";
-			public const string SupportUsUrl = @"https://files.community/sponsor";
-			public const string CrowdinUrl = @"https://crowdin.com/project/files-app";
-			public static readonly string ReleaseNotesUrl = $"https://files.community/blog/posts/v{Package.Current.Id.Version.Major}-{Package.Current.Id.Version.Minor}-{Package.Current.Id.Version.Build}?minimal";
+			public const string GitHubRepoUrl = @"https://filequay.trieflow.com/support";
+			public const string DocumentationUrl = @"https://filequay.trieflow.com/support";
+			public const string DiscordUrl = @"https://filequay.trieflow.com/support";
+			public const string FeatureRequestUrl = @"https://filequay.trieflow.com/support";
+			public const string BugReportUrl = @"https://filequay.trieflow.com/support";
+			public const string PrivacyPolicyUrl = @"https://filequay.trieflow.com/privacy";
+			public const string SupportUsUrl = @"https://filequay.trieflow.com/support";
+			public const string CrowdinUrl = @"https://filequay.trieflow.com/support";
+			public const string ReleaseNotesUrl = "https://filequay.trieflow.com/support";
 		}
 
 		public static class DocsPath
@@ -241,22 +230,15 @@ namespace Files.App
 
 		public static class Distributions
 		{
-			public static readonly string[] KnownAppNames =
-			{
-				"49306atecsolution.FilesUWP", // store stable
-				"FilesStable", // sideload stable
-				"FilesPreview", // sideload preview
-				"49306atecsolution.FilesPreview", // store preview
-				"FilesDev", // dev
-			};
+			public static readonly string[] KnownAppNames = [Package.Current.Id.Name];
 		}
 
 		public static class Startup
 		{
 			// These strings are intentionally hardcoded and cannot be moved to resource files.
 			// The Windows App Runtime (which powers the resource loading system) may itself be unavailable at this point
-			public const string MissingRuntimeMessage = "Files failed to start. A required Windows component could not be loaded. Try reinstalling Files from the Microsoft Store or from https://files.community/download";
-			public const string MissingRuntimeTitle = "Files - Startup Error";
+			public const string MissingRuntimeMessage = "FileQuay failed to start. A required Windows component could not be loaded. Try reinstalling FileQuay from the Microsoft Store or from https://filequay.trieflow.com/support";
+			public const string MissingRuntimeTitle = "FileQuay - Startup Error";
 		}
 	}
 }

@@ -88,9 +88,6 @@ namespace Files.App
 				var host = AppLifecycleHelper.ConfigureHost();
 				Ioc.Default.ConfigureServices(host.Services);
 
-				// Configure Sentry
-				if (AppLifecycleHelper.AppEnvironment is not AppEnvironment.Dev)
-					AppLifecycleHelper.ConfigureSentry();
 
 				var userSettingsService = Ioc.Default.GetRequiredService<IUserSettingsService>();
 				var isLeaveAppRunning = userSettingsService.GeneralSettingsService.LeaveAppRunning;
@@ -142,7 +139,7 @@ namespace Files.App
 						SystemTrayIcon.Show();
 
 					// Sleep current instance
-					Program.Pool = new(0, 1, $"Files-{AppLifecycleHelper.AppEnvironment}-Instance");
+					Program.Pool = new(0, 1, $"FileQuay-{Windows.ApplicationModel.Package.Current.Id.Name}-Instance");
 
 					Thread.Yield();
 
@@ -179,7 +176,6 @@ namespace Files.App
 		{
 			Logger.LogInformation($"Window_Activated: State={args.WindowActivationState}");
 
-			ActiveSessionTracker.OnActivationChanged(args.WindowActivationState != WindowActivationState.Deactivated);
 
 			if (args.WindowActivationState != WindowActivationState.Deactivated)
 				AppModel.IsMainWindowClosed = false;
@@ -215,7 +211,6 @@ namespace Files.App
 			}
 
 			// Persist the final active stretch; it is reported on the next launch
-			ActiveSessionTracker.OnActivationChanged(false);
 
 			// Save the current tab list in case it was overwriten by another instance
 			if (userSettingsService.GeneralSettingsService.ContinueLastSessionOnStartUp || userSettingsService.AppSettingsService.RestoreTabsOnStartup)
@@ -244,7 +239,7 @@ namespace Files.App
 			// Continue running the app on the background
 			if (userSettingsService.GeneralSettingsService.LeaveAppRunning &&
 				!AppModel.ForceProcessTermination &&
-				!Process.GetProcessesByName("Files").Any(x => x.Id != Environment.ProcessId))
+				!Process.GetProcessesByName("FileQuay").Any(x => x.Id != Environment.ProcessId))
 			{
 				// Close open content dialogs
 				UIHelpers.CloseAllDialogs();
@@ -264,7 +259,7 @@ namespace Files.App
 				await FilePropertiesHelpers.WaitClosingAll();
 
 				// Sleep current instance
-				Program.Pool = new(0, 1, $"Files-{AppLifecycleHelper.AppEnvironment}-Instance");
+				Program.Pool = new(0, 1, $"FileQuay-{Windows.ApplicationModel.Package.Current.Id.Name}-Instance");
 
 				Thread.Yield();
 

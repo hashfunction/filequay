@@ -41,26 +41,10 @@
 						<MenuFlyout>
 							<MenuFlyoutItem Command="{x:Bind ViewModel.CopyAppVersionCommand}" Text="{helpers:ResourceString Name=AppVersion}" />
 							<MenuFlyoutItem Command="{x:Bind ViewModel.CopyWindowsVersionCommand}" Text="{helpers:ResourceString Name=WindowsVersion}" />
-							<MenuFlyoutItem Command="{x:Bind ViewModel.CopyUserIDCommand}" Text="{helpers:ResourceString Name=UserID}" />
 						</MenuFlyout>
 					</Button.Flyout>
 				</Button>
 			</wctcontrols:SettingsCard>
-
-			<!--  GitHub Sponsor  -->
-			<wctcontrols:SettingsCard
-				Command="{x:Bind ViewModel.SupportUsCommand}"
-				Header="{helpers:ResourceString Name=SponsorUsOnGitHub}"
-				IsClickEnabled="True">
-				<wctcontrols:SettingsCard.HeaderIcon>
-					<FontIcon Glyph="&#xEB51;" />
-				</wctcontrols:SettingsCard.HeaderIcon>
-
-				<wctcontrols:SettingsCard.ActionIcon>
-					<FontIcon Glyph="&#xE8A7;" />
-				</wctcontrols:SettingsCard.ActionIcon>
-			</wctcontrols:SettingsCard>
-
 
 			<!--  Help and support  -->
 			<TextBlock
@@ -151,21 +135,6 @@
 				FontSize="16"
 				FontWeight="Medium"
 				Text="{helpers:ResourceString Name=OpenSource}" />
-
-			<!--  Translate  -->
-			<wctcontrols:SettingsCard
-				HorizontalAlignment="Stretch"
-				Command="{x:Bind ViewModel.OpenCrowdinCommand}"
-				Header="{helpers:ResourceString Name=ImproveTranslation}"
-				IsClickEnabled="True">
-				<wctcontrols:SettingsCard.HeaderIcon>
-					<FontIcon Glyph="&#xF2B7;" />
-				</wctcontrols:SettingsCard.HeaderIcon>
-
-				<wctcontrols:SettingsCard.ActionIcon>
-					<FontIcon Glyph="&#xE8A7;" />
-				</wctcontrols:SettingsCard.ActionIcon>
-			</wctcontrols:SettingsCard>
 
 			<!--  Third Party Licenses  -->
 			<wctcontrols:SettingsExpander Header="{helpers:ResourceString Name=ThirdPartyLibraries}">

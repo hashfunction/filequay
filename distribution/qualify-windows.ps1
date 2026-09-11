@@ -5,7 +5,7 @@ Set-Location (Split-Path $PSScriptRoot -Parent)
 ./distribution/check-prerequisites.ps1
 ./distribution/restore-vendor-inputs.ps1
 # This identity is for disposable build qualification. It is not a Store reservation.
-./.github/scripts/Configure-AppxManifest.ps1 -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification'
+./.github/scripts/Configure-AppxManifest.ps1 -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' -Protocol filequay
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $msbuild = & $vswhere -latest -products '*' -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | Select-Object -First 1
 if (-not $msbuild) { throw 'MSBuild is missing.' }

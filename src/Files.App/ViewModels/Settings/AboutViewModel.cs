@@ -57,6 +57,7 @@ namespace Files.App.ViewModels.Settings
 		{
 			OpenSourceLibraries =
 			[
+				new ("https://github.com/files-community/Files", "Files Community — upstream MIT/MPL source"),
 				new ("https://github.com/omar/ByteSize", "ByteSize"),
 				new ("https://github.com/CommunityToolkit/dotnet", "CommunityToolkit.Mvvm"),
 				new ("https://github.com/DiscUtils/DiscUtils", "DiscUtils.Udf"),

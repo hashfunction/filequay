@@ -1,0 +1,2 @@
+# FileQuay receipt experience
+Implement the approved FileQuay scope using native Fluent WinUI. Compact operation flyout, Live / Receipts pivot, inspectable expandable rows, explicit export and clear confirmations, visible persistent-storage error. Never imply receipts can undo file operations. Empty state explains where receipts come from. Use existing theme resources for dark/light/high contrast.

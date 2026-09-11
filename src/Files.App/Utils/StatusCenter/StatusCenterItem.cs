@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using Microsoft.UI.Xaml.Media;
+using Files.App.Utils.StatusCenter.Receipts;
 using System.Numerics;
 using System.Windows.Input;
 
@@ -14,6 +15,11 @@ namespace Files.App.Utils.StatusCenter
 	/// </summary>
 	public sealed partial class StatusCenterItem : ObservableObject
 	{
+		private readonly OperationReceiptCapture receiptCapture;
+		public DateTimeOffset StartedAtUtc => receiptCapture.StartedAtUtc;
+		public OperationReceipt? CompletedReceipt => receiptCapture.Receipt;
+		public event EventHandler<StatusCenterItemCompletedEventArgs>? Completed;
+
 		private readonly StatusCenterViewModel _viewModel = Ioc.Default.GetRequiredService<StatusCenterViewModel>();
 
 		private int _ProgressPercentage;
@@ -192,7 +198,10 @@ namespace Files.App.Utils.StatusCenter
 			SubHeaderStringResource = subHeaderResource;
 			FileSystemOperationReturnResult = status;
 			Operation = operation;
-			ProgressEventSource = new Progress<StatusCenterItemProgressModel>(ReportProgress);
+			receiptCapture = new OperationReceiptCapture(operation, source ?? [], destination ?? []);
+			receiptCapture.ObserveProgress(status, itemsCount, totalSize);
+			ProgressEventSource = new ObservedOperationProgress<StatusCenterItemProgressModel>(
+				p => receiptCapture.ObserveProgress(p.Status?.ToStatus() ?? ReturnResult.InProgress, p.ItemsCount, p.TotalSize), ReportProgress);
 			Progress = new(ProgressEventSource, status: FileSystemStatusCode.InProgress);
 			IsCancelable = _operationCancellationToken is not null;
 			TotalItemsCount = itemsCount;
@@ -202,8 +211,8 @@ namespace Files.App.Utils.StatusCenter
 			SpeedGraphValues = [];
 			CancelCommand = new RelayCommand(ExecuteCancelCommand);
 			Message = Strings.DiscoveringItems.GetLocalizedResource();
-			Source = source;
-			Destination = destination;
+			Source = source?.ToArray();
+			Destination = destination?.ToArray();
 
 			// Get the graph color
 			if (App.Current.Resources["App.Theme.FillColorAttentionBrush"] is not SolidColorBrush accentBrush)
@@ -278,11 +287,36 @@ namespace Files.App.Utils.StatusCenter
 			OnPropertyChanged(nameof(HeaderTooltip));
 		}
 
+		public bool Complete(ReturnResult finalResult)
+		{
+			receiptCapture.ObserveProgress(ReturnResult.InProgress, TotalItemsCount, TotalSize);
+			var receipt = receiptCapture.Complete(finalResult);
+			if (receipt is null) return false;
+			FileSystemOperationReturnResult = receipt.ReturnResult;
+			TotalItemsCount = receipt.ItemCount;
+			TotalSize = receipt.TotalBytes;
+			IsInProgress = false;
+			IsDiscovering = false;
+			IsCancelable = false;
+			IsIndeterminateProgress = false;
+			IsSpeedAndProgressAvailable = false;
+			Message = string.Empty;
+			var suffix = receipt.ReturnResult == ReturnResult.Success ? "Complete" : receipt.ReturnResult == ReturnResult.Cancelled ? "Canceled" : "Failed";
+			HeaderStringResource = HeaderStringResource?.Replace("InProgress", suffix);
+			SubHeaderStringResource = SubHeaderStringResource?.Replace("InProgress", suffix);
+			ItemKind = receipt.ReturnResult == ReturnResult.Success ? StatusCenterItemKind.Successful : receipt.ReturnResult == ReturnResult.Cancelled ? StatusCenterItemKind.Canceled : StatusCenterItemKind.Error;
+			ItemIconKind = receipt.ReturnResult == ReturnResult.Success ? StatusCenterItemIconKind.Successful : receipt.ReturnResult == ReturnResult.Cancelled ? ItemIconKind : StatusCenterItemIconKind.Error;
+			StatusCenterHelper.UpdateCardStrings(this);
+			OnPropertyChanged(string.Empty);
+			Completed?.Invoke(this, new StatusCenterItemCompletedEventArgs(receipt));
+			return true;
+		}
+
 		private void ReportProgress(StatusCenterItemProgressModel value)
 		{
 			// The operation has been canceled.
 			// Do update neither progress value nor text.
-			if (CancellationToken.IsCancellationRequested)
+			if (CancellationToken.IsCancellationRequested || CompletedReceipt is not null)
 				return;
 
 			// Update status code

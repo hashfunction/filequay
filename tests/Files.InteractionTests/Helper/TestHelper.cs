@@ -18,7 +18,7 @@ namespace Files.InteractionTests.Helper
 		/// profile so test runs never touch personal folders such as Desktop or Documents.
 		/// SessionManager creates it when the test run starts and deletes it when it ends.
 		/// </summary>
-		public static readonly string TestDataRootPath = @"C:\Temp\Files.InteractionTests";
+		public static readonly string TestDataRootPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "FileQuay.InteractionTests-" + Guid.NewGuid().ToString("N"));
 
 		public static ICollection<WindowsElement> GetElementsOfType(string elementType)
 		{

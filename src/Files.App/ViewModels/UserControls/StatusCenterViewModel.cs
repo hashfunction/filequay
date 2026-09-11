@@ -1,6 +1,9 @@
 // Copyright (c) Files Community
 // Licensed under the MIT License.
 
+using Files.App.Utils.StatusCenter.Receipts;
+using CommunityToolkit.WinUI;
+
 namespace Files.App.ViewModels.UserControls
 {
 	public sealed partial class StatusCenterViewModel : ObservableObject
@@ -78,14 +81,24 @@ namespace Files.App.ViewModels.UserControls
 
 		public event EventHandler<StatusCenterItem>? NewItemAdded;
 
-		public StatusCenterViewModel()
+		private readonly IOperationReceiptStore receiptStore;
+		public ObservableCollection<OperationReceiptViewModel> OperationReceipts { get; } = [];
+		private string? receiptError;
+		public string? ReceiptError { get => receiptError; private set => SetProperty(ref receiptError, value); }
+		public bool HasReceiptError => !string.IsNullOrWhiteSpace(ReceiptError);
+		public string ReceiptHistoryPath => receiptStore.HistoryPath;
+		public bool HasReceipts => OperationReceipts.Count > 0;
+
+		public StatusCenterViewModel(IOperationReceiptStore receiptStore)
 		{
+			this.receiptStore = receiptStore;
 			StatusCenterItems.CollectionChanged += (s, e) => OnPropertyChanged(nameof(HasAnyItem));
 		}
 
 		public void OnStatusCenterFlyoutOpened()
 		{
 			ShowProgressRing = HasAnyItemInProgress || InfoBadgeState == 3;
+			_ = LoadReceiptsAsync();
 		}
 
 		public StatusCenterItem AddItem(
@@ -112,12 +125,79 @@ namespace Files.App.ViewModels.UserControls
 				totalSize,
 				cancellationTokenSource);
 
+			banner.Completed += OnItemCompleted;
 			StatusCenterItems.Insert(0, banner);
+			if (status != ReturnResult.InProgress) banner.Complete(status);
 			NewItemAdded?.Invoke(this, banner);
 
 			NotifyChanges();
 
 			return banner;
+		}
+
+		public void CompleteItem(StatusCenterItem item, ReturnResult result)
+		{
+			item.Complete(item.CancellationToken.IsCancellationRequested ? ReturnResult.Cancelled : result);
+			NotifyChanges();
+		}
+
+		public IDisposable TrackCompletion(StatusCenterItem item) => new CompletionScope(this, item);
+		private sealed class CompletionScope(StatusCenterViewModel owner, StatusCenterItem item) : IDisposable
+		{
+			public void Dispose()
+			{
+				if (item.CompletedReceipt is null) owner.CompleteItem(item, ReturnResult.UnknownException);
+			}
+		}
+
+		private void OnItemCompleted(object? sender, StatusCenterItemCompletedEventArgs e)
+		{
+			if (sender is StatusCenterItem item) item.Completed -= OnItemCompleted;
+			_ = SaveReceiptAsync(e.Receipt);
+		}
+
+		private async Task SaveReceiptAsync(OperationReceipt receipt)
+		{
+			try
+			{
+				await Task.Run(() => receiptStore.AppendAsync(receipt));
+				await LoadReceiptsAsync();
+			}
+			catch (Exception) { await ShowReceiptErrorAsync(receiptStore.HistoryPath); }
+		}
+
+		public async Task LoadReceiptsAsync()
+		{
+			try
+			{
+				var history = await Task.Run(() => receiptStore.LoadAsync());
+				await MainWindow.Instance.DispatcherQueue.EnqueueOrInvokeAsync(() =>
+				{
+					OperationReceipts.Clear();
+					foreach (var receipt in history) OperationReceipts.Add(new OperationReceiptViewModel(receipt));
+					OnPropertyChanged(nameof(HasReceipts));
+				});
+				if (receiptStore.RecoveryPath is { } recovery) await ShowReceiptErrorAsync(recovery);
+			}
+			catch (Exception) { await ShowReceiptErrorAsync(receiptStore.HistoryPath); }
+		}
+
+		public Task ShowReceiptErrorAsync(string path) => MainWindow.Instance.DispatcherQueue.EnqueueOrInvokeAsync(() =>
+		{
+			ReceiptError = "ReceiptStorageError".GetLocalizedResource() + "\n" + path;
+			OnPropertyChanged(nameof(HasReceiptError));
+		});
+
+		public async Task ExportReceiptsAsync(string path, bool replaceExisting)
+		{
+			try { await Task.Run(() => receiptStore.ExportCsvAsync(path, replaceExisting)); }
+			catch (Exception) { await ShowReceiptErrorAsync(path); }
+		}
+
+		public async Task ClearReceiptsAsync()
+		{
+			try { await Task.Run(() => receiptStore.ClearAsync()); await LoadReceiptsAsync(); }
+			catch (Exception) { await ShowReceiptErrorAsync(receiptStore.HistoryPath); }
 		}
 
 		public bool RemoveItem(StatusCenterItem card)

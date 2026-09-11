@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "status-center-receipts": {
+      "targetKind": "existing-ui",
+      "projectId": "832f8071-51f5-4285-9be3-579dcb826e48",
+      "activeDraftId": "96651e0f-34c0-4487-9220-92d498e1a948",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        "src/Files.App/UserControls/StatusCenter/StatusCenter.xaml",
+        "src/Files.App/UserControls/StatusCenter/StatusCenter.xaml.cs",
+        "src/Files.App/Styles/StatusCenterStyles.xaml",
+        ".superdesign/design-system.md"
+      ],
+      "fingerprints": {
+        "src/Files.App/UserControls/StatusCenter/StatusCenter.xaml": "deb0344509e3169bbbc11d6ca9e4298cc41fe25cf5f16ea2d9ce0b45b1099817",
+        "src/Files.App/UserControls/StatusCenter/StatusCenter.xaml.cs": "91271ce61492a1470efeabffc754ae5d6a1fb3532f613a20916e6cefbbbda2a9",
+        "src/Files.App/Styles/StatusCenterStyles.xaml": "f73e8ab071e00cf2ca812a33ce8d8249924a5c20e84a03497a7615effd150670",
+        ".superdesign/design-system.md": "ff1b6651f6db1c2b3bf016e7fce5fe4c902404949b2c59a266f8321c07a285a4"
+      },
+      "components": [],
+      "drafts": {
+        "96651e0f-34c0-4487-9220-92d498e1a948": {
+          "title": "FileQuay receipt history",
+          "visualDirection": "Approved native Fluent receipt history; direct HTML import after generation credits exhausted"
+        }
+      },
+      "updatedAt": "2026-09-11T08:48:39.600407+00:00"
+    }
+  }
+}

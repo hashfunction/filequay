@@ -23,132 +23,23 @@ namespace Files.App.ViewModels.Settings
 
 		private readonly IFileTagsSettingsService fileTagsSettingsService = Ioc.Default.GetRequiredService<IFileTagsSettingsService>();
 
-		public ICommand SetAsDefaultExplorerCommand { get; }
-		public ICommand SetAsOpenFileDialogCommand { get; }
 		public ICommand ExportSettingsCommand { get; }
 		public ICommand ImportSettingsCommand { get; }
-		public AsyncRelayCommand OpenFilesOnWindowsStartupCommand { get; }
 		public ICommand ClearThumbnailCacheCommand { get; }
 
 
 		public AdvancedViewModel()
 		{
-			IsSetAsDefaultFileManager = DetectIsSetAsDefaultFileManager();
-			IsSetAsOpenFileDialog = DetectIsSetAsOpenFileDialog();
 
-			SetAsDefaultExplorerCommand = new AsyncRelayCommand(SetAsDefaultExplorerAsync);
-			SetAsOpenFileDialogCommand = new AsyncRelayCommand(SetAsOpenFileDialogAsync);
 			ExportSettingsCommand = new AsyncRelayCommand(ExportSettingsAsync);
 			ImportSettingsCommand = new AsyncRelayCommand(ImportSettingsAsync);
-			OpenFilesOnWindowsStartupCommand = new AsyncRelayCommand(OpenFilesOnWindowsStartupAsync);
 			ClearThumbnailCacheCommand = new AsyncRelayCommand(ClearThumbnailCacheAsync);
 
-			_ = DetectOpenFilesAtStartupAsync();
 			_ = UpdateCacheSizeAsync();
 		}
 
-		private async Task SetAsDefaultExplorerAsync()
-		{
-			// Make sure IsSetAsDefaultFileManager is updated
-			await Task.Yield();
 
-			if (IsSetAsDefaultFileManager == DetectIsSetAsDefaultFileManager())
-				return;
 
-			var destFolder = Path.Combine(ApplicationData.Current.LocalFolder.Path, "FilesOpenDialog");
-			Directory.CreateDirectory(destFolder);
-
-			foreach (var file in Directory.GetFiles(Path.Combine(Package.Current.InstalledLocation.Path, "Assets", "FilesOpenDialog")))
-			{
-				if (!SafetyExtensions.IgnoreExceptions(() => File.Copy(file, Path.Combine(destFolder, Path.GetFileName(file)), true), App.Logger))
-				{
-					// Error copying files
-					await DetectResult();
-					return;
-				}
-			}
-
-			var dataPath = Environment.ExpandEnvironmentVariables("%LocalAppData%\\Files");
-			if (IsSetAsDefaultFileManager)
-			{
-				if (!await Win32Helper.RunPowershellCommandAsync($"-command \"New-Item -Force -Path '{dataPath}' -ItemType Directory; Copy-Item -Filter *.* -Path '{destFolder}\\*' -Recurse -Force -Destination '{dataPath}'; 'files-dev' | Out-File -Encoding utf8 -Force -FilePath '{dataPath}\\Branch.txt'\"", PowerShellExecutionOptions.Hidden))
-				{
-					// Error copying files
-					await DetectResult();
-					return;
-				}
-			}
-			else
-			{
-				await Win32Helper.RunPowershellCommandAsync($"-command \"Remove-Item -Path '{dataPath}' -Recurse -Force\"", PowerShellExecutionOptions.Hidden);
-			}
-
-			try
-			{
-				using var regProcess = Process.Start(new ProcessStartInfo("regedit.exe", @$"/s ""{Path.Combine(destFolder, IsSetAsDefaultFileManager ? "SetFilesAsDefault.reg" : "UnsetFilesAsDefault.reg")}""") { UseShellExecute = true, Verb = "runas" });
-				if (regProcess is not null)
-					await regProcess.WaitForExitAsync();
-			}
-			catch
-			{
-				// Canceled UAC
-			}
-
-			await DetectResult();
-		}
-
-		private Task DetectResult()
-		{
-			IsSetAsDefaultFileManager = DetectIsSetAsDefaultFileManager();
-			if (!IsSetAsDefaultFileManager)
-			{
-				IsSetAsOpenFileDialog = false;
-				return SetAsOpenFileDialogAsync();
-			}
-
-			return Task.CompletedTask;
-		}
-
-		private async Task SetAsOpenFileDialogAsync()
-		{
-			// Make sure IsSetAsDefaultFileManager is updated
-			await Task.Yield();
-			if (IsSetAsOpenFileDialog == DetectIsSetAsOpenFileDialog())
-				return;
-
-			var destFolder = Path.Combine(ApplicationData.Current.LocalFolder.Path, "FilesOpenDialog");
-			Directory.CreateDirectory(destFolder);
-			foreach (var file in Directory.GetFiles(Path.Combine(Package.Current.InstalledLocation.Path, "Assets", "FilesOpenDialog")))
-			{
-				if (!SafetyExtensions.IgnoreExceptions(() => File.Copy(file, Path.Combine(destFolder, Path.GetFileName(file)), true), App.Logger))
-				{
-					// Error copying files
-					goto DetectResult;
-				}
-			}
-
-			try
-			{
-				using (var regProc = Process.Start("regsvr32.exe", @$"/s /n {(!IsSetAsOpenFileDialog ? "/u" : "")} /i:user ""{Path.Combine(destFolder, "Files.App.OpenDialog32.dll")}"""))
-					await regProc.WaitForExitAsync();
-				using (var regProc = Process.Start("regsvr32.exe", @$"/s /n {(!IsSetAsOpenFileDialog ? "/u" : "")} /i:user ""{Path.Combine(destFolder, "Files.App.OpenDialog64.dll")}"""))
-					await regProc.WaitForExitAsync();
-				using (var regProc = Process.Start("regsvr32.exe", @$"/s /n {(!IsSetAsOpenFileDialog ? "/u" : "")} /i:user ""{Path.Combine(destFolder, "Files.App.OpenDialogARM64.dll")}"""))
-					await regProc.WaitForExitAsync();
-				using (var regProc = Process.Start("regsvr32.exe", @$"/s /n {(!IsSetAsOpenFileDialog ? "/u" : "")} /i:user ""{Path.Combine(destFolder, "Files.App.SaveDialog32.dll")}"""))
-					await regProc.WaitForExitAsync();
-				using (var regProc = Process.Start("regsvr32.exe", @$"/s /n {(!IsSetAsOpenFileDialog ? "/u" : "")} /i:user ""{Path.Combine(destFolder, "Files.App.SaveDialog64.dll")}"""))
-					await regProc.WaitForExitAsync();
-				using (var regProc = Process.Start("regsvr32.exe", @$"/s /n {(!IsSetAsOpenFileDialog ? "/u" : "")} /i:user ""{Path.Combine(destFolder, "Files.App.SaveDialogARM64.dll")}"""))
-					await regProc.WaitForExitAsync();
-			}
-			catch
-			{
-			}
-
-		DetectResult:
-			IsSetAsOpenFileDialog = DetectIsSetAsOpenFileDialog();
-		}
 
 		private async Task ImportSettingsAsync()
 		{
@@ -253,38 +144,7 @@ namespace Files.App.ViewModels.Settings
 			}
 		}
 
-		private bool DetectIsSetAsDefaultFileManager()
-		{
-			using var subkey = Registry.ClassesRoot.OpenSubKey(@"Folder\shell\open\command");
-			var command = (string?)subkey?.GetValue(string.Empty);
 
-			return !string.IsNullOrEmpty(command) && command.Contains("Files.App.Launcher.exe");
-		}
-
-		private bool DetectIsSetAsOpenFileDialog()
-		{
-			using var subkeyOpen = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Classes\CLSID\{DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7}");
-			using var subkeySave = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Classes\CLSID\{C0B4E2F3-BA21-4773-8DBA-335EC946EB8B}");
-
-			var isSetAsOpenDialog = subkeyOpen?.GetValue(string.Empty) as string == "FilesOpenDialog class";
-			var isSetAsSaveDialog = subkeySave?.GetValue(string.Empty) as string == "FilesSaveDialog class";
-
-			return isSetAsOpenDialog || isSetAsSaveDialog;
-		}
-
-		private bool isSetAsDefaultFileManager;
-		public bool IsSetAsDefaultFileManager
-		{
-			get => isSetAsDefaultFileManager;
-			set => SetProperty(ref isSetAsDefaultFileManager, value);
-		}
-
-		private bool isSetAsOpenFileDialog;
-		public bool IsSetAsOpenFileDialog
-		{
-			get => isSetAsOpenFileDialog;
-			set => SetProperty(ref isSetAsOpenFileDialog, value);
-		}
 
 		public bool IsAppEnvironmentDev
 		{
@@ -411,78 +271,7 @@ namespace Files.App.ViewModels.Settings
 			//TODO: Get thumbnail cache size and update CacheSizeText and IsClearCacheButtonEnabled accordingly.
 		}
 
-		public async Task OpenFilesOnWindowsStartupAsync()
-		{
-			var stateMode = await ReadState();
 
-			bool state = stateMode switch
-			{
-				StartupTaskState.Enabled => true,
-				StartupTaskState.EnabledByPolicy => true,
-				StartupTaskState.DisabledByPolicy => false,
-				StartupTaskState.DisabledByUser => false,
-				_ => false,
-			};
 
-			if (state != OpenOnWindowsStartup)
-			{
-				try
-				{
-					StartupTask startupTask = await StartupTask.GetAsync("3AA55462-A5FA-4933-88C4-712D0B6CDEBB");
-					if (OpenOnWindowsStartup)
-						await startupTask.RequestEnableAsync();
-					else
-						startupTask.Disable();
-					await DetectOpenFilesAtStartupAsync();
-				}
-				catch (COMException ex)
-				{
-					App.Logger?.LogWarning(ex, "RPC server unavailable, returning default state");
-				}
-			}
-		}
-
-		public async Task DetectOpenFilesAtStartupAsync()
-		{
-			var stateMode = await ReadState();
-
-			switch (stateMode)
-			{
-				case StartupTaskState.Disabled:
-					CanOpenOnWindowsStartup = true;
-					OpenOnWindowsStartup = false;
-					break;
-				case StartupTaskState.Enabled:
-					CanOpenOnWindowsStartup = true;
-					OpenOnWindowsStartup = true;
-					break;
-				case StartupTaskState.DisabledByPolicy:
-					CanOpenOnWindowsStartup = false;
-					OpenOnWindowsStartup = false;
-					break;
-				case StartupTaskState.DisabledByUser:
-					CanOpenOnWindowsStartup = false;
-					OpenOnWindowsStartup = false;
-					break;
-				case StartupTaskState.EnabledByPolicy:
-					CanOpenOnWindowsStartup = false;
-					OpenOnWindowsStartup = true;
-					break;
-			}
-		}
-
-		public async Task<StartupTaskState> ReadState()
-		{
-			try
-			{
-				var state = await StartupTask.GetAsync("3AA55462-A5FA-4933-88C4-712D0B6CDEBB");
-				return state.State;
-			}
-			catch (COMException ex)
-			{
-				App.Logger?.LogWarning(ex, "RPC server unavailable, returning default state");
-				return StartupTaskState.Disabled;
-			}
-		}
 	}
 }

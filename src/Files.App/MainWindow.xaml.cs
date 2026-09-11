@@ -32,7 +32,7 @@ namespace Files.App
 			MinHeight = 316;
 			MinWidth = 416;
 			ExtendsContentIntoTitleBar = true;
-			Title = "Files";
+			Title = "FileQuay";
 			PersistenceId = "FilesMainWindow";
 			AppWindow.TitleBar.ButtonBackgroundColor = Colors.Transparent;
 			AppWindow.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
@@ -64,9 +64,9 @@ namespace Files.App
 			{
 				case ILaunchActivatedEventArgs launchArgs:
 					if (launchArgs.Arguments is not null &&
-						(CommandLineParser.SplitArguments(launchArgs.Arguments, true)[0].EndsWith($"files-dev.exe", StringComparison.OrdinalIgnoreCase)
-						|| CommandLineParser.SplitArguments(launchArgs.Arguments, true)[0].EndsWith($"files-dev", StringComparison.OrdinalIgnoreCase)
-						|| CommandLineParser.SplitArguments(launchArgs.Arguments, true)[0].Equals(Path.Join(Package.Current.InstalledLocation.Path, "Files.exe"), StringComparison.OrdinalIgnoreCase)))
+						(CommandLineParser.SplitArguments(launchArgs.Arguments, true)[0].EndsWith($"FileQuay.exe", StringComparison.OrdinalIgnoreCase)
+						|| CommandLineParser.SplitArguments(launchArgs.Arguments, true)[0].EndsWith($"filequay", StringComparison.OrdinalIgnoreCase)
+						|| CommandLineParser.SplitArguments(launchArgs.Arguments, true)[0].Equals(Path.Join(Package.Current.InstalledLocation.Path, "FileQuay.exe"), StringComparison.OrdinalIgnoreCase)))
 					{
 						// WINUI3: When launching from commandline the argument is not ICommandLineActivatedEventArgs (#10370)
 						var ppm = CommandLineParser.ParseUntrustedCommands(launchArgs.Arguments);
@@ -95,7 +95,7 @@ namespace Files.App
 					break;
 
 				case IProtocolActivatedEventArgs eventArgs:
-					if (eventArgs.Uri.AbsoluteUri == "files-dev:")
+					if (eventArgs.Uri.AbsoluteUri == "filequay:")
 					{
 						rootFrame.Navigate(typeof(MainPage), null, new SuppressNavigationTransitionInfo());
 
@@ -108,6 +108,7 @@ namespace Files.App
 					else
 					{
 						var parsedArgs = eventArgs.Uri.Query.TrimStart('?').Split('=');
+						if (parsedArgs.Length < 2) return;
 						var unescapedValue = Uri.UnescapeDataString(parsedArgs[1].Split('&')[0]);
 						if (parsedArgs[0] == "tab" && parsedArgs.Length > 3 &&
 							int.TryParse(parsedArgs[2].Split('&')[0], out var dx) &&

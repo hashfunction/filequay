@@ -145,6 +145,7 @@ namespace Files.App.Utils.Storage
 			var banner = permanently
 				? StatusCenterHelper.AddCard_Delete(returnStatus, source)
 				: StatusCenterHelper.AddCard_Recycle(returnStatus, source);
+			using var completion = _statusCenterViewModel.TrackCompletion(banner);
 
 			banner.ProgressEventSource.ProgressChanged += (s, e)
 				=> returnStatus = returnStatus < ReturnResult.Failed ? e.Status!.Value.ToStatus() : returnStatus;
@@ -165,17 +166,8 @@ namespace Files.App.Utils.Storage
 			var sourcePaths = source.Select(x => x.Path);
 			_ = Task.WhenAll(sourcePaths.Select(jumpListService.RemoveFolderAsync));
 
-			var itemsCount = banner.TotalItemsCount;
-
-			// Remove the in-progress card from the StatusCenter
-			_statusCenterViewModel.RemoveItem(banner);
-
 			sw.Stop();
-
-			// Add a complete card in the StatusCenter
-			_ = permanently
-				? StatusCenterHelper.AddCard_Delete(token.IsCancellationRequested ? ReturnResult.Cancelled : returnStatus, source, itemsCount)
-				: StatusCenterHelper.AddCard_Recycle(token.IsCancellationRequested ? ReturnResult.Cancelled : returnStatus, source, itemsCount);
+			_statusCenterViewModel.CompleteItem(banner, returnStatus);
 
 			return returnStatus;
 		}
@@ -312,6 +304,7 @@ namespace Files.App.Utils.Storage
 				returnStatus,
 				source,
 				destination);
+			using var completion = _statusCenterViewModel.TrackCompletion(banner);
 
 			banner.ProgressEventSource.ProgressChanged += (s, e)
 				=> returnStatus = returnStatus < ReturnResult.Failed ? e.Status!.Value.ToStatus() : returnStatus;
@@ -322,7 +315,7 @@ namespace Files.App.Utils.Storage
 
 			if (cancelOperation)
 			{
-				_statusCenterViewModel.RemoveItem(banner);
+				_statusCenterViewModel.CompleteItem(banner, ReturnResult.Cancelled);
 				return ReturnResult.Cancelled;
 			}
 
@@ -354,15 +347,7 @@ namespace Files.App.Utils.Storage
 
 			await Task.Yield();
 
-			var itemsCount = banner.TotalItemsCount;
-
-			_statusCenterViewModel.RemoveItem(banner);
-
-			StatusCenterHelper.AddCard_Copy(
-				token.IsCancellationRequested ? ReturnResult.Cancelled : returnStatus,
-				source,
-				destination,
-				itemsCount);
+			_statusCenterViewModel.CompleteItem(banner, returnStatus);
 
 			return returnStatus;
 		}
@@ -455,6 +440,7 @@ namespace Files.App.Utils.Storage
 				returnStatus,
 				source,
 				destination);
+			using var completion = _statusCenterViewModel.TrackCompletion(banner);
 
 			banner.ProgressEventSource.ProgressChanged += (s, e) =>
 			{
@@ -468,7 +454,7 @@ namespace Files.App.Utils.Storage
 
 			if (cancelOperation)
 			{
-				_statusCenterViewModel.RemoveItem(banner);
+				_statusCenterViewModel.CompleteItem(banner, ReturnResult.Cancelled);
 
 				return ReturnResult.Cancelled;
 			}
@@ -506,15 +492,7 @@ namespace Files.App.Utils.Storage
 			var sourcePaths = source.Select(x => x.Path);
 			_ = Task.WhenAll(sourcePaths.Select(jumpListService.RemoveFolderAsync));
 
-			var itemsCount = banner.TotalItemsCount;
-
-			_statusCenterViewModel.RemoveItem(banner);
-
-			StatusCenterHelper.AddCard_Move(
-				token.IsCancellationRequested ? ReturnResult.Cancelled : returnStatus,
-				source,
-				destination,
-				itemsCount);
+			_statusCenterViewModel.CompleteItem(banner, returnStatus);
 
 			return returnStatus;
 		}

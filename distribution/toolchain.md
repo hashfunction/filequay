@@ -23,3 +23,7 @@ Portable receipt tests link the exact receipt source and shared enum files into
 a net10.0 library without WinUI. This is deliberate: the macOS host cannot load
 WinUI or build native Windows projects. The application consumes the same source;
 Windows is required to qualify its XAML, dispatcher and actual operation boundary.
+
+## Compiler compatibility repair
+
+Actual Windows run 34578836224 failed CS9057: the Files.Core.SourceGenerator analyzer referenced Microsoft.CodeAnalysis 5.9.0.0 but SDK 10.0.102/MSBuild supplied compiler 5.0.0.0. The generator APIs compiled against exact Microsoft.CodeAnalysis.CSharp and Workspaces.Common 5.0.0. Microsoft.CodeAnalysis.Analyzers 5.0.0 is not published; the observed available compatible 5.3.0 is pinned explicitly. No NuGet version fallback is accepted as a lock. Existing RS1038 warnings about Workspaces/code-fix references in a compiler-extension assembly remain documented; a local generator build is not evidence of Windows application compilation. Both application and COM-server imports of the unpinned Satori runtime replacement were removed.

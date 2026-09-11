@@ -8,6 +8,7 @@
 	xmlns:helpers="using:Files.App.Helpers"
 	xmlns:local="using:Files.App.UserControls.StatusCenter"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:receipts="using:Files.App.ViewModels.UserControls"
 	xmlns:statuscenter="using:Files.App.Utils.StatusCenter"
 	mc:Ignorable="d">
 
@@ -21,6 +22,7 @@
 
 	<Grid x:Name="RootGrid">
 		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
 		</Grid.RowDefinitions>
@@ -49,10 +51,15 @@
 
 		</Grid>
 
+		<InfoBar AutomationProperties.AutomationId="ReceiptStorageErrorBar" Grid.Row="1" Margin="12,0" IsOpen="{x:Bind ViewModel.HasReceiptError, Mode=OneWay}"
+			IsClosable="True" Severity="Error" Message="{x:Bind ViewModel.ReceiptError, Mode=OneWay}" />
+		<Pivot x:Name="OperationViews" Grid.Row="2" SelectionChanged="OperationViews_SelectionChanged"
+			AutomationProperties.Name="{helpers:ResourceString Name=ReceiptViews}">
+			<PivotItem x:Name="LiveView" Header="{helpers:ResourceString Name=ReceiptLive}" AutomationProperties.AutomationId="ReceiptLiveTab">
+				<Grid>
 		<!--  Status Center Items  -->
 		<ListView
 			x:Name="StatusCenterItemsListView"
-			Grid.Row="1"
 			Padding="12,0,12,12"
 			VerticalAlignment="Stretch"
 			ItemsSource="{x:Bind ViewModel.StatusCenterItems, Mode=OneWay}"
@@ -146,6 +153,11 @@
 							<!--  Action Buttons  -->
 							<StackPanel Grid.Column="2" VerticalAlignment="Center">
 
+								<Button x:Name="CancelOperationButton" Width="32" Height="32" Padding="0" x:Load="{x:Bind IsInProgress, Mode=OneWay}"
+									Command="{x:Bind CancelCommand}" IsEnabled="{x:Bind IsCancelable, Mode=OneWay}"
+									AutomationProperties.AutomationId="CancelOperationButton" AutomationProperties.Name="{helpers:ResourceString Name=Cancel}">
+									<FontIcon Glyph="&#xE711;" FontSize="14" />
+								</Button>
 								<!--  Dismiss Item  -->
 								<Button
 									x:Name="CloseItemButton"
@@ -166,6 +178,7 @@
 								<!--  Expand & Collapse Chevron  -->
 								<ToggleButton
 									x:Name="ExpandCollapseChevronItemButton"
+									AutomationProperties.Name="{helpers:ResourceString Name=ReceiptProgressDetails}"
 									Width="32"
 									Height="32"
 									Padding="0"
@@ -359,11 +372,48 @@
 		<!--  No Items  -->
 		<TextBlock
 			x:Name="NoItemsMessageTextBlock"
-			Grid.Row="1"
 			HorizontalAlignment="Center"
 			VerticalAlignment="Center"
 			x:Load="{x:Bind ViewModel.HasAnyItem, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"
 			Text="{helpers:ResourceString Name=NoFileOperations}" />
+
+				</Grid>
+			</PivotItem>
+			<PivotItem Header="{helpers:ResourceString Name=ReceiptHistory}" AutomationProperties.AutomationId="ReceiptHistoryTab">
+				<Grid Padding="12,0,12,12" RowSpacing="8">
+					<Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+					<TextBlock Text="{helpers:ResourceString Name=ReceiptRetention}" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" />
+					<StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+						<Button Content="{helpers:ResourceString Name=ReceiptExport}" Click="ExportReceipts_Click"
+							AutomationProperties.AutomationId="ReceiptExportButton" IsEnabled="{x:Bind ViewModel.HasReceipts, Mode=OneWay}" />
+						<Button Content="{helpers:ResourceString Name=ReceiptClear}" Click="ClearReceipts_Click"
+							AutomationProperties.AutomationId="ReceiptClearButton" IsEnabled="{x:Bind ViewModel.HasReceipts, Mode=OneWay}" />
+					</StackPanel>
+					<TextBlock Grid.Row="2" Margin="8,20" Text="{helpers:ResourceString Name=ReceiptEmpty}" TextWrapping="Wrap"
+						Visibility="{x:Bind ViewModel.HasReceipts, Mode=OneWay, Converter={StaticResource NegateBoolToVisibilityConverter}}" />
+					<ListView Grid.Row="2" ItemsSource="{x:Bind ViewModel.OperationReceipts, Mode=OneWay}" SelectionMode="None"
+						AutomationProperties.AutomationId="ReceiptHistoryList" ScrollViewer.VerticalScrollBarVisibility="Auto">
+						<ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="Padding" Value="0" /><Setter Property="Margin" Value="0,3" /></Style></ListView.ItemContainerStyle>
+						<ListView.ItemTemplate>
+							<DataTemplate x:DataType="receipts:OperationReceiptViewModel">
+								<Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{x:Bind Title}"
+									AutomationProperties.AutomationId="ReceiptDetailsExpander">
+									<Expander.Header><StackPanel Spacing="3"><TextBlock Text="{x:Bind Title}" TextWrapping="Wrap" Style="{StaticResource BodyStrongTextBlockStyle}" /><TextBlock Text="{x:Bind Completed}" Style="{StaticResource CaptionTextBlockStyle}" /><TextBlock Text="{x:Bind Counts}" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" /></StackPanel></Expander.Header>
+									<StackPanel Spacing="8">
+										<TextBlock Text="{helpers:ResourceString Name=ReceiptTotalsNote}" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" />
+										<TextBlock Text="{helpers:ResourceString Name=ReceiptSources}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+										<TextBlock Text="{x:Bind SourcePaths}" TextWrapping="Wrap" IsTextSelectionEnabled="True" AutomationProperties.AutomationId="ReceiptSourcePaths" />
+										<TextBlock Text="{helpers:ResourceString Name=ReceiptDestinations}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+										<TextBlock Text="{x:Bind DestinationPaths}" TextWrapping="Wrap" IsTextSelectionEnabled="True" AutomationProperties.AutomationId="ReceiptDestinationPaths" />
+										<TextBlock Text="{x:Bind FailureCode}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+									</StackPanel>
+								</Expander>
+							</DataTemplate>
+						</ListView.ItemTemplate>
+					</ListView>
+				</Grid>
+			</PivotItem>
+		</Pivot>
 
 	</Grid>
 </UserControl>

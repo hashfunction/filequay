@@ -5,7 +5,6 @@ using Files.App.Actions;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Sentry;
 
 namespace Files.App.Data.Commands
 {
@@ -165,7 +164,6 @@ namespace Files.App.Data.Commands
 		{
 			if (IsExecutable)
 			{
-				SentrySdk.Metrics.EmitCounter("actions", 1, [new KeyValuePair<string, object>("command", Code.ToString())]);
 				return Action.ExecuteAsync(parameter);
 			}
 

@@ -11,8 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
-using Sentry;
-using Sentry.Protocol;
 using System.IO;
 using System.Text;
 using Windows.ApplicationModel;
@@ -27,7 +25,7 @@ namespace Files.App.Helpers
 	/// </summary>
 	public static class AppLifecycleHelper
 	{
-		private readonly static string AppInformationKey = @$"Software\Files Community\{Package.Current.Id.Name}\v1\AppInformation";
+		private readonly static string AppInformationKey = @$"Software\Trieflow LLC\FileQuay\{Package.Current.Id.Name}\v1\AppInformation";
 
 		/// <summary>
 		/// Gets the value that indicates whether the app is updated.
@@ -73,9 +71,7 @@ namespace Files.App.Helpers
 		/// Gets the value that provides application environment or branch name.
 		/// </summary>
 		public static AppEnvironment AppEnvironment =>
-			Enum.TryParse("cd_app_env_placeholder", true, out AppEnvironment appEnvironment)
-				? appEnvironment
-				: AppEnvironment.Dev;
+			AppEnvironment.Dev;
 
 
 		/// <summary>
@@ -105,7 +101,6 @@ namespace Files.App.Helpers
 			var generalSettingsService = userSettingsService.GeneralSettingsService;
 			var jumpListService = Ioc.Default.GetRequiredService<IWindowsJumpListService>();
 
-			ActiveSessionTracker.ReportPersistedTime();
 
 			// Start off a list of tasks we need to run before we can continue startup
 			await Task.WhenAll(
@@ -179,27 +174,8 @@ namespace Files.App.Helpers
 		}
 
 		/// <summary>
-		/// Configures Sentry service, such as Analytics and Crash Report.
+		/// FileQuay uses local diagnostics only.
 		/// </summary>
-		public static void ConfigureSentry()
-		{
-			SentrySdk.Init(options =>
-			{
-				options.Dsn = Constants.AutomatedWorkflowInjectionKeys.SentrySecret;
-				options.AutoSessionTracking = true;
-				var packageVersion = Package.Current.Id.Version;
-				options.Release = $"{packageVersion.Major}.{packageVersion.Minor}.{packageVersion.Build}";
-				options.TracesSampleRate = 0.10;
-				// Active-session reports must not be sampled away or their sums undercount;
-				// returning null falls back to TracesSampleRate for everything else
-				options.TracesSampler = context =>
-					context.TransactionContext.Operation == ActiveSessionTracker.TransactionOperation ? 1.0 : null;
-				options.ProfilesSampleRate = 0.05;
-				options.Environment = AppEnvironment == AppEnvironment.StorePreview || AppEnvironment == AppEnvironment.SideloadPreview ? "preview" : "production";
-
-				options.DisableWinUiUnhandledExceptionIntegration();
-			});
-		}
 
 		/// <summary>
 		/// Configures DI (dependency injection) container.
@@ -214,7 +190,6 @@ namespace Files.App.Helpers
 					.AddConsole()
 					.AddDebug()
 					.AddProvider(new FileLoggerProvider(Path.Combine(ApplicationData.Current.LocalFolder.Path, "debug.log")))
-					.AddProvider(new SentryLoggerProvider())
 					.SetMinimumLevel(LogLevel.Information))
 				.ConfigureServices(services => services
 					// Settings services
@@ -299,13 +274,7 @@ namespace Files.App.Helpers
 					.AddSingleton<AppModel>()
 				);
 
-			// Conditional DI
-			if (AppEnvironment is AppEnvironment.SideloadPreview or AppEnvironment.SideloadStable)
-				builder.ConfigureServices(s => s.AddSingleton<IUpdateService, SideloadUpdateService>());
-			else if (AppEnvironment is AppEnvironment.StorePreview or AppEnvironment.StoreStable)
-				builder.ConfigureServices(s => s.AddSingleton<IUpdateService, StoreUpdateService>());
-			else
-				builder.ConfigureServices(s => s.AddSingleton<IUpdateService, DummyUpdateService>());
+			builder.ConfigureServices(s => s.AddSingleton<IUpdateService, DummyUpdateService>());
 
 			return builder.Build();
 		}
@@ -404,26 +373,6 @@ namespace Files.App.Helpers
 
 				if (ex is not null)
 				{
-					ex.Data[Mechanism.HandledKey] = false;
-					ex.Data[Mechanism.MechanismKey] = mechanism;
-
-					SafetyExtensions.IgnoreExceptions(() =>
-					{
-						SentrySdk.CaptureException(ex, scope =>
-						{
-							scope.User.Id = generalSettingsService?.UserId;
-							scope.Level = SentryLevel.Fatal;
-							scope.SetTag("hresult", $"0x{ex.HResult:X8}");
-
-							if (!string.IsNullOrEmpty(unhandledMessage))
-								scope.SetExtra("unhandled_message", unhandledMessage);
-
-							// Exception.ToString of a buffered exception may run a throwing override
-							if (string.IsNullOrEmpty(ex.StackTrace))
-								scope.SetExtra("recent_exceptions", SafetyExtensions.IgnoreExceptions(FormatRecentExceptions));
-						});
-					});
-
 					formattedException.AppendLine($">>>> HRESULT: {ex.HResult}");
 
 					if (unhandledMessage is not null)
@@ -497,7 +446,7 @@ namespace Files.App.Helpers
 						// Try to re-launch and start over
 						MainWindow.Instance.DispatcherQueue.EnqueueOrInvokeAsync(async () =>
 						{
-							await Launcher.LaunchUriAsync(new Uri("files-dev:"));
+							await Launcher.LaunchUriAsync(new Uri("filequay:"));
 						})
 						.Wait(100);
 					}

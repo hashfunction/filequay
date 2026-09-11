@@ -5,7 +5,6 @@ using Files.App.Dialogs;
 using Files.App.Services.Git;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -72,13 +71,15 @@ namespace Files.App.Utils.Git
 		private static readonly StatusCenterViewModel StatusCenterViewModel = Ioc.Default.GetRequiredService<StatusCenterViewModel>();
 
 		// Constant already moved into abstraction
-		private const string GIT_RESOURCE_NAME = "Files:https://github.com";
+		public static Task RequireGitAuthenticationAsync() => DialogDisplayHelper.ShowDialogAsync(
+			"FileQuay", "FileQuayGitSignInUnavailable".GetLocalizedResource());
+
+		private const string GIT_RESOURCE_NAME = "FileQuay:https://github.com";
 
 		// Constant already moved into abstraction
 		private const string GIT_RESOURCE_USERNAME = "Personal Access Token";
 
 		// Constant already moved into abstraction
-		private const string CLIENT_ID_SECRET = Constants.AutomatedWorkflowInjectionKeys.GitHubClientId;
 
 		// Constant already moved into abstraction
 		private const int END_OF_ORIGIN_PREFIX = 7;
@@ -102,9 +103,6 @@ namespace Files.App.Utils.Git
 		private static readonly PullOptions _pullOptions = new();
 
 		// Property already moved into abstraction
-		private static readonly string _clientId = AppLifecycleHelper.AppEnvironment is AppEnvironment.Dev
-				? string.Empty
-				: CLIENT_ID_SECRET;
 
 		// Property already moved into abstraction
 		private static readonly SemaphoreSlim GitOperationSemaphore = new SemaphoreSlim(1, 1);
@@ -258,109 +256,6 @@ namespace Files.App.Utils.Git
 			});
 		}
 
-		public static async Task RequireGitAuthenticationAsync()
-		{
-			var pending = true;
-			var client = new HttpClient();
-			client.DefaultRequestHeaders.Add("Accept", "application/json");
-			client.DefaultRequestHeaders.Add("User-Agent", "Files App");
-
-			JsonDocument? codeJsonContent;
-			try
-			{
-				var codeResponse = await client.PostAsync(
-					$"https://github.com/login/device/code?client_id={_clientId}&scope=repo",
-					new StringContent(""));
-
-				if (!codeResponse.IsSuccessStatusCode)
-				{
-					await DynamicDialogFactory.GetFor_GitHubConnectionError().TryShowAsync();
-					return;
-				}
-
-				codeJsonContent = await codeResponse.Content.ReadFromJsonAsync<JsonDocument>();
-				if (codeJsonContent is null)
-				{
-					await DynamicDialogFactory.GetFor_GitHubConnectionError().TryShowAsync();
-					return;
-				}
-			}
-			catch
-			{
-				await DynamicDialogFactory.GetFor_GitHubConnectionError().TryShowAsync();
-				return;
-			}
-
-			var userCode = codeJsonContent.RootElement.GetProperty("user_code").GetString() ?? string.Empty;
-			var deviceCode = codeJsonContent.RootElement.GetProperty("device_code").GetString() ?? string.Empty;
-			var interval = codeJsonContent.RootElement.GetProperty("interval").GetInt32();
-			var expiresIn = codeJsonContent.RootElement.GetProperty("expires_in").GetInt32();
-
-			var loginCTS = new CancellationTokenSource();
-			var viewModel = new GitHubLoginDialogViewModel(userCode, Strings.ConnectGitHubDescription.GetLocalizedResource(), loginCTS);
-
-			var dialog = _dialogService.GetDialog(viewModel);
-			var loginDialogTask = dialog.TryShowAsync();
-
-			while (!loginCTS.Token.IsCancellationRequested && pending && expiresIn > 0)
-			{
-				try
-				{
-					var loginResponse = await client.PostAsync(
-					$"https://github.com/login/oauth/access_token?client_id={_clientId}&device_code={deviceCode}&grant_type=urn:ietf:params:oauth:grant-type:device_code",
-					new StringContent(""));
-
-					expiresIn -= interval;
-
-					if (!loginResponse.IsSuccessStatusCode)
-					{
-						dialog.Hide();
-						break;
-					}
-
-					var loginJsonContent = await loginResponse.Content.ReadFromJsonAsync<JsonDocument>();
-					if (loginJsonContent is null)
-					{
-						dialog.Hide();
-						break;
-					}
-
-					if (loginJsonContent.RootElement.TryGetProperty("error", out var error))
-					{
-						if (error.GetString() == "authorization_pending")
-						{
-							await Task.Delay(TimeSpan.FromSeconds(interval));
-							continue;
-						}
-
-						dialog.Hide();
-						break;
-					}
-
-					var token = loginJsonContent.RootElement.GetProperty("access_token").GetString();
-					if (token is null)
-						continue;
-
-					pending = false;
-
-					CredentialsHelpers.SavePassword(
-						GIT_RESOURCE_NAME,
-						GIT_RESOURCE_USERNAME,
-						token);
-
-					viewModel.Subtitle = Strings.AuthorizationSucceded.GetLocalizedResource();
-					viewModel.LoginConfirmed = true;
-				}
-				catch (Exception ex)
-				{
-					_logger.LogWarning(ex.Message);
-					dialog.Hide();
-					break;
-				}
-			}
-
-			await loginDialogTask;
-		}
 
 		public static bool IsRepositoryEx([NotNullWhen(true)] string? path, [NotNullWhen(true)] out string? repoRootPath)
 		{
@@ -612,7 +507,8 @@ namespace Files.App.Utils.Git
 
 		public static async Task CloneRepoAsync(string repoUrl, string repoName, string targetDirectory)
 		{
-			var banner = StatusCenterHelper.AddCard_GitClone(repoName.CreateEnumerable(), targetDirectory.CreateEnumerable(), ReturnResult.InProgress);
+			var banner = StatusCenterHelper.AddCard_GitClone(repoUrl.CreateEnumerable(), targetDirectory.CreateEnumerable(), ReturnResult.InProgress);
+			using var completion = StatusCenterViewModel.TrackCompletion(banner);
 			var fsProgress = new StatusCenterItemProgressModel(banner.ProgressEventSource, enumerationCompleted: true, FileSystemStatusCode.InProgress);
 			var errorMessage = string.Empty;
 
@@ -656,14 +552,7 @@ namespace Files.App.Utils.Git
 				await DynamicDialogFactory.ShowFor_CannotCloneRepo(errorMessage);
 			}
 
-			StatusCenterViewModel.RemoveItem(banner);
-
-			StatusCenterHelper.AddCard_GitClone(
-				repoName.CreateEnumerable(),
-				targetDirectory.CreateEnumerable(),
-				isSuccess ? ReturnResult.Success :
-				banner.CancellationToken.IsCancellationRequested ? ReturnResult.Cancelled :
-				ReturnResult.Failed);
+			StatusCenterViewModel.CompleteItem(banner, isSuccess ? ReturnResult.Success : ReturnResult.Failed);
 		}
 
 		// Method already moved into abstraction

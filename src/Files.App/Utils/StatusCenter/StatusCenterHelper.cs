@@ -71,7 +71,7 @@ namespace Files.App.Utils.StatusCenter
 				return _statusCenterViewModel.AddItem(
 					"StatusCenter_CopyFailed_Header",
 					"StatusCenter_CopyFailed_SubHeader",
-					ReturnResult.Failed,
+					returnStatus,
 					FileOperationType.Copy,
 					source?.Select(x => x.Path),
 					destination,
@@ -136,7 +136,7 @@ namespace Files.App.Utils.StatusCenter
 				return _statusCenterViewModel.AddItem(
 					"StatusCenter_MoveFailed_Header",
 					"StatusCenter_MoveFailed_SubHeader",
-					ReturnResult.Failed,
+					returnStatus,
 					FileOperationType.Move,
 					source.Select(x => x.Path),
 					destination,
@@ -202,7 +202,7 @@ namespace Files.App.Utils.StatusCenter
 				return _statusCenterViewModel.AddItem(
 					"StatusCenter_DeleteFailed_Header",
 					string.Empty,
-					ReturnResult.Failed,
+					returnStatus,
 					FileOperationType.Recycle,
 					source?.Select(x => x.Path),
 					null,
@@ -268,7 +268,7 @@ namespace Files.App.Utils.StatusCenter
 				return _statusCenterViewModel.AddItem(
 					"StatusCenter_DeleteFailed_Header",
 					"StatusCenter_DeleteFailed_SubHeader",
-					ReturnResult.Failed,
+					returnStatus,
 					FileOperationType.Delete,
 					source?.Select(x => x.Path),
 					null,
@@ -335,7 +335,7 @@ namespace Files.App.Utils.StatusCenter
 				return _statusCenterViewModel.AddItem(
 					"StatusCenter_CompressFailed_Header",
 					"StatusCenter_CompressFailed_SubHeader",
-					ReturnResult.Failed,
+					returnStatus,
 					FileOperationType.Compressed,
 					source,
 					destination,
@@ -402,7 +402,7 @@ namespace Files.App.Utils.StatusCenter
 				return _statusCenterViewModel.AddItem(
 					"StatusCenter_DecompressFailed_Header",
 					"StatusCenter_DecompressFailed_SubHeader",
-					ReturnResult.Failed,
+					returnStatus,
 					FileOperationType.Extract,
 					source,
 					destination,
@@ -464,7 +464,7 @@ namespace Files.App.Utils.StatusCenter
 				return _statusCenterViewModel.AddItem(
 					"StatusCenter_EmptyRecycleBinFailed_Header",
 					"StatusCenter_EmptyRecycleBinFailed_SubHeader",
-					ReturnResult.Failed,
+					returnStatus,
 					FileOperationType.Delete,
 					null,
 					null,
@@ -528,7 +528,7 @@ namespace Files.App.Utils.StatusCenter
 				return _statusCenterViewModel.AddItem(
 					"StatusCenter_GitCloneFailed_Header",
 					"StatusCenter_GitCloneFailed_SubHeader",
-					ReturnResult.Failed,
+					returnStatus,
 					FileOperationType.GitClone,
 					repoName,
 					destination,
@@ -589,7 +589,7 @@ namespace Files.App.Utils.StatusCenter
 				return _statusCenterViewModel.AddItem(
 					"StatusCenter_InstallFontFailed_Header",
 					"StatusCenter_InstallFontFailed_SubHeader",
-					ReturnResult.Failed,
+					returnStatus,
 					FileOperationType.InstallFont,
 					source,
 					string.Empty.CreateEnumerable(),
