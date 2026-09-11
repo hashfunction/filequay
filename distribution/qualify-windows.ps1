@@ -21,7 +21,11 @@ function Invoke-Checked([string]$Program, [string[]]$Arguments) {
 }
 Invoke-Checked dotnet @('test','--project','tests/Files.App.UnitTests/Files.App.UnitTests.csproj','-c','Release','--report-trx','--results-directory','artifacts/qualification/unit-tests')
 Invoke-Checked $msbuild @('Files.slnx','-t:Restore','-p:Platform=x64','-p:Configuration=Release','-p:PublishReadyToRun=true','-p:RestorePackagesWithLockFile=true','-v:minimal')
-Invoke-Checked $msbuild @('src/Files.App/Files.App.csproj','-t:Build','-p:Configuration=Release','-p:Platform=x64','-p:AppxBundlePlatforms=x64','-p:AppxBundle=Never','-p:GenerateAppxPackageOnBuild=true','-p:UapAppxPackageBuildMode=SideloadOnly','-p:AppxPackageDir=artifacts/appx/','-p:AppxPackageSigningEnabled=false','-v:minimal')
+Invoke-Checked python @('-m','unittest','discover','-s','tests/packaging','-v')
+Invoke-Checked powershell @('-NoProfile','-File','tests/packaging/test-installation-helpers.ps1')
+Invoke-Checked powershell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1')
+Invoke-Checked powershell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','PreinstalledFramework')
+Invoke-Checked $msbuild @('src/Files.App/Files.App.csproj','-t:Build','-p:Configuration=Release','-p:Platform=x64','-p:AppxBundlePlatforms=x64','-p:AppxBundle=Never','-p:GenerateAppxPackageOnBuild=true','-p:FileQuayCIQualification=true','-p:UapAppxPackageBuildMode=SideloadOnly','-p:AppxPackageDir=artifacts/appx/','-p:AppxPackageSigningEnabled=false','-v:minimal')
 $mainPackages = @(Get-ChildItem -Recurse -File -Include '*.msix','*.appx' | Where-Object { $_.FullName -notmatch '[\\/]Dependencies[\\/]' })
 if ($mainPackages.Count -ne 1) { throw "Expected one main package; found $($mainPackages.Count)." }
 ./distribution/verify-package.ps1 -PackagePath $mainPackages[0].FullName -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' -OutputDirectory (Join-Path (Get-Location) 'artifacts/validated-package')
@@ -42,4 +46,4 @@ Get-ChildItem -Recurse -File -Include '*.msix','*.appx','*.msixbundle','*.appxbu
   @{ path=[IO.Path]::GetRelativePath((Get-Location).Path, $_.FullName); bytes=$_.Length; sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash }
 } | ConvertTo-Json -Depth 3 | Set-Content artifacts/qualification/package-inventory.json -Encoding utf8NoBOM
 Invoke-Checked powershell @('-NoProfile','-File','.github/scripts/Test-CIInstallation.ps1','-PackagePath',$mainPackages[0].FullName)
-@{ source_commit=$env:GITHUB_SHA; generated_at_utc=[DateTime]::UtcNow.ToString('o'); identity='Trieflow.FileQuay.Qualification'; publisher='CN=FileQuay-CI-Qualification'; native_build=$true; store_identity=$false; installation_qualification_passed=$true; native_source_clearance=$false; submitted=$false } | ConvertTo-Json | Set-Content artifacts/qualification/build-result.json -Encoding utf8NoBOM
+@{ source_commit=$env:GITHUB_SHA; generated_at_utc=[DateTime]::UtcNow.ToString('o'); identity='Trieflow.FileQuay.Qualification'; publisher='CN=FileQuay-CI-Qualification'; native_build=$true; store_identity=$false; installation_qualification_passed=$true; instrumented_qualification_build=$true; normal_store_binary_installation_tested=$false; native_source_clearance=$false; submitted=$false } | ConvertTo-Json | Set-Content artifacts/qualification/build-result.json -Encoding utf8NoBOM

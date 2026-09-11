@@ -78,6 +78,10 @@ namespace Files.App
 		{
 			Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 			WinRT.ComWrappersSupport.InitializeComWrappers();
+#if FILEQUAY_CI_QUALIFICATION
+			if (Utils.Qualification.CiComActivationProbe.TryRun(GetCommandLineArgs(AppInstance.GetCurrent().GetActivatedEventArgs())))
+				return;
+#endif
 
 			// We are about to do the first WinRT server call, in case the WinRT server is hanging
 			// we need to kill the server if there are no other Files instances already running

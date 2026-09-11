@@ -41,6 +41,10 @@
         <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(FileQuayCIQualification)' == 'true'">
+        <DefineConstants>$(DefineConstants);FILEQUAY_CI_QUALIFICATION</DefineConstants>
+    </PropertyGroup>
+
     <Import Project="..\..\distribution\FileQuay.Runtime.props" />
 
     <ItemGroup>

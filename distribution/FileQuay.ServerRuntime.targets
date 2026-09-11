@@ -1,0 +1,13 @@
+<!-- Copyright 2026 Trieflow LLC. Licensed under the MIT License. -->
+<Project>
+  <!-- CsWinRT 2.2 authoring targets rename this to WinRT.Host.runtimeconfig.json
+       for hosted DLL components. Our declared out-of-process server is an exe;
+       let the real SDK generate and publish its apphost-named configuration. -->
+  <Target Name="SetFileQuayServerRuntimeConfiguration"
+          BeforeTargets="GenerateBuildRuntimeConfigurationFiles;ComputeResolvedFilesToPublishList">
+    <PropertyGroup>
+      <ProjectRuntimeConfigFileName>$(AssemblyName).runtimeconfig.json</ProjectRuntimeConfigFileName>
+      <ProjectRuntimeConfigFilePath>$(TargetDir)$(ProjectRuntimeConfigFileName)</ProjectRuntimeConfigFilePath>
+    </PropertyGroup>
+  </Target>
+</Project>

@@ -24,10 +24,9 @@ class Program
 
 		_ = PInvoke.RoInitialize(RO_INIT_TYPE.RO_INIT_MULTITHREADED);
 
-		var classIds = typeof(Program).Assembly.GetTypes()
-			.Where(t => t.IsSealed && t.IsPublic && t.IsClass)
-			.Select(t => t.FullName!)
-			.Where(name => name.StartsWith("Files.App.Server.", StringComparison.Ordinal))
+		// Match the manifest explicitly. Reflection discovery is unsafe for
+		// trimmed/AOT consumers and can hide a missing activation registration.
+		var classIds = new[] { typeof(AppInstanceMonitor).FullName! }
 			.Select(name =>
 			{
 				if (PInvoke.WindowsCreateString(name, (uint)name.Length, out var classId) is HRESULT hr && hr.Value is not 0)

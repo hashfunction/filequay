@@ -20,7 +20,7 @@ foreach ($required in @('FileQuay.exe', 'NOTICE.md', 'LICENSE-MIT', 'LICENSE-MPL
 }
 [xml]$runtimePolicy = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'FileQuay.Runtime.props') -Raw
 $runtimeVersion = [string]$runtimePolicy.Project.PropertyGroup.FileQuayRuntimeVersion
-$payloadJson = & python (Join-Path $PSScriptRoot 'verify-package-payload.py') --package-root $OutputDirectory --runtime-version $runtimeVersion
+$payloadJson = & python (Join-Path $PSScriptRoot 'verify-package-payload.py') --package-root $OutputDirectory --runtime-version $runtimeVersion --dependency-directory (Join-Path (Split-Path $PackagePath -Parent) 'Dependencies/x64')
 if ($LASTEXITCODE -ne 0) { throw "Package payload is incomplete: $payloadJson" }
 $payload = ($payloadJson -join "`n") | ConvertFrom-Json
 $assetsPath = Join-Path $PSScriptRoot '../src/Files.App/obj/project.assets.json'
