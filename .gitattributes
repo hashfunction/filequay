@@ -3,6 +3,9 @@
 ###############################################################################
 * text=auto
 
+# Preserve the exact upstream notice bytes bound by sqlite-dependencies.lock.json.
+distribution/licenses/SQLite/** -text
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #

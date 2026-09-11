@@ -5,6 +5,7 @@ import importlib.util
 import json
 from pathlib import Path
 import tempfile
+import subprocess
 import unittest
 
 SOURCE = Path(__file__).resolve().parents[2]
@@ -14,6 +15,24 @@ SPEC.loader.exec_module(MODULE)
 
 
 class SQLiteAssetsTests(unittest.TestCase):
+    def test_windows_git_checkout_preserves_locked_notice_bytes(self):
+        lock = json.loads((SOURCE / 'distribution/sqlite-dependencies.lock.json').read_text())
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(['git', 'init', '-q', str(root)], check=True, capture_output=True)
+            (root / '.gitattributes').write_bytes((SOURCE / '.gitattributes').read_bytes())
+            for name in lock['notices']:
+                relative = Path('distribution/licenses/SQLite') / name
+                (root / relative).parent.mkdir(parents=True, exist_ok=True)
+                (root / relative).write_bytes((SOURCE / relative).read_bytes())
+            subprocess.run(['git', '-c', 'core.autocrlf=false', 'add', '.'], cwd=root, check=True, capture_output=True)
+            checkout = root / 'windows-checkout'
+            subprocess.run(['git', '-c', 'core.autocrlf=true', 'checkout-index', '--all', '--prefix=' + checkout.as_posix() + '/'], cwd=root, check=True, capture_output=True)
+            for name, expected in lock['notices'].items():
+                with self.subTest(notice=name):
+                    actual = hashlib.sha256((checkout / 'distribution/licenses/SQLite' / name).read_bytes()).hexdigest()
+                    self.assertEqual(expected, actual)
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
