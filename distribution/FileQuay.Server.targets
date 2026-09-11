@@ -1,0 +1,24 @@
+<!-- Copyright (c) Trieflow LLC. Licensed under the MIT License. -->
+<Project>
+  <PropertyGroup>
+    <FileQuayServerProject Condition="'$(FileQuayServerProject)' == ''">$(MSBuildThisFileDirectory)..\src\Files.App.Server\Files.App.Server.csproj</FileQuayServerProject>
+    <FileQuayServerPublishDirectory Condition="'$(FileQuayServerPublishDirectory)' == ''">$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', 'obj', 'FileQuayServer', '$(Platform)', '$(Configuration)'))</FileQuayServerPublishDirectory>
+  </PropertyGroup>
+  <Target Name="PublishFileQuayServer" BeforeTargets="AssignTargetPaths;ResolveAssemblyReferences" Condition="'$(DesignTimeBuild)' != 'true' and '$(IsCrossTargetingBuild)' != 'true'">
+    <RemoveDir Directories="$(FileQuayServerPublishDirectory)" />
+    <MSBuild Projects="$(FileQuayServerProject)" Targets="Publish"
+             RemoveProperties="PublishProfile;PublishAppxPackage;AppxPackageDir"
+             Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=win-$(Platform);PublishDir=$(FileQuayServerPublishDirectory);GenerateAppxPackageOnBuild=false" />
+    <Error Condition="!Exists('$(FileQuayServerPublishDirectory)Files.App.Server.exe')" Text="Server publish did not emit Files.App.Server.exe." />
+    <Error Condition="!Exists('$(FileQuayServerPublishDirectory)Files.App.Server.runtimeconfig.json')" Text="Server publish did not emit Files.App.Server.runtimeconfig.json." />
+    <Error Condition="!Exists('$(FileQuayServerPublishDirectory)Files.App.Server.deps.json')" Text="Server publish did not emit Files.App.Server.deps.json." />
+    <ItemGroup>
+      <_FileQuayPublishedServer Include="$(FileQuayServerPublishDirectory)**\*" />
+      <Content Include="@(_FileQuayPublishedServer)">
+        <Link>Files.App.Server\%(_FileQuayPublishedServer.RecursiveDir)%(_FileQuayPublishedServer.Filename)%(_FileQuayPublishedServer.Extension)</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+    </ItemGroup>
+  </Target>
+</Project>

@@ -34,4 +34,16 @@ Run at 100%, 150% and 200% scaling and light/dark/high contrast. The native pick
 
 Use `distribution/build-filequay.ps1 -Identity <owned-name> -Publisher <owned-distinguished-name>` from a clean committed Windows checkout. It uses unsigned output and stops on failures. The plan's `MakeAppx validate` command does not exist: the verifier uses `MakeAppx unpack` without `/nv`, which retains documented semantic validation. This is limited validation, not WACK or successful installation. Microsoft reference: https://learn.microsoft.com/en-us/windows/win32/appxpkg/make-appx-package--makeappx-exe-
 
+The main app and declared COM server publish self-contained .NET/Windows Desktop
+10.0.12 payloads with SDK 10.0.401. The server is staged under its manifest path
+before MSIX item collection, including dependency/satellite files. The verifier
+requires owned entrypoints, x64 host binaries, included-framework configurations,
+all declared dependency assets and runtime notices, and compares native host/CLR
+bytes with the exact restored runtime pack. Missing server/runtime files now fail
+even when MakeAppx accepts the manifest. `WindowsAppSDKSelfContained=false` keeps
+the Windows App SDK as an explicit MSIX installation dependency. See
+[toolchain.md](toolchain.md) for source-driven repair evidence and exact policy.
+Neither file inspection nor a minimal SDK cross-publish establishes installed
+FileQuay startup, COM activation, receipt UI behavior or WACK compliance.
+
 Generated SPDX inventories require resolved application assets. `NOASSERTION` entries, native 7-Zip/unRAR/SevenZipSharp inputs, assets/fonts/native winmd provenance and corresponding source remain release review gates. No package is cleared for distribution by these scripts. Original MIT/MPL notices remain in history and are included in the package. The public vendor download recipe is maintained by the release coordinator.

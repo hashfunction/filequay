@@ -23,7 +23,6 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <Platforms>x86;x64;arm64</Platforms>
         <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-        <SelfContained>false</SelfContained>
         <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
         <UseWinUI>true</UseWinUI>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
@@ -41,6 +40,8 @@
     <PropertyGroup>
         <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     </PropertyGroup>
+
+    <Import Project="..\..\distribution\FileQuay.Runtime.props" />
 
     <ItemGroup>
         <Manifest Include="app.manifest" />
@@ -144,13 +145,7 @@
         <AdditionalFiles Include="Strings\en-US\Resources.resw" />
     </ItemGroup>
 
-    <!-- Files.App.Server is an out-of-process COM server, not a project reference.
-         Build it before we resolve assemblies so its .winmd is available for CsWinRT. -->
-    <Target Name="BuildFilesAppServer" BeforeTargets="ResolveAssemblyReferences">
-        <MSBuild Projects="..\Files.App.Server\Files.App.Server.csproj"
-                 Targets="Build"
-                 Properties="Configuration=$(Configuration);Platform=$(Platform)" />
-    </Target>
+    <Import Project="..\..\distribution\FileQuay.Server.targets" />
 
 
 </Project>

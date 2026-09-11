@@ -18,6 +18,17 @@ if ($manifest.Package.Properties.DisplayName -ne 'FileQuay' -or $manifest.Packag
 foreach ($required in @('FileQuay.exe', 'NOTICE.md', 'LICENSE-MIT', 'LICENSE-MPL')) {
     if (-not (Test-Path -LiteralPath (Join-Path $OutputDirectory $required))) { throw "Required package file missing: $required" }
 }
+[xml]$runtimePolicy = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'FileQuay.Runtime.props') -Raw
+$runtimeVersion = [string]$runtimePolicy.Project.PropertyGroup.FileQuayRuntimeVersion
+$payloadJson = & python (Join-Path $PSScriptRoot 'verify-package-payload.py') --package-root $OutputDirectory --runtime-version $runtimeVersion
+if ($LASTEXITCODE -ne 0) { throw "Package payload is incomplete: $payloadJson" }
+$payload = ($payloadJson -join "`n") | ConvertFrom-Json
+$assetsPath = Join-Path $PSScriptRoot '../src/Files.App/obj/project.assets.json'
+if (-not (Test-Path -LiteralPath $assetsPath -PathType Leaf)) { throw 'Restored application assets are required to verify the exact runtime-pack bytes.' }
+$assets = Get-Content -LiteralPath $assetsPath -Raw | ConvertFrom-Json
+$packageFolders = @($assets.packageFolders.PSObject.Properties.Name)
+. (Join-Path $PSScriptRoot 'verify-runtime-files.ps1')
+$runtimeBinaries = @(Test-FileQuayRuntimeFiles -PackageRoot $OutputDirectory -RuntimeVersion $runtimeVersion -PackageFolders $packageFolders)
 $files = @(Get-ChildItem -LiteralPath $OutputDirectory -Recurse -File)
 foreach ($file in $files) {
     $relative = [IO.Path]::GetRelativePath($OutputDirectory, $file.FullName)
@@ -30,4 +41,4 @@ foreach ($file in $files) {
     }
 }
 $files | ForEach-Object { [ordered]@{ path=[IO.Path]::GetRelativePath($OutputDirectory, $_.FullName); bytes=$_.Length; sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash } } | ConvertTo-Json -Depth 4 | Set-Content ($OutputDirectory + '.files.json') -Encoding utf8NoBOM
-[ordered]@{ makeappx=$makeappx.FullName; makeappx_version=$makeappx.VersionInfo.FileVersion; semantic_unpack_passed=$true; identity=$Identity; publisher=$Publisher; package_sha256=(Get-FileHash $PackagePath -Algorithm SHA256).Hash; installed=$false; wack_passed=$false; license_audit_complete=$false } | ConvertTo-Json | Set-Content ($OutputDirectory + '.validation.json') -Encoding utf8NoBOM
+[ordered]@{ makeappx=$makeappx.FullName; makeappx_version=$makeappx.VersionInfo.FileVersion; semantic_unpack_passed=$true; payload_inspection=$payload; runtime_binaries=$runtimeBinaries; runtime_startup_verified=$false; identity=$Identity; publisher=$Publisher; package_sha256=(Get-FileHash $PackagePath -Algorithm SHA256).Hash; installed=$false; wack_passed=$false; license_audit_complete=$false } | ConvertTo-Json -Depth 8 | Set-Content ($OutputDirectory + '.validation.json') -Encoding utf8NoBOM

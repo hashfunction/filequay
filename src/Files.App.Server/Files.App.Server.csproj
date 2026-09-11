@@ -12,7 +12,6 @@
         <Nullable>enable</Nullable>
         <Configurations>Debug;Release</Configurations>
         <Platforms>x86;x64;arm64</Platforms>
-        <SelfContained>false</SelfContained>
         <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
         <RuntimeIdentifier Condition="'$(Platform)' == 'x86'">win-x86</RuntimeIdentifier>
         <RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
@@ -25,11 +24,13 @@
         <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
         <PublishReadyToRunComposite Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRunComposite>
         <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-        <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+        <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">False</PublishTrimmed>
         <CsWinRTEnableLogging>true</CsWinRTEnableLogging>
         <IsAotCompatible>true</IsAotCompatible>
         <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling>
     </PropertyGroup>
+
+    <Import Project="..\..\distribution\FileQuay.Runtime.props" />
 
     <ItemGroup>
         <Manifest Include="app.manifest" />
