@@ -302,6 +302,8 @@ namespace Files.App.Utils.StatusCenter
 			IsSpeedAndProgressAvailable = false;
 			Message = string.Empty;
 			var suffix = receipt.ReturnResult == ReturnResult.Success ? "Complete" : receipt.ReturnResult == ReturnResult.Cancelled ? "Canceled" : "Failed";
+			if (receipt.ReturnResult == ReturnResult.Cancelled && HeaderStringResource == "StatusCenter_EmptyRecycleBinInProgress_Header")
+				suffix = "Cancel";
 			HeaderStringResource = HeaderStringResource?.Replace("InProgress", suffix);
 			SubHeaderStringResource = SubHeaderStringResource?.Replace("InProgress", suffix);
 			ItemKind = receipt.ReturnResult == ReturnResult.Success ? StatusCenterItemKind.Successful : receipt.ReturnResult == ReturnResult.Cancelled ? StatusCenterItemKind.Canceled : StatusCenterItemKind.Error;

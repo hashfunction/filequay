@@ -4,10 +4,15 @@
   <IsPackable>false</IsPackable><IsTestProject>true</IsTestProject><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
  </PropertyGroup>
  <ItemGroup>
-  <PackageReference Include="MSTest.TestAdapter" /><PackageReference Include="MSTest.TestFramework" />
+  <PackageReference Include="CommunityToolkit.Mvvm" /><PackageReference Include="MSTest.TestAdapter" /><PackageReference Include="MSTest.TestFramework" />
   <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
   <!-- Compile the exact production receipt sources without WinUI or native Windows dependencies. -->
   <Compile Include="../../src/Files.App/Utils/StatusCenter/Receipts/*.cs" Link="Production/%(Filename)%(Extension)" />
+  <Compile Include="../../src/Files.App/Utils/StatusCenter/StatusCenterItem.cs" Link="Production/StatusCenterItem.cs" />
+  <Compile Include="../../src/Files.App/Utils/StatusCenter/StatusCenterHelper.cs" Link="Production/StatusCenterHelper.cs" />
+  <Compile Include="../../src/Files.App/Data/Enums/StatusCenterItemKind.cs" Link="Production/StatusCenterItemKind.cs" />
+  <Compile Include="../../src/Files.App/Data/Enums/StatusCenterItemIconKind.cs" Link="Production/StatusCenterItemIconKind.cs" />
+  <None Include="../../src/Files.App/Strings/en-US/Resources.resw" Link="Resources.resw" CopyToOutputDirectory="PreserveNewest" />
   <Compile Include="../../src/Files.App/Data/Enums/ReturnResult.cs" Link="Production/ReturnResult.cs" />
   <Compile Include="../../src/Files.App/Data/Enums/FileOperationType.cs" Link="Production/FileOperationType.cs" />
  </ItemGroup>

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Files Community
 // Licensed under the MIT License.
 
+using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using Windows.ApplicationModel;

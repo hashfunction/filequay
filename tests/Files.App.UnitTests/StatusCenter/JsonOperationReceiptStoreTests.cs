@@ -71,10 +71,26 @@ public class JsonOperationReceiptStoreTests
 		string path = Path.Combine(directory, "résumé,2026.csv"); await File.WriteAllTextAsync(path, "original");
 		await Assert.ThrowsExactlyAsync<IOException>(() => store.ExportCsvAsync(path));
 		Assert.AreEqual("original", await File.ReadAllTextAsync(path));
+		var confirmed = await ReceiptExportTarget.CaptureAsync(path, ExportFileIdentityForTests.Read);
 		using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
-		await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => store.ExportCsvAsync(path, true, cancellation.Token));
+		await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => store.ExportCsvAsync(path, confirmed, cancellation.Token));
 		Assert.AreEqual("original", await File.ReadAllTextAsync(path));
-		await store.ExportCsvAsync(path, true); StringAssert.Contains(await File.ReadAllTextAsync(path), "CompletedAtUtc");
+		await store.ExportCsvAsync(path, confirmed); StringAssert.Contains(await File.ReadAllTextAsync(path), "CompletedAtUtc");
+	}
+
+	[TestMethod]
+	public async Task ConfirmedExportRefusesAReplacementArrivingImmediatelyBeforeCommit()
+	{
+		var store = Store(); await store.AppendAsync(OperationReceiptCodecTests.Sample());
+		string path = Path.Combine(directory, "confirmed.csv"); await File.WriteAllTextAsync(path, "confirmed original");
+		var confirmed = await ReceiptExportTarget.CaptureAsync(path, ExportFileIdentityForTests.Read);
+		var exporter = new JsonOperationReceiptStore(directory, beforeCommit: () =>
+		{
+			File.Move(path, path + ".original", false);
+			File.WriteAllText(path, "unapproved replacement");
+		});
+		await Assert.ThrowsAsync<IOException>(() => exporter.ExportCsvAsync(path, confirmed));
+		Assert.AreEqual("unapproved replacement", await File.ReadAllTextAsync(path));
 	}
 
 	[TestMethod]
@@ -82,8 +98,8 @@ public class JsonOperationReceiptStoreTests
 	{
 		var store = Store(); await store.AppendAsync(OperationReceiptCodecTests.Sample());
 		var before = await File.ReadAllBytesAsync(store.HistoryPath);
-		await Assert.ThrowsExactlyAsync<IOException>(() => store.ExportCsvAsync(store.HistoryPath, true));
-		await Assert.ThrowsExactlyAsync<IOException>(() => store.ExportCsvAsync(Path.Combine(directory, ".lock"), true));
+		await Assert.ThrowsExactlyAsync<IOException>(() => store.ExportCsvAsync(store.HistoryPath));
+		await Assert.ThrowsExactlyAsync<IOException>(() => store.ExportCsvAsync(Path.Combine(directory, ".lock")));
 		await Assert.ThrowsExactlyAsync<DirectoryNotFoundException>(() => store.ExportCsvAsync(Path.Combine(directory, "missing", "file.csv")));
 		CollectionAssert.AreEqual(before, await File.ReadAllBytesAsync(store.HistoryPath));
 	}

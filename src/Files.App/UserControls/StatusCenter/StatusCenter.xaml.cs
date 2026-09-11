@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using CommunityToolkit.WinUI;
+using Files.App.Utils.StatusCenter.Receipts;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Storage.Pickers;
@@ -34,7 +35,8 @@ namespace Files.App.UserControls.StatusCenter
 				var file = await picker.PickSaveFileAsync();
 				if (file is null) return;
 				affectedPath = file.Path;
-				// The platform picker may create an empty file. Confirm the exact selected path before replacing it.
+				// The picker may create an empty file. Capture its identity/content before asking for replacement.
+				var selected = await Task.Run(() => ReceiptExportTarget.CaptureAsync(file.Path, ReceiptExportFileIdentity.Read));
 				var confirmation = new ContentDialog
 				{
 					XamlRoot = MainWindow.Instance.Content.XamlRoot,
@@ -45,7 +47,7 @@ namespace Files.App.UserControls.StatusCenter
 					DefaultButton = ContentDialogButton.Close
 				};
 				if (await confirmation.TryShowAsync() == ContentDialogResult.Primary)
-					await ViewModel.ExportReceiptsAsync(file.Path, true);
+					await ViewModel.ExportReceiptsAsync(file.Path, selected);
 			}
 			catch (Exception) { await ViewModel.ShowReceiptErrorAsync(affectedPath); }
 		}

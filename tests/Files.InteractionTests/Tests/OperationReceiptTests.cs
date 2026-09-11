@@ -95,6 +95,73 @@ public sealed class OperationReceiptTests
 		CollectionAssert.AreEqual(prior, File.ReadAllBytes(HistoryPath));
 	}
 
+	[TestMethod]
+	public void EmptyRecycleBinDisablesCancelAndRecordsActualCompletion()
+	{
+		if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Installed FileQuay tests require Windows.");
+		Assert.AreEqual("1", Environment.GetEnvironmentVariable("FILEQUAY_TEST_DISPOSABLE_RECYCLE_BIN"),
+			"Run only in a disposable Windows account whose Recycle Bin may be emptied.");
+		dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("Shell.Application")!);
+		dynamic bin = shell.NameSpace(10);
+		Assert.AreEqual(0, (int)bin.Items().Count, "Start with an empty disposable Recycle Bin.");
+		string root = Path.Combine(TestHelper.TestDataRootPath, Guid.NewGuid().ToString("N"));
+		string fixture = Path.Combine(root, "empty-bin-fixture"); Directory.CreateDirectory(fixture);
+		string sentinel = Path.Combine(root, "keep-original.txt"); File.WriteAllText(sentinel, "keep this original");
+		byte[] bytes = Enumerable.Repeat((byte)0x51, 64 * 1024).ToArray();
+		for (int i = 0; i < 12000; i++) File.WriteAllBytes(Path.Combine(fixture, i + ".bin"), bytes);
+		Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory(fixture, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+			Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+		Assert.IsTrue((int)bin.Items().Count > 0);
+		var before = ReadReceiptRecords().Select(r => r.GetProperty("id").GetGuid()).ToHashSet();
+		TestHelper.ContextClickElementByName("Recycle Bin"); TestHelper.InvokeButtonByName("Empty Recycle Bin");
+		TestHelper.InvokeDialogPrimaryButton("Yes");
+		TestHelper.InvokeButtonById("ShowStatusCenterButton"); TestHelper.InvokeButtonByName("Live");
+		TestHelper.WaitForElementByName("Emptying Recycle Bin");
+		var cancel = TestHelper.GetElementById("CancelOperationButton"); Assert.IsFalse(cancel.Enabled);
+		try { cancel.Click(); } catch (WebDriverException) { /* Disabled controls may reject the attempted click. */ }
+		WaitFor(() => ReadReceiptRecords().Count(r => !before.Contains(r.GetProperty("id").GetGuid()) && r.GetProperty("fileOperationType").GetInt32() == 8) == 1,
+			"one terminal empty-bin receipt");
+		var receipt = ReadReceiptRecords().Single(r => !before.Contains(r.GetProperty("id").GetGuid()) && r.GetProperty("fileOperationType").GetInt32() == 8);
+		Assert.AreEqual(1, receipt.GetProperty("returnResult").GetInt32());
+		Assert.AreEqual(0, (int)bin.Items().Count);
+		Assert.AreEqual("keep this original", File.ReadAllText(sentinel));
+		TestHelper.WaitForElementByName("Emptied Recycle Bin"); AxeHelper.AssertNoAccessibilityErrors();
+	}
+
+	[TestMethod]
+	public void ExportRefusesSubstitutionWhileConfirmationIsOpen()
+	{
+		string root = Path.Combine(TestHelper.TestDataRootPath, Guid.NewGuid().ToString("N"));
+		string source = Path.Combine(root, "export-race"); string destination = Path.Combine(root, "destination");
+		Directory.CreateDirectory(source); Directory.CreateDirectory(destination);
+		File.WriteAllText(Path.Combine(source, "original.txt"), "keep this original");
+		CopyThroughUi(root, "export-race", destination);
+		WaitFor(() => MatchingReceipts(source, 1) == 1, "a receipt to export");
+		TestHelper.InvokeButtonById("ShowStatusCenterButton"); TestHelper.InvokeButtonByName("Receipts");
+		TestHelper.InvokeButtonById("ReceiptExportButton"); string csvPath = Path.Combine(root, "race.csv");
+		var options = new AppiumOptions(); options.AddAdditionalCapability("app", "Root"); options.AddAdditionalCapability("deviceName", "WindowsPC");
+		using (var desktop = new WindowsDriver<WindowsElement>(new Uri("http://127.0.0.1:4723"), options))
+		{
+			WaitFor(() => desktop.FindElementsByAccessibilityId("1001").Count > 0, "native save picker");
+			var filename = desktop.FindElementByAccessibilityId("1001"); filename.Clear(); filename.SendKeys(csvPath);
+			desktop.FindElementByAccessibilityId("1").Click();
+		}
+		TestHelper.WaitForElementByName("Export receipts…");
+		Assert.IsTrue(File.Exists(csvPath), "Qualify the Windows picker-created destination fixture.");
+		File.Move(csvPath, csvPath + ".selected"); File.WriteAllText(csvPath, "unapproved replacement");
+		TestHelper.InvokeDialogPrimaryButton("Export receipts…");
+		WaitFor(() => TestHelper.GetElementById("ReceiptStorageErrorBar").Displayed && TestHelper.GetElementsOfTypeWithContent("Text", csvPath).Count > 0, "export conflict and affected path shown");
+		Assert.AreEqual("unapproved replacement", File.ReadAllText(csvPath));
+		Assert.AreEqual("keep this original", File.ReadAllText(Path.Combine(source, "original.txt")));
+	}
+
+	private static JsonElement[] ReadReceiptRecords()
+	{
+		if (!File.Exists(HistoryPath)) return [];
+		using var doc = JsonDocument.Parse(File.ReadAllBytes(HistoryPath));
+		return doc.RootElement.GetProperty("receipts").EnumerateArray().Select(r => r.Clone()).ToArray();
+	}
+
 	private static void CopyThroughUi(string root, string sourceName, string destination)
 	{
 		TestHelper.NavigateToPath(root); TestHelper.InvokeButtonByName(sourceName);

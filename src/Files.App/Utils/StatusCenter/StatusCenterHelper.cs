@@ -417,7 +417,7 @@ namespace Files.App.Utils.StatusCenter
 			long itemsCount = 0,
 			long totalSize = 0)
 		{
-			// Currently not supported accurate progress report for emptying the recycle bin
+			// EmptyTrashBin does not accept cancellation or report accurate progress.
 
 			if (returnStatus == ReturnResult.Cancelled)
 			{
@@ -443,8 +443,7 @@ namespace Files.App.Utils.StatusCenter
 					null,
 					false,
 					itemsCount,
-					totalSize,
-					new CancellationTokenSource());
+					totalSize);
 			}
 			else if (returnStatus == ReturnResult.Success)
 			{

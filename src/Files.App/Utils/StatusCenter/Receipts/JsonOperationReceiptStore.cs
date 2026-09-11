@@ -71,7 +71,7 @@ public sealed class JsonOperationReceiptStore : IOperationReceiptStore
 		finally { gate.Release(); }
 	}
 
-	public async Task ExportCsvAsync(string destinationPath, bool replaceExisting = false, CancellationToken cancellationToken = default)
+	public async Task<string?> ExportCsvAsync(string destinationPath, ReceiptExportTarget? confirmedTarget = null, CancellationToken cancellationToken = default)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 		string destination = Path.GetFullPath(destinationPath);
@@ -80,7 +80,7 @@ public sealed class JsonOperationReceiptStore : IOperationReceiptStore
 			|| destination.StartsWith(HistoryPath + ".", StringComparison.OrdinalIgnoreCase))
 			throw new IOException("Export cannot replace receipt history or recovery evidence.");
 		var history = await LoadAsync(cancellationToken).ConfigureAwait(false);
-		await AtomicWriteAsync(destination, new UTF8Encoding(false).GetBytes(OperationReceiptCodec.ToCsv(history)), replaceExisting, cancellationToken).ConfigureAwait(false);
+		return await ReceiptExportPublication.PublishAsync(destination, new UTF8Encoding(false).GetBytes(OperationReceiptCodec.ToCsv(history)), confirmedTarget, cancellationToken, beforeCommit).ConfigureAwait(false);
 	}
 
 	private async Task<FileStream> LockAsync(CancellationToken cancellationToken)

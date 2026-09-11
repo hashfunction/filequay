@@ -3,6 +3,7 @@
 
 using Files.App.Utils.StatusCenter.Receipts;
 using CommunityToolkit.WinUI;
+using Microsoft.UI.Xaml.Controls;
 
 namespace Files.App.ViewModels.UserControls
 {
@@ -85,6 +86,8 @@ namespace Files.App.ViewModels.UserControls
 		public ObservableCollection<OperationReceiptViewModel> OperationReceipts { get; } = [];
 		private string? receiptError;
 		public string? ReceiptError { get => receiptError; private set => SetProperty(ref receiptError, value); }
+		private InfoBarSeverity receiptMessageSeverity = InfoBarSeverity.Error;
+		public InfoBarSeverity ReceiptMessageSeverity { get => receiptMessageSeverity; private set => SetProperty(ref receiptMessageSeverity, value); }
 		public bool HasReceiptError => !string.IsNullOrWhiteSpace(ReceiptError);
 		public string ReceiptHistoryPath => receiptStore.HistoryPath;
 		public bool HasReceipts => OperationReceipts.Count > 0;
@@ -184,13 +187,32 @@ namespace Files.App.ViewModels.UserControls
 
 		public Task ShowReceiptErrorAsync(string path) => MainWindow.Instance.DispatcherQueue.EnqueueOrInvokeAsync(() =>
 		{
+			ReceiptMessageSeverity = InfoBarSeverity.Error;
 			ReceiptError = "ReceiptStorageError".GetLocalizedResource() + "\n" + path;
 			OnPropertyChanged(nameof(HasReceiptError));
 		});
 
-		public async Task ExportReceiptsAsync(string path, bool replaceExisting)
+		public async Task ExportReceiptsAsync(string path, ReceiptExportTarget selected)
 		{
-			try { await Task.Run(() => receiptStore.ExportCsvAsync(path, replaceExisting)); }
+			try
+			{
+				var recovery = await Task.Run(() => receiptStore.ExportCsvAsync(path, selected));
+				await MainWindow.Instance.DispatcherQueue.EnqueueOrInvokeAsync(() =>
+				{
+					ReceiptMessageSeverity = InfoBarSeverity.Success;
+					ReceiptError = recovery is null ? null : "ReceiptExportOriginalPreserved".GetLocalizedResource() + "\n" + recovery;
+					OnPropertyChanged(nameof(HasReceiptError));
+				});
+			}
+			catch (ReceiptExportConflictException conflict)
+			{
+				await MainWindow.Instance.DispatcherQueue.EnqueueOrInvokeAsync(() =>
+				{
+					ReceiptMessageSeverity = InfoBarSeverity.Error;
+					ReceiptError = "ReceiptExportConflictPreserved".GetLocalizedResource() + "\n" + path + "\n" + conflict.RecoveryPath;
+					OnPropertyChanged(nameof(HasReceiptError));
+				});
+			}
 			catch (Exception) { await ShowReceiptErrorAsync(path); }
 		}
 

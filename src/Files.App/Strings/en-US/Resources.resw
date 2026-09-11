@@ -4656,7 +4656,7 @@
   <data name="ReceiptCounts" xml:space="preserve"><value>{0} items · {1}</value></data>
   <data name="ReceiptTotalsNote" xml:space="preserve"><value>Reported totals describe the operation scope. Failed or cancelled operations may be partial. Receipts do not undo file operations.</value></data>
   <data name="ReceiptStorageError" xml:space="preserve"><value>Receipt history or export could not be updated. Your file-operation result is unchanged. Check access and free space, then reopen Receipts to retry loading. Corrupt history is preserved at the recovery path.</value></data>
-  <data name="ReceiptExportConfirm" xml:space="preserve"><value>Save receipt history to this CSV file? Its existing contents will be replaced.</value></data>
+  <data name="ReceiptExportConfirm" xml:space="preserve"><value>Save receipt history to this CSV file? Replacement requires this same file to remain unchanged. Its previous contents will be retained beside the CSV, and the recovery path will be shown.</value></data>
   <data name="ReceiptClearConfirm" xml:space="preserve"><value>Clear local receipt history? Files, live operations and preserved corrupt-history evidence are unaffected.</value></data>
   <data name="ReceiptOperationCreateNew" xml:space="preserve"><value>Create</value></data>
   <data name="ReceiptOperationRename" xml:space="preserve"><value>Rename</value></data>
@@ -4682,4 +4682,6 @@
   <data name="ReceiptResultCancelled" xml:space="preserve"><value>Cancelled</value></data>
   <data name="FileQuayGitSignInUnavailable" xml:space="preserve"><value>FileQuay does not include a GitHub sign-in service. Local Git operations and repositories remain available. Configure remote authentication with your own Git tools.</value></data>
   <data name="ReceiptProgressDetails" xml:space="preserve"><value>Operation progress details</value></data>
+  <data name="ReceiptExportOriginalPreserved" xml:space="preserve"><value>CSV saved. The previous file is preserved at this path:</value></data>
+  <data name="ReceiptExportConflictPreserved" xml:space="preserve"><value>CSV was not saved because the destination changed or could not be restored. Any file at the destination was left untouched, and the displaced file remains at the recovery path below. Review both files before retrying.</value></data>
 </root>
