@@ -1,0 +1,15 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "FileQuay resolved NuGet inventory",
+  "documentNamespace": "https://filequay.trieflow.com/spdx/7f4d1882-7123-4563-a0f2-82b88d1b9501",
+  "creationInfo": {
+    "creators": [
+      "Organization: Trieflow LLC"
+    ],
+    "created": "2026-09-11T08:18:01Z"
+  },
+  "documentComment": "0 application/source project asset files read. NOASSERTION licenses and missing assets require review before release.",
+  "packages": []
+}

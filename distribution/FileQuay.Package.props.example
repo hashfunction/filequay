@@ -1,0 +1,10 @@
+<Project>
+  <!-- Copy to an untracked local props file. Obtain owned identity from Partner Center. -->
+  <PropertyGroup>
+    <FileQuayPackageIdentity></FileQuayPackageIdentity>
+    <FileQuayPublisher></FileQuayPublisher>
+    <FileQuayVersion>1.0.0.0</FileQuayVersion>
+    <FileQuayDisplayName>FileQuay</FileQuayDisplayName>
+    <FileQuayPublisherDisplayName>Trieflow LLC</FileQuayPublisherDisplayName>
+  </PropertyGroup>
+</Project>

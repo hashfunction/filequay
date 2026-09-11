@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "upstreamCommit": "99951c66928c4da714da8b1dd46039421182cbab",
+  "inputs": [
+    {
+      "path": "src/Files.App/7z.dll",
+      "url": "https://raw.githubusercontent.com/files-community/Files/99951c66928c4da714da8b1dd46039421182cbab/src/Files.App/7z.dll",
+      "sha256": "51075af59f6696d5dc5446ba39fabfd0022628cdcfa41c80e7cb66e3bf4ee55d",
+      "bytes": 1316352,
+      "release_clearance": "pending component source/license audit; qualification input only"
+    },
+    {
+      "path": "src/Files.App/7z64.dll",
+      "url": "https://raw.githubusercontent.com/files-community/Files/99951c66928c4da714da8b1dd46039421182cbab/src/Files.App/7z64.dll",
+      "sha256": "bbd705e3b58ca7677c1e9e67473f166a6712da034dcb567d571fbb67507a443f",
+      "bytes": 1908736,
+      "release_clearance": "pending component source/license audit; qualification input only"
+    },
+    {
+      "path": "src/Files.App/7zArm64.dll",
+      "url": "https://raw.githubusercontent.com/files-community/Files/99951c66928c4da714da8b1dd46039421182cbab/src/Files.App/7zArm64.dll",
+      "sha256": "b5ac136ed5d8d1b67fe10c50b2a0c9cf6c01f9ccc3b082bc8411ac728f62d1de",
+      "bytes": 1769472,
+      "release_clearance": "pending component source/license audit; qualification input only"
+    },
+    {
+      "path": "src/Files.App/Assets/Libraries/OwlCore.Storage.0.14.0.999.nupkg",
+      "url": "https://raw.githubusercontent.com/files-community/Files/99951c66928c4da714da8b1dd46039421182cbab/src/Files.App/Assets/Libraries/OwlCore.Storage.0.14.0.999.nupkg",
+      "sha256": "a70e1aafa00791e98d953c21570c0468551cdec4d7641dcf1f2d1d4b348cc6bc",
+      "bytes": 105983,
+      "release_clearance": "pending component source/license audit; qualification input only"
+    },
+    {
+      "path": "src/Files.App/Assets/Libraries/SevenZipSharp.1.0.3.nupkg",
+      "url": "https://raw.githubusercontent.com/files-community/Files/99951c66928c4da714da8b1dd46039421182cbab/src/Files.App/Assets/Libraries/SevenZipSharp.1.0.3.nupkg",
+      "sha256": "ba4f76048c5225632637421a4413a9f1a439f3f04f18a58f11b857380dc89ae0",
+      "bytes": 87560,
+      "release_clearance": "pending component source/license audit; qualification input only"
+    }
+  ]
+}
