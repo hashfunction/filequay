@@ -148,6 +148,8 @@ function Invoke-FolderSailMarketingUi($State){
     $dialog=Open-FileQuayWorkflowExportConfirmation $ui $fixture
     Save-FolderSailMarketingFrame $State '03-export-receipts' @($dialog,(Find-FileQuayWorkflowElement $ui 'PrimaryButton' -Within $dialog)) 'Confirm where to save receipt history as a CSV file.'
     Invoke-FileQuayWorkflowAction $ui (Find-FileQuayWorkflowElement $ui 'PrimaryButton' -Within $dialog) Invoke
+    $null=Wait-FileQuayWorkflow { if (@(Find-FileQuayWorkflowElements $ui 'ReceiptExportConfirmationDialog').Count -eq 0) { $true } } 'confirmed export dialog to close'
+    $null=Open-FileQuayWorkflowHistory $ui
     $recovery=Wait-FileQuayWorkflow {
         Assert-FileQuayWorkflowCsv $fixture.csv $receipts
         $bar=Find-FileQuayWorkflowElement $ui 'ReceiptStorageErrorBar'
