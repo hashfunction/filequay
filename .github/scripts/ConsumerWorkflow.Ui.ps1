@@ -313,10 +313,17 @@ function Find-FileQuayWorkflowSaveFilename($Ui) {
     $filename = Find-FileQuayWorkflowElement $Ui '1001' -Within $hostControl
     $pattern = $null
     if ($filename.scope.target_hwnd -ne $hostControl.scope.target_hwnd -or $filename.scope.target_pid -ne $hostControl.scope.target_pid -or
-        $filename.element.Current.ClassName -cne 'Edit' -or
-        -not $filename.element.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$pattern) -or
-        $null -eq $pattern -or $pattern.Current.IsReadOnly) {
-        throw 'Native filename field is not the observed editable ValuePattern control.'
+        $filename.element.Current.ClassName -cne 'Edit') {
+        throw 'Native filename field is not the observed editable ValuePattern control: identity or class differs.'
+    }
+    if (-not $filename.element.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$pattern)) {
+        throw 'Native filename field is not the observed editable ValuePattern control: unsupported ValuePattern.'
+    }
+    if ($null -eq $pattern) {
+        throw 'Native filename field is not the observed editable ValuePattern control: null pattern returned.'
+    }
+    if ($pattern.Current.IsReadOnly) {
+        throw 'Native filename field is not the observed editable ValuePattern control: read-only pattern.'
     }
     $filename
 }
@@ -391,7 +398,7 @@ function Get-FileQuayWorkflowObservedNode($Element, $Scope, [int]$Depth) {
     $node
 }
 
-function Get-FileQuayWorkflowObservedTree($Scope, $Walker, [ValidateRange(1,160)][int]$MaximumNodes=160) {
+function Get-FileQuayWorkflowObservedTree($Scope, $Walker, [ValidateRange(1,160)][int]$MaximumNodes=160, [switch]$IncludePickerProvider) {
     $nodes = [Collections.Generic.List[object]]::new()
     $queue=[Collections.Generic.Queue[object]]::new();$queue.Enqueue(@{element=$Scope.root;depth=0})
     while ($queue.Count -and $nodes.Count -lt $MaximumNodes) {
@@ -400,6 +407,13 @@ function Get-FileQuayWorkflowObservedTree($Scope, $Walker, [ValidateRange(1,160)
             $node=Get-FileQuayWorkflowObservedNode $next.element $Scope $next.depth
             if (-not $node) {continue}
             $nodes.Add($node)
+            if ($IncludePickerProvider -and $node.Contains('automation_id') -and $node.Contains('class_name') -and
+                (($node.automation_id -ceq '1001' -and $node.class_name -ceq 'Edit') -or
+                 ($node.automation_id -ceq 'FileNameControlHost' -and $node.class_name -ceq 'AppControlHost') -or
+                 ($node.automation_id -in @('1','2') -and $node.class_name -ceq 'Button'))) {
+                try {$node.provider=Get-FileQuayPickerProviderObservation $next.element $Scope}
+                catch {$node.provider_error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
+            }
             if ($next.depth -lt 8) {
                 try {
                     $child=$Walker.GetFirstChild($next.element)

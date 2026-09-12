@@ -99,6 +99,65 @@ function Save-FileQuayPickerDiagnosticScreenshot($Ui,$Scope,[string]$Path) {
     } finally {if ($bitmap) {$bitmap.Dispose()};$memory.Dispose()}
 }
 
+function Get-FileQuayPickerProviderObservation($Element,$Scope) {
+    $current=$Element.Current
+    if ($current.ProcessId -ne $Scope.target_pid) {throw 'Picker provider process differs.'}
+    $result=[ordered]@{observation_only=$true;properties=[ordered]@{};patterns=[ordered]@{}}
+    foreach ($entry in @{native_hwnd='NativeWindowHandle';framework_id='FrameworkId'}.GetEnumerator()) {
+        try {$result[$entry.Key]=Limit-FileQuayWorkflowDiagnosticText ([string]$current.($entry.Value))}
+        catch {$result[$entry.Key+'_error']=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
+    }
+    foreach ($entry in ([ordered]@{
+        # UIA_ProviderDescriptionPropertyId; older managed clients may not register it.
+        provider_description=[System.Windows.Automation.AutomationProperty]::LookupById(30107)
+        value_available=[System.Windows.Automation.AutomationElement]::IsValuePatternAvailableProperty
+        invoke_available=[System.Windows.Automation.AutomationElement]::IsInvokePatternAvailableProperty
+    }).GetEnumerator()) {
+        $observation=[ordered]@{};$result.properties[$entry.Key]=$observation
+        try {
+            $observation.client_property_registered=$null -ne $entry.Value
+            if (-not $observation.client_property_registered) {continue}
+            $value=$Element.GetCurrentPropertyValue($entry.Value,$true)
+            $observation.supported=-not [object]::ReferenceEquals($value,[System.Windows.Automation.AutomationElement]::NotSupported)
+            $observation.returned_null=$null -eq $value
+            if ($observation.supported -and -not $observation.returned_null) {
+                $observation.value=if ($value -is [bool]) {$value} else {Limit-FileQuayWorkflowDiagnosticText ([string]$value)}
+            }
+        } catch {$observation.error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
+    }
+    foreach ($entry in ([ordered]@{Value=[System.Windows.Automation.ValuePattern]::Pattern;Invoke=[System.Windows.Automation.InvokePattern]::Pattern}).GetEnumerator()) {
+        $observation=[ordered]@{};$result.patterns[$entry.Key]=$observation
+        try {
+            $pattern=$null
+            $observation.supported=$Element.TryGetCurrentPattern($entry.Value,[ref]$pattern)
+            $observation.returned_pattern=$null -ne $pattern
+            if ($pattern) {$observation.type=Limit-FileQuayWorkflowDiagnosticText $pattern.GetType().FullName}
+            if ($observation.supported -and $observation.returned_pattern -and $entry.Key -ceq 'Value') {
+                $observation.is_read_only=$pattern.Current.IsReadOnly
+                $observation.value=Limit-FileQuayWorkflowDiagnosticText ([string]$pattern.Current.Value)
+            }
+        } catch {$observation.error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
+    }
+    if ($Element.Current.ProcessId -ne $Scope.target_pid) {throw 'Picker provider process changed during observation.'}
+    $result
+}
+
+function Get-FileQuayPickerClientAssemblies {[AppDomain]::CurrentDomain.GetAssemblies()}
+
+function Get-FileQuayPickerClientObservation {
+    # Observe assemblies already loaded by this client; do not load/register providers.
+    $assemblies=@(Get-FileQuayPickerClientAssemblies | Where-Object {
+        $_.GetName().Name -in @('UIAutomationClient','UIAutomationTypes','UIAutomationProvider','UIAutomationClientSideProviders')})
+    if ($assemblies.Count -gt 16) {throw 'Picker client assembly budget exceeded.'}
+    $result=[ordered]@{observation_only=$true;powershell=[string]$PSVersionTable.PSVersion;
+        framework=(Limit-FileQuayWorkflowDiagnosticText ([Runtime.InteropServices.RuntimeInformation]::FrameworkDescription));assemblies=@()}
+    foreach ($assembly in $assemblies) {
+        $result.assemblies+=@{identity=(Limit-FileQuayWorkflowDiagnosticText $assembly.FullName);
+            path=(Limit-FileQuayWorkflowDiagnosticText $assembly.Location);mvid=[string]$assembly.ManifestModule.ModuleVersionId}
+    }
+    $result
+}
+
 function Get-FileQuayPickerFailureDiagnostic($Ui) {
     $main=Get-FileQuayPickerNativeState $Ui $Ui.application $Ui.main_hwnd
     if (-not $main.app_live -or -not $main.main_live -or $main.main_pid -ne $Ui.application.Id) {
@@ -126,10 +185,12 @@ function Get-FileQuayPickerFailureDiagnostic($Ui) {
         $result.owned_foreground=$true
         try {$result.desktop_scope=Get-FileQuayPickerDesktopScope $scope}
         catch {$result.desktop_scope_error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
-        $result.control_tree=@(Get-FileQuayWorkflowObservedTree $scope (Get-FileQuayPickerWalker Control) 80)
+        $result.control_tree=@(Get-FileQuayWorkflowObservedTree $scope (Get-FileQuayPickerWalker Control) 80 -IncludePickerProvider)
         Assert-FileQuayPickerDiagnosticTarget $scope (Get-FileQuayPickerNativeState $Ui $process $foreground)
-        $result.raw_tree=@(Get-FileQuayWorkflowObservedTree $scope (Get-FileQuayPickerWalker Raw) 80)
+        $result.raw_tree=@(Get-FileQuayWorkflowObservedTree $scope (Get-FileQuayPickerWalker Raw) 80 -IncludePickerProvider)
         Assert-FileQuayPickerDiagnosticTarget $scope (Get-FileQuayPickerNativeState $Ui $process $foreground)
+        try {$result.client=Get-FileQuayPickerClientObservation}
+        catch {$result.client_error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
         try {$result.screenshot=Save-FileQuayPickerDiagnosticScreenshot $Ui $scope (Join-Path $Ui.evidence 'consumer-save-picker-failure.png')}
         catch {$result.screenshot_error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
         $result

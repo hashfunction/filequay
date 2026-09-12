@@ -150,4 +150,15 @@ foreach ($scenario in @('duplicate-host','duplicate-filename','outside-host','ad
     }
     Reject {Find-FileQuayWorkflowSaveFilename $ui} $scenario;$checks++
 }
+foreach ($scenario in @('unsupported','null pattern','read-only','identity or class')) {
+    Reset-Filename
+    switch ($scenario) {
+        'unsupported' {$script:supported=$false}
+        'null pattern' {$script:nullPattern=$true}
+        'read-only' {$script:readOnly=$true}
+        'identity or class' {$filename.element.Current.ClassName='ToolbarWindow32'}
+    }
+    $failure='';try {Find-FileQuayWorkflowSaveFilename $ui | Out-Null} catch {$failure=$_.Exception.Message}
+    Require ($failure.Contains($scenario)) "Filename rejection did not identify actual gate: $scenario; $failure";$checks++
+}
 "PASS actual owned scope and native filename selector checks: $checks (provider replay; native Windows remains pending)."

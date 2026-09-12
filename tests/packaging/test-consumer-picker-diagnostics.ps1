@@ -75,13 +75,109 @@ function Save-FileQuayPickerDiagnosticScreenshot($Ui,$Scope,[string]$Path) {
     if ($script:throwCapture) {throw 'Capture provider failed'}
     @{name='consumer-save-picker-failure.png';fixture_only=$true}
 }
+# Model only UIA API results; the production provider observation executes unchanged.
+Add-Type @'
+namespace System.Windows.Automation {
+ public class AutomationElement {
+  public static object NotSupported=new object();
+  public static object IsValuePatternAvailableProperty="value_available";
+  public static object IsInvokePatternAvailableProperty="invoke_available";
+ }
+ public class AutomationProperty {
+  public static object Provider="provider";
+  public static object LookupById(int id) {if(id!=30107) throw new System.Exception("Unexpected property ID");return Provider;}
+ }
+ public class ValuePattern {public static object Pattern="Value";}
+ public class InvokePattern {public static object Pattern="Invoke";}
+}
+'@
+function New-ProviderNode([string]$Id='1001',[int]$Owner=72) {
+    $node=New-Node $Id $Owner
+    $node.Current.ClassName='Edit';$node.Current | Add-Member NoteProperty FrameworkId 'Win32'
+    $node | Add-Member NoteProperty ProviderState @{
+        provider='Microsoft: HWND Proxy';value_available=$false;invoke_available=$false;
+        Value=@{supported=$false;pattern=$null};Invoke=@{supported=$false;pattern=$null}}
+    $node | Add-Member NoteProperty Calls 0
+    $node | Add-Member ScriptMethod GetCurrentPropertyValue {
+        param($Property,$IgnoreDefault)
+        Require $IgnoreDefault 'Provider query hid NotSupported with a default.'
+        $this.Calls++;$value=$this.ProviderState[$Property]
+        if ($value -is [Exception]) {throw $value}
+        $value
+    }
+    $node | Add-Member ScriptMethod TryGetCurrentPattern {
+        param($Pattern,$Result)
+        $this.Calls++;$value=$this.ProviderState[$Pattern]
+        if ($value -is [Exception]) {throw $value}
+        $Result.Value=$value.pattern;$value.supported
+    }
+    $node
+}
+$probe=New-ProviderNode
+$observed=Get-FileQuayPickerProviderObservation $probe $scope
+Require ($observed.properties.provider_description.value -ceq 'Microsoft: HWND Proxy' -and
+    $observed.patterns.Value.supported -eq $false -and -not $observed.patterns.Value.returned_pattern) 'Actual unsupported ValuePattern details were not retained.';$checks++
+Require ($observed.native_hwnd -eq 202 -and $observed.framework_id -ceq 'Win32') 'Native provider identity missing.';$checks++
+$probe.ProviderState.Value=@{supported=$true;pattern=[pscustomobject]@{Current=[pscustomobject]@{IsReadOnly=$false;Value='FolderSail-receipts'}}}
+$observed=Get-FileQuayPickerProviderObservation $probe $scope
+Require ($observed.patterns.Value.supported -and $observed.patterns.Value.returned_pattern -and
+    $observed.patterns.Value.is_read_only -eq $false -and $observed.patterns.Value.value -ceq 'FolderSail-receipts') 'Writable pattern observation differs.';$checks++
+$probe.ProviderState.Value.pattern.Current.IsReadOnly=$true
+$observed=Get-FileQuayPickerProviderObservation $probe $scope
+Require $observed.patterns.Value.is_read_only 'Read-only was reported as writable.';$checks++
+$probe.ProviderState.Value=@{supported=$true;pattern=$null}
+$observed=Get-FileQuayPickerProviderObservation $probe $scope
+Require ($observed.patterns.Value.supported -and -not $observed.patterns.Value.returned_pattern) 'Null pattern was concealed.';$checks++
+[System.Windows.Automation.AutomationProperty]::Provider=$null
+$observed=Get-FileQuayPickerProviderObservation $probe $scope
+Require (-not $observed.properties.provider_description.client_property_registered -and $observed.patterns.Value.supported) 'Missing managed property concealed the actual pattern result.';$checks++
+[System.Windows.Automation.AutomationProperty]::Provider='provider'
+$probe.ProviderState.Value=[Exception]::new(('provider unavailable '*100))
+$probe.ProviderState.provider=[System.Windows.Automation.AutomationElement]::NotSupported
+$probe.ProviderState.invoke_available=[Exception]::new('Property provider failed')
+$observed=Get-FileQuayPickerProviderObservation $probe $scope
+Require ($observed.patterns.Value.error.Length -eq 1024 -and $observed.properties.provider_description.supported -eq $false -and
+    $observed.properties.invoke_available.error.Contains('Property provider failed')) 'Unsupported/error metadata was defaulted or lost.';$checks++
+$probe.ProviderState.provider=$null
+$observed=Get-FileQuayPickerProviderObservation $probe $scope
+Require ($observed.properties.provider_description.returned_null -and -not $observed.properties.provider_description.Contains('value')) 'Null property was converted to an empty provider description.';$checks++
+$probe.ProviderState.provider='x'*2048
+$observed=Get-FileQuayPickerProviderObservation $probe $scope
+Require ($observed.properties.provider_description.value.Length -eq 1024) 'Provider text exceeded its budget.';$checks++
+$probe=New-ProviderNode -Owner 99
+Reject {Get-FileQuayPickerProviderObservation $probe $scope} 'process'
+Require ($probe.Calls -eq 0) 'Foreign provider metadata was queried.';$checks++
+$probe=New-ProviderNode
+$probe.Current | Add-Member ScriptProperty ProcessId {if ($script:probe.Calls -gt 0) {99} else {72}} -Force
+Reject {Get-FileQuayPickerProviderObservation $probe $scope} 'process changed';$checks++
+$client=Get-FileQuayPickerClientObservation
+Require ($client.observation_only -and $client.assemblies.Count -le 16 -and $client.framework.Length -le 1024) 'Client observation lost its bounds or diagnostic scope.';$checks++
+function New-ClientAssembly([string]$Name) {
+    $entry=[pscustomobject]@{FullName=$Name+', Version=10.0.0.0';Location='/fixture/'+$Name+'.dll';ManifestModule=[pscustomobject]@{ModuleVersionId=[guid]::Empty};Name=$Name}
+    $entry | Add-Member ScriptMethod GetName {[pscustomobject]@{Name=$this.Name}};$entry
+}
+$script:clientAssemblies=@((New-ClientAssembly 'UIAutomationClient'),(New-ClientAssembly 'Unrelated'))
+$script:clientAssemblies[1] | Add-Member ScriptProperty Location {throw 'Unrelated assembly path read'} -Force
+function Get-FileQuayPickerClientAssemblies {$script:clientAssemblies}
+$client=Get-FileQuayPickerClientObservation
+Require ($client.assemblies.Count -eq 1 -and $client.assemblies[0].path -ceq '/fixture/UIAutomationClient.dll') 'Client assembly identity/filter differs.';$checks++
+$script:clientAssemblies=@(1..17 | ForEach-Object {New-ClientAssembly 'UIAutomationClient'})
+Reject {Get-FileQuayPickerClientObservation} 'assembly budget';$checks++
+$script:clientAssemblies=@()
 $ui=@{application=[pscustomobject]@{Id=71;HasExited=$false};main_hwnd=101;evidence='/owned/evidence';record=@{passed=$false}}
 Reset-Scenario
+$script:root.Children=@((New-ProviderNode))
 $observed=Get-FileQuayPickerFailureDiagnostic $ui
 Require ($observed.owned_foreground -eq $true -and $observed.control_tree.Count -eq 2 -and $observed.raw_tree.Count -eq 2) 'Exact foreground picker tree missing.';$checks++
 Require ($observed.control_tree[1].automation_id -ceq '1001' -and $captures -eq 1 -and $disposed -eq 1) 'Owned capture or retained-handle disposal missing.';$checks++
 Require ($observed.desktop_scope.windows_observed -eq 2 -and $observed.desktop_scope.matching_roots.Count -eq 1 -and
     $observed.desktop_scope.matching_roots[0].process_id_matches -eq $true -and -not $observed.desktop_scope.matching_roots[0].offscreen) 'Exact owned desktop scope eligibility was not retained.';$checks++
+Require ($observed.control_tree[1].provider.patterns.Value.supported -eq $false -and $observed.raw_tree[1].provider.patterns.Value.supported -eq $false -and $observed.client.observation_only) 'Real picker failure entry omitted provider/client evidence.';$checks++
+$published=@{consumer_workflow=@{save_picker_failure=$observed}} | ConvertTo-Json -Depth 9 -WarningAction Stop | ConvertFrom-Json -AsHashtable
+Require ($published.consumer_workflow.save_picker_failure.raw_tree[1].provider.patterns.Value.supported -eq $false) 'Receipt JSON depth truncated provider evidence.';$checks++
+$script:root.Children[0].Current.ClassName='ToolbarWindow32'
+$observed=Get-FileQuayPickerFailureDiagnostic $ui
+Require ($script:root.Children[0].Calls -eq 10 -and -not $observed.control_tree[1].Contains('provider')) 'Same-ID address toolbar triggered filename provider queries.';$checks++
 Require (-not $ui.record.passed) 'Diagnostic granted consumer acceptance.';$checks++
 Reset-Scenario;$script:owner.owner_chain=@(202,999)
 $observed=Get-FileQuayPickerFailureDiagnostic $ui
@@ -118,6 +214,15 @@ $children=@(1..200 | ForEach-Object {New-Node "item-$_"})
 for ($i=0;$i -lt 199;$i++) {$children[$i].Next=$children[$i+1]};$script:root.Children=$children
 $observed=Get-FileQuayPickerFailureDiagnostic $ui
 Require ($observed.control_tree.Count -eq 80 -and $observed.raw_tree.Count -eq 80) 'Combined tree node budget exceeded.';$checks++
+Reset-Scenario;$script:root.Children=@((New-ProviderNode))
+$script:clientAssemblies=@(1..17 | ForEach-Object {New-ClientAssembly 'UIAutomationClient'})
+$observed=Get-FileQuayPickerFailureDiagnostic $ui
+Require ($observed.client_error.Contains('assembly budget') -and $observed.control_tree[1].provider.patterns.Value.supported -eq $false -and $captures -eq 1) 'Secondary client error discarded owned pattern evidence or pixels.';$checks++
+$script:clientAssemblies=@()
+Reset-Scenario;$script:root.Children=@((New-ProviderNode))
+$script:root.Children[0].ProviderState.Value=[Exception]::new('Value provider unavailable')
+$observed=Get-FileQuayPickerFailureDiagnostic $ui
+Require ($observed.control_tree[1].provider.patterns.Value.error.Contains('Value provider unavailable') -and $captures -eq 1) 'Secondary provider error discarded the picker or screenshot.';$checks++
 Reset-Scenario;$script:throwCapture=$true
 $observed=Get-FileQuayPickerFailureDiagnostic $ui
 Require ($observed.control_tree.Count -eq 2 -and $observed.screenshot_error.Contains('Capture provider failed')) 'Secondary screenshot failure discarded picker tree.';$checks++
