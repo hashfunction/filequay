@@ -429,7 +429,21 @@ function Assert-FileQuayWorkflowPickerButton($Ui, $Binding, [string]$Id, [string
         $current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or
         $current.IsOffscreen -or -not $current.IsEnabled -or -not $current.IsKeyboardFocusable -or
         -not $current.NativeWindowHandle -or ($ExpectedHandle -and $current.NativeWindowHandle -ne $ExpectedHandle) -or
-        ($Focused -and -not $current.HasKeyboardFocus)) { throw 'The exact owned native picker button identity or focus changed.' }
+        ($Focused -and -not $current.HasKeyboardFocus)) {
+        # Retain which original provider property failed; the old generic error
+        # concealed whether the native HWND, identity, or focus was unavailable.
+        Add-FileQuayWorkflowTrace $Ui 'NativeButtonRefused' @{
+            expected_id=$Id;expected_name=$Name;expected_hwnd=$ExpectedHandle;focus_required=[bool]$Focused
+            automation_id=([string]$current.AutomationId).Substring(0,[Math]::Min(64,([string]$current.AutomationId).Length))
+            name=([string]$current.Name).Substring(0,[Math]::Min(64,([string]$current.Name).Length))
+            class_name=([string]$current.ClassName).Substring(0,[Math]::Min(128,([string]$current.ClassName).Length))
+            is_button=($current.ControlType -eq [System.Windows.Automation.ControlType]::Button)
+            button_hwnd=[long]$current.NativeWindowHandle;process_id=$current.ProcessId;picker_hwnd=$Binding.scope.target_hwnd
+            picker_pid=$Binding.scope.target_pid;offscreen=$current.IsOffscreen;enabled=$current.IsEnabled
+            keyboard_focusable=$current.IsKeyboardFocusable;keyboard_focus=$current.HasKeyboardFocus
+        }
+        throw 'The exact owned native picker button identity or focus changed.'
+    }
     [long]$current.NativeWindowHandle
 }
 
@@ -439,9 +453,21 @@ function Invoke-FileQuayWorkflowPickerButton($Ui, $Binding, [string]$Id, [string
     [FileQuayQualification.ConsumerInput]::Foreground($Ui.application,$Ui.main_hwnd,$scope.process,$scope.target_hwnd)
     Assert-FileQuayWorkflowTarget $scope (Get-FileQuayWorkflowTargetState $Ui $Binding)
     $Binding.element.SetFocus()
-    $state=Get-FileQuayWorkflowTargetState $Ui $Binding
+    # Observe the single focus request completing. Identity/ownership failures
+    # remain immediate; no focus request or input is retried during this wait.
+    $focusReads=[Collections.Generic.List[object]]::new()
+    for($attempt=0;$attempt -lt 20;$attempt++) {
+        $state=Get-FileQuayWorkflowTargetState $Ui $Binding
+        $null=Assert-FileQuayWorkflowPickerButton $Ui $Binding $Id $Name $handle
+        Assert-FileQuayWorkflowTarget $scope $state
+        $focused=[bool]$Binding.element.Current.HasKeyboardFocus
+        $focusReads.Add(@{at_utc=[DateTimeOffset]::UtcNow.ToString('O');focused=$focused})
+        if($focused){break}
+        if($attempt -lt 19){Start-Sleep -Milliseconds 50}
+    }
+    Add-FileQuayWorkflowTrace $Ui 'NativeButtonFocusObservation' @{automation_id=$Id;button_hwnd=$handle;observations=$focusReads.ToArray()}
     $null=Assert-FileQuayWorkflowPickerButton $Ui $Binding $Id $Name $handle -Focused
-    Assert-FileQuayWorkflowTarget $scope $state
+    Assert-FileQuayWorkflowTarget $scope (Get-FileQuayWorkflowTargetState $Ui $Binding)
     Add-FileQuayWorkflowTrace $Ui 'NativeButtonSpace' @{automation_id=$Id;name=$Name;button_hwnd=$handle;state=$state}
     # The Microsoft standard-button Invoke provider sends synchronous BM_CLICK.
     # Send ordinary Space once; the compiled adapter rechecks this exact native

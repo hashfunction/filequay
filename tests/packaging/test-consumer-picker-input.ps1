@@ -26,13 +26,13 @@ function Reject([scriptblock]$Action,$Text){$failure='';try{& $Action|Out-Null}c
 function New-Element($Id,$Name,$Class,$Type,$Handle,$Owner) {
  $e=[pscustomobject]@{Current=[pscustomobject]@{AutomationId=$Id;Name=$Name;ClassName=$Class;ControlType=$Type;NativeWindowHandle=$Handle;ProcessId=$Owner;IsOffscreen=$false;IsEnabled=$true;IsKeyboardFocusable=$true;HasKeyboardFocus=$false}}
  $e|Add-Member ScriptMethod SetFocus {
-  $this.Current.HasKeyboardFocus=$true;$script:events.Add('focus-'+$this.Current.AutomationId)
+  $script:focusRequests++;$this.Current.HasKeyboardFocus=($script:focusDelay -eq 0);$script:events.Add('focus-'+$this.Current.AutomationId)
   if($script:drift){$this.Current.($script:drift.key)=$script:drift.value}
  }
  $e
 }
 function Reset {
- $script:nativeError=$false;$script:events=[Collections.Generic.List[string]]::new();$script:drift=$null;$script:badState=$false;$script:wrongValue=$false;$script:needsOverwrite=$false;$script:reads=0
+ $script:focusRequests=0;$script:focusDelay=0;$script:focusReads=0;$script:lateDrift=$null;$script:nativeError=$false;$script:events=[Collections.Generic.List[string]]::new();$script:drift=$null;$script:badState=$false;$script:wrongValue=$false;$script:needsOverwrite=$false;$script:reads=0
  [FileQuayQualification.ConsumerInput]::Spaces=0;[FileQuayQualification.ConsumerInput]::FailSend=$false;[FileQuayQualification.ConsumerInput]::Buttons.Clear()
  $process=[pscustomobject]@{Id=1752;Path='C:\Windows\System32\PickerHost.exe'}
  $scope=@{app_pid=9136;main_hwnd=3473742;target_pid=1752;target_hwnd=131642;process=$process;root=$null}
@@ -60,6 +60,7 @@ function Find-FileQuayWorkflowElements($Ui,[string]$Id='',[string]$Name='',$With
  throw "Unexpected plural selector $Id"
 }
 function Get-FileQuayWorkflowTargetState($Ui,$Binding){
+ if($script:focusRequests -gt 0 -and $script:focusDelay -gt 0){$script:focusReads++;if($script:lateDrift -and $script:focusReads -eq 2){$Binding.element.Current.($script:lateDrift.key)=$script:lateDrift.value};if($script:focusReads -ge $script:focusDelay){$Binding.element.Current.HasKeyboardFocus=$true}}
  @{app_live=$true;main_live=$true;main_pid=9136;target_process_live=$true;target_live=$true;target_pid=$Binding.scope.target_pid;target_hwnd=$Binding.scope.target_hwnd;
   target_visible=$true;target_enabled=(-not $badState);foreground_hwnd=$Binding.scope.target_hwnd;owner_chain=@($Binding.scope.target_hwnd,3473742);
   element_pid=$Binding.element.Current.ProcessId;element_hwnd=$Binding.scope.target_hwnd;element_within_target=$true;element_visible=(-not $Binding.element.Current.IsOffscreen);element_enabled=$Binding.element.Current.IsEnabled}
@@ -107,4 +108,21 @@ Require ([FileQuayQualification.ConsumerInput]::Spaces -eq 0) 'Disabled native t
 Reset;[FileQuayQualification.ConsumerInput]::FailSend=$true
 Reject {Open-FileQuayWorkflowExportConfirmation $ui $fixture} 'native focus changed'
 Require ([FileQuayQualification.ConsumerInput]::Spaces -eq 1) 'Native failure was retried or replaced.';$checks++
+Reset;$focusDelay=3
+Invoke-FileQuayWorkflowPickerButton $ui $save '1' 'Save'
+Require ($focusRequests -eq 1 -and $focusReads -ge 3 -and [FileQuayQualification.ConsumerInput]::Spaces -eq 1) 'Delayed focus must be observed before exactly one native input, without replaying SetFocus.';$checks++
+$focusTrace=@($ui.record.trace|Where-Object step -CEQ 'NativeButtonFocusObservation')[0]
+Require (($focusTrace.details.observations.focused -join ',') -ceq 'False,False,True') 'Original unsuccessful and successful focus observations were not retained.';$checks++
+Reset;$focusDelay=100
+Reject {Invoke-FileQuayWorkflowPickerButton $ui $save '1' 'Save'} 'button'
+Require ($focusRequests -eq 1 -and $focusReads -eq 20 -and [FileQuayQualification.ConsumerInput]::Spaces -eq 0) 'Absent focus must stop within20observations without input or a second focus request.';$checks++
+foreach($change in @(@('AutomationId','2'),@('NativeWindowHandle',405),@('ProcessId',999),@('IsEnabled',$false))){
+ Reset;$focusDelay=4;$lateDrift=@{key=$change[0];value=$change[1]}
+ Reject {Invoke-FileQuayWorkflowPickerButton $ui $save '1' 'Save'} 'button'
+ Require ($focusRequests -eq 1 -and $focusReads -eq 2 -and [FileQuayQualification.ConsumerInput]::Spaces -eq 0) 'Identity drift during focus observation must fail immediately without input.';$checks++
+}
+Reset;$save.element.Current.NativeWindowHandle=0
+Reject {Invoke-FileQuayWorkflowPickerButton $ui $save '1' 'Save'} 'button'
+$refused=@($ui.record.trace|Where-Object step -CEQ 'NativeButtonRefused')[0]
+Require ($focusRequests -eq 0 -and $refused.details.button_hwnd -eq 0 -and $refused.details.process_id -eq 1752) 'Missing original native HWND must remain a pre-focus refusal with diagnostic properties.';$checks++
 "PASS production picker filename/Space/confirmation sequence and refusal: $checks checks."
