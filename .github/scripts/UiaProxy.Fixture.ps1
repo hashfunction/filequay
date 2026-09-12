@@ -3,7 +3,7 @@ function Build-FileQuayUiaFixture([string]$Root,[string]$Work,[string]$DotNet='d
     $folder='tests/Files.Qualification.Win32Controls'
     $inputs=@('global.json','Directory.Build.props','Directory.Packages.props','src/Files.App.CsWin32/NativeMethods.json',
         "$folder/FileQuay.Qualification.Win32Controls.csproj","$folder/Win32Controls.cs","$folder/NativeMethods.txt","$folder/packages.lock.json",
-        '.github/scripts/Invoke-UiaProxyFixtureChild.ps1','.github/scripts/ConsumerWorkflow.Helpers.ps1')
+        '.github/scripts/Invoke-UiaProxyFixtureChild.ps1','.github/scripts/ConsumerWorkflow.Helpers.ps1','.github/scripts/UiaProxy.Diagnostics.cs')
     $hashes=@(foreach ($relative in $inputs) { @{path=$relative;file=(Get-FileQuayWorkflowFile (Join-Path $Root $relative))} })
     $command=(Get-Command $DotNet -CommandType Application -ErrorAction Stop).Source
     $output=Join-Path $Work 'win32-controls';$null=New-Item -ItemType Directory -Path $output
@@ -68,7 +68,8 @@ function Invoke-FileQuayUiaProxyPreflight([string]$Root,[string]$Work,$Adapter,$
     Assert-FileQuayConsumerAdapter $Adapter
     $Record.schema_version=1;$Record.source_commit=$env:GITHUB_SHA;$Record.consumer_acceptance=$false
     $Record.passed=$false;$Record.cleanup_errors=@();$Record.proxy=@{registered=$false}
-    $Record.fixture=@{normal_exit=$false;forced_cleanup=$false};$process=$null;$ready=$null;$primary=''
+    $Record.fixture=@{normal_exit=$false;forced_cleanup=$false};$process=$null;$ready=$null;$primary='';$output=$null
+    $Record.fixture.diagnostic_errors=@()
     try {
         Get-FileQuayUiaProxyEvidence $Record.proxy
         $Record.loaded_providers_before_registration=@([AppDomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.GetName().Name -ieq 'UIAutomationClientSideProviders' } | ForEach-Object { @{identity=$_.FullName;path=$_.Location} })
@@ -81,6 +82,10 @@ function Invoke-FileQuayUiaProxyPreflight([string]$Root,[string]$Work,$Adapter,$
         $nonce=[Guid]::NewGuid().ToString('N');$hostPath=(Get-Process -Id $PID).Path
         $Record.fixture.directory=$directory;$Record.fixture.nonce=$nonce;$Record.fixture.host_path=$hostPath
         $start=[Diagnostics.ProcessStartInfo]::new($hostPath);$start.UseShellExecute=$false
+        $start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
+        $diagnostics=Join-Path $Root '.github/scripts/UiaProxy.Diagnostics.cs'
+        Assert-FileQuayWorkflowFile $diagnostics @($build.source_inputs | Where-Object path -CEQ '.github/scripts/UiaProxy.Diagnostics.cs')[0].file
+        Add-Type -Path $diagnostics
         $child=Join-Path $Root '.github/scripts/Invoke-UiaProxyFixtureChild.ps1'
         Assert-FileQuayWorkflowFile $build.path $build.file
         foreach ($relative in @('.github/scripts/Invoke-UiaProxyFixtureChild.ps1','.github/scripts/ConsumerWorkflow.Helpers.ps1')) {
@@ -88,11 +93,17 @@ function Invoke-FileQuayUiaProxyPreflight([string]$Root,[string]$Work,$Adapter,$
         }
         foreach ($arg in @('-NoProfile','-NonInteractive','-STA','-File',$child,'-AssemblyPath',$build.path,'-AssemblyHash',$build.file.sha256,'-Directory',$directory,'-Nonce',$nonce)) {$start.ArgumentList.Add($arg)}
         $process=[Diagnostics.Process]::Start($start);$null=$process.SafeHandle
+        $output=[FileQuayQualification.FixtureChildOutput]::new($process.StandardOutput.BaseStream,$process.StandardError.BaseStream)
         if ($process.HasExited -or $process.SafeHandle.IsInvalid -or $process.SafeHandle.IsClosed -or $process.Path -ine $hostPath) {throw 'Native UIA fixture process could not be retained.'}
         $Record.fixture.pid=$process.Id;$Record.fixture.start_time_utc=$process.StartTime.ToUniversalTime().ToString('o')
-        $readyPath=Join-Path $directory 'ready.json';$deadline=[DateTime]::UtcNow.AddSeconds(10)
+        $readyPath=Join-Path $directory 'ready.json';$deadline=[DateTime]::UtcNow.AddSeconds(10);$readyClock=[Diagnostics.Stopwatch]::StartNew()
         while (-not (Test-Path -LiteralPath $readyPath)) {
-            if ($process.HasExited -or [DateTime]::UtcNow -ge $deadline) {throw 'Native UIA fixture did not expose its owned window before the deadline.'}
+            if ($process.HasExited -or [DateTime]::UtcNow -ge $deadline) {
+                try {$Record.fixture.ready_refusal=@{at_utc=[DateTime]::UtcNow.ToString('o');elapsed_ms=$readyClock.ElapsedMilliseconds;
+                    has_exited=$process.HasExited;exit_code=$(if($process.HasExited){$process.ExitCode}else{$null});ready_exists=(Test-Path -LiteralPath $readyPath)}}
+                catch {$Record.fixture.diagnostic_errors+=@($_.Exception.Message)}
+                throw 'Native UIA fixture did not expose its owned window before the deadline.'
+            }
             Start-Sleep -Milliseconds 100
         }
         $null=Get-FileQuayWorkflowFile $readyPath 4096
@@ -126,7 +137,25 @@ function Invoke-FileQuayUiaProxyPreflight([string]$Root,[string]$Work,$Adapter,$
                 }
                 $Record.fixture.cleanup_exit_code=$process.ExitCode;$Record.fixture.process_cleanup_verified=$true
             } catch {$Record.cleanup_errors+=@($_.Exception.Message);$Record.passed=$false}
-            finally {$process.Dispose()}
+            finally {
+                try {
+                    if ($output) {$Record.fixture.output_completed=$output.Finish(1000);$Record.fixture.stdout=$output.Stdout();$Record.fixture.stderr=$output.Stderr()}
+                    if ($Record.fixture.process_cleanup_verified) {
+                        $Record.fixture.retained_records=@{}
+                        foreach ($name in @('ready.json','result.json')) {
+                            $path=Join-Path $directory $name
+                            if (Test-Path -LiteralPath $path) {
+                                $file=Get-FileQuayWorkflowFile $path 4096
+                                $value=Get-Content -LiteralPath $path -Raw | ConvertFrom-Json -AsHashtable
+                                if($value.nonce -cne $nonce){throw 'Child diagnostic nonce differs.'}
+                                Assert-FileQuayWorkflowFile $path $file
+                                $Record.fixture.retained_records[$name]=@{file=$file;record=$value}
+                            }
+                        }
+                    }
+                } catch {$Record.fixture.diagnostic_errors+=@($_.Exception.Message)}
+                finally {$process.Dispose()}
+            }
         }
     }
     if ($primary -or $Record.cleanup_errors.Count) {

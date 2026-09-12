@@ -75,7 +75,7 @@ $work=Join-Path $root ('artifacts/foldersail-uia-fixture-build-'+[Guid]::NewGuid
 $null=New-Item -ItemType Directory -Path $work
 try {
     $build=Build-FileQuayUiaFixture $root $work $dotnet
-    Require ($build.file.bytes -gt 0 -and $build.source_inputs.Count -eq 10) 'Fixture build lacks source/file evidence.'
+    Require ($build.file.bytes -gt 0 -and $build.source_inputs.Count -eq 11) 'Fixture build lacks source/file evidence.'
     Assert-FileQuayWorkflowFile $build.path $build.file
     [IO.File]::AppendAllText($build.path,'changed')
     Reject {Assert-FileQuayWorkflowFile $build.path $build.file} 'changed fixture assembly'
