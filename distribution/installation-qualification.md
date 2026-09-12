@@ -90,7 +90,15 @@ history while preserving the source, moved file, CSV, recovery and sentinels.
 Input targets are rebound to their actual native window and checked against the
 retained consumer process, exact main HWND, native owner chain, UIA process and
 ancestor, foreground, visibility and enabled state before each action. The small
-native adapter uses the existing generated CsWin32 APIs. A broker-hosted picker
+native adapter compiles its existing API subset into the independent
+`FileQuay.Qualification.Native` assembly with the same centrally pinned CsWin32
+package and customer generator options. Before certificate/trust or installation
+mutation, qualification builds it in fresh output, verifies the SDK/source/lock
+inputs, rejects any managed native header or non-BCL reference, and loads the
+exact inspected IL bytes. It never loads a published customer assembly into
+PowerShell. The customer composite ReadyToRun configuration is unchanged. The
+installation receipt binds the loaded adapter hash and source inputs; consumer
+acceptance requires its successful preflight. A broker-hosted picker
 is usable only after its live process handle and owner chain back to the exact
 main HWND are proved. Those observer handles are disposed without terminating a
 shared broker process. An unproved picker relationship fails qualification and

@@ -319,11 +319,8 @@ function Get-FileQuayWorkflowFailureObservation($Ui) {
     $nodes.ToArray()
 }
 
-function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [string]$Work, [string]$ValidatedPackageDirectory, [System.Collections.IDictionary]$Record, $State) {
-    $native = Join-Path $ValidatedPackageDirectory 'Files.App.CsWin32.dll'
-    $null = [Reflection.Assembly]::LoadFrom($native)
-    $references = @([IO.Directory]::GetFiles((Join-Path $PSHOME 'ref'),'*.dll')) + @($native)
-    Add-Type -Path (Join-Path $PSScriptRoot 'ConsumerWorkflow.Native.cs') -ReferencedAssemblies $references -CompilerOptions '/unsafe'
+function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [string]$Work, [System.Collections.IDictionary]$Record, $State) {
+    Assert-FileQuayConsumerAdapter $Record.consumer_native_adapter
     $strings=@{}
     [xml]$resources = Get-Content (Join-Path $PSScriptRoot '../../src/Files.App/Strings/en-US/Resources.resw') -Raw
     foreach ($entry in $resources.root.data) { $strings[[string]$entry.name]=[string]$entry.value }

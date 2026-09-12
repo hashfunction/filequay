@@ -1,0 +1,9 @@
+GetAncestor
+GetWindowThreadProcessId
+GetWindow
+IsWindow
+IsWindowVisible
+IsWindowEnabled
+GetForegroundWindow
+SetForegroundWindow
+SendInput

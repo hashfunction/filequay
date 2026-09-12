@@ -1,7 +1,7 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 # Executes the real installer in an isolated fixture with failing AppX/certificate
 # APIs. No package, certificate store, activation API or user environment is touched.
-param([ValidateSet('InstallationAndCleanup','PreinstalledFramework','FailedAddRace','PackageChanged','ReportingFailure')][string]$Scenario='InstallationAndCleanup')
+param([ValidateSet('InstallationAndCleanup','PreinstalledFramework','FailedAddRace','PackageChanged','ReportingFailure','AdapterFailure')][string]$Scenario='InstallationAndCleanup')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $source = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -12,6 +12,15 @@ if ($env:FILEQUAY_INSTALLER_SOURCE) { $installerSource = $env:FILEQUAY_INSTALLER
 Copy-Item $installerSource (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1')
 Copy-Item (Join-Path $source '.github/scripts/InstallationQualification.Helpers.ps1') (Join-Path $temporary '.github/scripts/')
 Copy-Item (Join-Path $source '.github/scripts/ConsumerWorkflow.Helpers.ps1'),(Join-Path $source '.github/scripts/ConsumerWorkflow.Ui.ps1') (Join-Path $temporary '.github/scripts/')
+# Only the external SDK/build/CLR-loading boundary is doubled. The actual
+# installer must call it before any trust/package mutation, even on failure.
+@'
+function Initialize-FileQuayConsumerAdapter($Root,$Work) {
+    $global:FileQuayAdapterAttempts++
+    if ($Scenario -eq 'AdapterFailure') {throw 'fixture adapter load rejected'}
+    return @{loaded=$true;il_only=$true}
+}
+'@ | Set-Content (Join-Path $temporary '.github/scripts/ConsumerWorkflow.Adapter.ps1')
 Copy-Item (Join-Path $source 'distribution/verify-package-payload.py') (Join-Path $temporary 'distribution/')
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 function Write-TestArchive([string]$Path, [string]$Manifest) {
@@ -27,6 +36,7 @@ $fakeSignTool = Join-Path $temporary 'sign.ps1'
 Set-Content $fakeSignTool '$global:LASTEXITCODE = 0'
 $certificateAttempts = [System.Collections.Generic.List[string]]::new()
 $packageRemovalAttempts = [System.Collections.Generic.List[string]]::new()
+$global:FileQuayAdapterAttempts=0; $global:FileQuayMutationAttempts=0
 $global:FileQuayRaceRegistration = $null
 function Get-AppxPackage {
     param($Name)
@@ -37,11 +47,12 @@ function Get-AppxPackage {
         [pscustomobject]@{ Name='Microsoft.WindowsAppRuntime.2.4';Publisher='CN=Microsoft';Version='2.4.0.0';Architecture='X64';IsFramework=$true;PackageFullName='Microsoft.WindowsAppRuntime.2.4_2.4.0.0_x64__fixture' }
     }
 }
-function New-SelfSignedCertificate { param($Type,$Subject,$KeyUsage,$KeyExportPolicy,$CertStoreLocation,$TextExtension,$NotAfter) [pscustomobject]@{Thumbprint='FIXTURE'} }
-function Export-Certificate { param($Cert,$FilePath) }
-function Import-Certificate { param($FilePath,$CertStoreLocation) }
+function New-SelfSignedCertificate { param($Type,$Subject,$KeyUsage,$KeyExportPolicy,$CertStoreLocation,$TextExtension,$NotAfter) $global:FileQuayMutationAttempts++; [pscustomobject]@{Thumbprint='FIXTURE'} }
+function Export-Certificate { param($Cert,$FilePath) $global:FileQuayMutationAttempts++ }
+function Import-Certificate { param($FilePath,$CertStoreLocation) $global:FileQuayMutationAttempts++ }
 function Add-AppxPackage {
     param($Path,$DependencyPath)
+    $global:FileQuayMutationAttempts++
     if ($Scenario -eq 'FailedAddRace') {
         $global:FileQuayRaceRegistration = [pscustomobject]@{
             Name='Trieflow.FileQuay.Qualification';Publisher='CN=FileQuay-CI-Qualification';Version='1.0.0.0';Architecture='X64';IsFramework=$false
@@ -86,7 +97,15 @@ try {
     try { & (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1') -PackagePath (Join-Path $temporary 'package/main.msix') -ValidatedPackageDirectory (Join-Path $temporary 'validated') -BuildKind Consumer }
     catch { $failure = $_.Exception.Message }
     $record = if ($Scenario -ne 'ReportingFailure') { Get-Content $resultPath -Raw | ConvertFrom-Json } else { $null }
-    if ($Scenario -eq 'PreinstalledFramework') {
+    if ($global:FileQuayAdapterAttempts -ne 1) {throw 'Installer did not initialize the adapter exactly once.'}
+    if ($Scenario -eq 'AdapterFailure') {
+        if (-not $failure.Contains('fixture adapter load rejected') -or $global:FileQuayMutationAttempts -ne 0 -or
+            $certificateAttempts.Count -ne 0 -or $packageRemovalAttempts.Count -ne 0 -or $record.installed -or
+            $record.consumer_native_adapter_verified -or $record.installation_qualification_passed -or -not $record.unsigned_package_unchanged) {
+            throw "Adapter preflight did not fail before trust/install mutation: $failure"
+        }
+        'Actual installer adapter-failure test passed: load rejected, zero trust/install mutations, failure and unchanged package recorded.'
+    } elseif ($Scenario -eq 'PreinstalledFramework') {
         if (-not $failure.Contains('already registered') -or $certificateAttempts.Count -ne 0 -or $record.installed -or
             $record.installation_qualification_passed -or $record.frameworks[0].compatible_preexisting_full_names.Count -ne 1) {
             throw "RequireClean failed to reject and record the pre-existing framework: $failure"
@@ -131,5 +150,6 @@ try {
     $env:OS = $priorOS; $env:CI = $priorCI
     [Environment]::SetEnvironmentVariable('ProgramFiles(x86)', $priorProgramFiles)
     Microsoft.PowerShell.Management\Remove-Item -LiteralPath $temporary -Recurse -Force
+    Remove-Variable FileQuayAdapterAttempts,FileQuayMutationAttempts -Scope Global -ErrorAction SilentlyContinue
     Remove-Variable FileQuayRaceRegistration -Scope Global -ErrorAction SilentlyContinue
 }
