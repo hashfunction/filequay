@@ -41,6 +41,7 @@ Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-observation.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-workflow.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-receipt-scroll.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-uia-replay-preload.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-uia-proxy.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-uia-proxy-fixture.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-workflow-diagnostics.ps1')

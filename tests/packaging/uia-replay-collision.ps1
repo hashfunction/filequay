@@ -2,6 +2,9 @@
 # Preload real-named types before replay doubles. No native UI is exercised here.
 function Initialize-FileQuayUiaReplayCollision([string[]]$Names) {
     if ($IsWindows) {
+        # AutomationProperty lives in the separate Types assembly; loading the
+        # Client assembly alone does not force its lazy companion into discovery.
+        Add-Type -Path (Join-Path $PSHOME 'UIAutomationTypes.dll')
         Add-Type -Path (Join-Path $PSHOME 'UIAutomationClient.dll')
     } else {
         $assembly=[Reflection.Emit.AssemblyBuilder]::DefineDynamicAssembly(
@@ -15,7 +18,8 @@ function Initialize-FileQuayUiaReplayCollision([string[]]$Names) {
     foreach ($name in $Names) {
         $type=('System.Windows.Automation.'+$name) -as [type]
         if ($null -eq $type -or ($IsWindows -and $type.Assembly.GetName().Name -cnotin @('UIAutomationClient','UIAutomationTypes'))) {
-            throw "Expected independently loaded UIA collision type: $name"
+            $observed=if ($null -eq $type) {'<unresolved>'} else {$type.Assembly.FullName}
+            throw "Expected independently loaded UIA collision type: $name; observed assembly: $observed"
         }
     }
 }
