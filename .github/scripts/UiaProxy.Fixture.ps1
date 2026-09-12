@@ -64,6 +64,31 @@ function Assert-FileQuayUiaFixtureControl($Control,[ValidateSet('Edit','Button')
     } elseif (-not $o.invoke_supported -or $Control.invoke -isnot [System.Windows.Automation.InvokePattern]) {throw 'Native Button proxy has no InvokePattern.'}
 }
 
+function Get-FileQuayUiaProcessRefusal($Process,[string]$HostPath) {
+    $observation=@{at_utc=[DateTime]::UtcNow.ToString('o');expected_path=$HostPath;
+        framework=[Runtime.InteropServices.RuntimeInformation]::FrameworkDescription;observation_errors=@()}
+    $reads=[ordered]@{
+        pid={$Process.Id};has_exited={$Process.HasExited};path={$Process.Path};
+        handle_is_invalid={$Process.SafeHandle.IsInvalid};handle_is_closed={$Process.SafeHandle.IsClosed};
+        handle_value={$Process.SafeHandle.DangerousGetHandle().ToInt64()};
+        exit_code={if($Process.HasExited){$Process.ExitCode}else{$null}};
+        stdout_stream_type={$Process.StandardOutput.BaseStream.GetType().FullName};
+        stderr_stream_type={$Process.StandardError.BaseStream.GetType().FullName}
+    }
+    foreach($key in $reads.Keys){
+        $observation[$key]=$null
+        try {
+            $value=& $reads[$key]
+            if($value -is [string] -and $value.Length -gt 4096){$value=$value.Substring(0,4096);$observation[$key+'_truncated']=$true}
+            $observation[$key]=$value
+        } catch {
+            $message=$_.Exception.Message
+            $observation.observation_errors+=@(@{field=$key;error=$message.Substring(0,[Math]::Min(512,$message.Length))})
+        }
+    }
+    $observation
+}
+
 function Invoke-FileQuayUiaProxyPreflight([string]$Root,[string]$Work,$Adapter,$Record,[string]$DotNet='dotnet') {
     Assert-FileQuayConsumerAdapter $Adapter
     $Record.schema_version=1;$Record.source_commit=$env:GITHUB_SHA;$Record.consumer_acceptance=$false
@@ -93,8 +118,17 @@ function Invoke-FileQuayUiaProxyPreflight([string]$Root,[string]$Work,$Adapter,$
         }
         foreach ($arg in @('-NoProfile','-NonInteractive','-STA','-File',$child,'-AssemblyPath',$build.path,'-AssemblyHash',$build.file.sha256,'-Directory',$directory,'-Nonce',$nonce)) {$start.ArgumentList.Add($arg)}
         $process=[Diagnostics.Process]::Start($start);$null=$process.SafeHandle
+        $outputClock=[Diagnostics.Stopwatch]::StartNew()
         $output=[FileQuayQualification.FixtureChildOutput]::new($process.StandardOutput.BaseStream,$process.StandardError.BaseStream)
-        if ($process.HasExited -or $process.SafeHandle.IsInvalid -or $process.SafeHandle.IsClosed -or $process.Path -ine $hostPath) {throw 'Native UIA fixture process could not be retained.'}
+        $Record.fixture.output_constructor_ms=$outputClock.ElapsedMilliseconds
+        try {
+            if ($process.HasExited -or $process.SafeHandle.IsInvalid -or $process.SafeHandle.IsClosed -or $process.Path -ine $hostPath) {throw 'Native UIA fixture process could not be retained.'}
+        } catch {
+            $refusal=$_
+            try {$Record.fixture.retention_refusal=Get-FileQuayUiaProcessRefusal $process $hostPath}
+            catch {$Record.fixture.diagnostic_errors+=@('Retention observation: '+$_.Exception.GetType().Name)}
+            throw $refusal
+        }
         $Record.fixture.pid=$process.Id;$Record.fixture.start_time_utc=$process.StartTime.ToUniversalTime().ToString('o')
         $readyPath=Join-Path $directory 'ready.json';$deadline=[DateTime]::UtcNow.AddSeconds(10);$readyClock=[Diagnostics.Stopwatch]::StartNew()
         while (-not (Test-Path -LiteralPath $readyPath)) {

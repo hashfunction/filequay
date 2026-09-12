@@ -26,7 +26,9 @@ namespace FileQuayQualification
             private string error;
             private bool completed;
             public readonly Task Reading;
-            public Reader(Stream stream) { Reading = Read(stream); }
+            // An async method can run synchronously before its first yielding await.
+            // Queue each entire drain so construction never waits for a stream read.
+            public Reader(Stream stream) { Reading = Task.Run(() => Read(stream)); }
             private async Task Read(Stream stream)
             {
                 var buffer = new byte[1024];
