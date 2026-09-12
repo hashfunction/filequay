@@ -141,6 +141,12 @@ function Get-FileQuayWorkflowTargetState($Ui, $Binding) {
     $state
 }
 
+function Get-FileQuayScrollRange($Pattern) {
+    $current=$Pattern.Current
+    @{vertically_scrollable=$current.VerticallyScrollable;vertical_scroll_percent=$current.VerticalScrollPercent;vertical_view_size=$current.VerticalViewSize;
+      horizontally_scrollable=$current.HorizontallyScrollable;horizontal_scroll_percent=$current.HorizontalScrollPercent;horizontal_view_size=$current.HorizontalViewSize}
+}
+
 function Invoke-FileQuayWorkflowAction($Ui, $Binding, [ValidateSet('Invoke','Select','Expand','Collapse','Value','Keys','ScrollUp','ScrollDown')][string]$Action, $Value=$null) {
     $scope=$Binding.scope; $element=$Binding.element
     [FileQuayQualification.ConsumerInput]::Foreground($Ui.application,$Ui.main_hwnd,$scope.process,$scope.target_hwnd)
@@ -155,7 +161,27 @@ function Invoke-FileQuayWorkflowAction($Ui, $Binding, [ValidateSet('Invoke','Sel
         'Value' { ([System.Windows.Automation.ValuePattern]$element.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)).SetValue([string]$Value) }
         { $_ -in @('ScrollUp','ScrollDown') } {
             $direction=if ($Action -eq 'ScrollUp') {[System.Windows.Automation.ScrollAmount]::SmallDecrement} else {[System.Windows.Automation.ScrollAmount]::SmallIncrement}
-            ([System.Windows.Automation.ScrollPattern]$element.GetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern)).Scroll([System.Windows.Automation.ScrollAmount]::NoAmount,$direction)
+            $pattern=[System.Windows.Automation.ScrollPattern]$element.GetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern)
+            $attempt=@{action=$Action;outcome='not-sent';before=(Get-FileQuayScrollRange $pattern);after=$null;after_error=$null}
+            Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollAttempt' $attempt
+            Assert-FileQuayWorkflowTarget $scope (Get-FileQuayWorkflowTargetState $Ui $Binding)
+            try {
+                $pattern.Scroll([System.Windows.Automation.ScrollAmount]::NoAmount,$direction)
+                $attempt.outcome='completed'
+            } catch {
+                $attempt.outcome='failed';$attempt.error=$_.Exception.ToString()
+                # Mark only a typed failure thrown by the actual Scroll call.
+                # Ownership, discovery, and range-read failures are never marked.
+                $cause=$_.Exception
+                for ($depth=0; $cause -and $depth -lt 8; $depth++) {
+                    if ($cause -is [InvalidOperationException]) {$cause.Data['FileQuay.ScrollCall']=$true;break}
+                    $cause=$cause.InnerException
+                }
+                throw
+            } finally {
+                try {$attempt.after=Get-FileQuayScrollRange $pattern}
+                catch {$attempt.after_error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.ToString()}
+            }
         }
         'Keys' {
             if ($element.Current.IsKeyboardFocusable) { $element.SetFocus() }
@@ -205,14 +231,33 @@ function Find-FileQuayWorkflowReceiptElement($Ui, [string]$Name,
 }
 
 function Show-FileQuayWorkflowElement($Ui, [string]$Name,
-    [ValidateSet('ReceiptDetailsExpander','ReceiptSourcePaths','ReceiptDestinationPaths')][string]$Part='ReceiptDetailsExpander') {
-    $lastUnavailable=$null
-    for ($attempt=0; $attempt -lt 16; $attempt++) {
+    [ValidateSet('ReceiptDetailsExpander','ReceiptSourcePaths','ReceiptDestinationPaths')][string]$Part='ReceiptDetailsExpander',
+    [ValidateRange(0.01,30)][double]$MaximumSeconds=30) {
+    $lastUnavailable=$null;$failedScroll=$null;$failedScope=$null
+    $deadline=[Diagnostics.Stopwatch]::StartNew()
+    for ($attempt=0; $attempt -lt 16 -and $deadline.Elapsed.TotalSeconds -lt $MaximumSeconds; $attempt++) {
         try {
+            if ($failedScroll) {
+                $currentList=Find-FileQuayWorkflowElement $Ui 'ReceiptHistoryList'
+                Assert-FileQuayWorkflowTarget $failedScope (Get-FileQuayWorkflowTargetState $Ui $currentList)
+            }
             # ListView templates can replace both cards and their scroll provider.
             # Reobserve the exact owned card/detail before every scrolling attempt.
             $binding=Find-FileQuayWorkflowReceiptElement $Ui $Name $Part
-            if (-not $binding.element.Current.IsOffscreen) { return $binding }
+            if (-not $binding.element.Current.IsOffscreen) {
+                if ($failedScroll) {
+                    $visibleState=Get-FileQuayWorkflowTargetState $Ui $binding
+                    Assert-FileQuayWorkflowTarget $failedScope $visibleState
+                    Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollVisibilityRequery' @{name=$Name;automation_id=$Part;attempt=($attempt+1);visible=$true;input_sent=$false;state=$visibleState}
+                }
+                if ($deadline.Elapsed.TotalSeconds -ge $MaximumSeconds) {break}
+                return $binding
+            }
+            if ($failedScroll) {
+                Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollVisibilityRequery' @{name=$Name;automation_id=$Part;attempt=($attempt+1);visible=$false;input_sent=$false}
+                Start-Sleep -Milliseconds 100
+                continue
+            }
             $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($binding.element)
             $container=$null
             for ($i=0; $ancestor -and $i -lt 24; $i++) {
@@ -226,20 +271,29 @@ function Show-FileQuayWorkflowElement($Ui, [string]$Name,
             }
             if (-not $container) { throw 'Offscreen receipt detail has no visible owned scroll container.' }
             $direction=if ($binding.element.Current.BoundingRectangle.Top -lt $container.element.Current.BoundingRectangle.Top) {'ScrollUp'} else {'ScrollDown'}
+            $failedScope=$container.scope
             Invoke-FileQuayWorkflowAction $Ui $container $direction
         } catch {
-            $errorType=$_.Exception;$unavailable=$null
+            $errorType=$_.Exception;$unavailable=$null;$invalidScroll=$null
             for ($depth=0; $errorType -and $depth -lt 8; $depth++) {
                 if ($errorType -is [System.Windows.Automation.ElementNotAvailableException]) { $unavailable=$errorType;break }
+                if ($errorType -is [InvalidOperationException] -and $errorType.Data['FileQuay.ScrollCall'] -eq $true) {$invalidScroll=$errorType;break}
                 $errorType=$errorType.InnerException
             }
-            if (-not $unavailable) { throw }
-            $lastUnavailable=$unavailable
-            Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollRequery' @{name=$Name;automation_id=$Part;attempt=($attempt+1);error_type=$unavailable.GetType().FullName}
+            if ($invalidScroll) {
+                $failedScroll=$_.Exception
+                Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollVisibilityRequery' @{name=$Name;automation_id=$Part;attempt=($attempt+1);error_type=$invalidScroll.GetType().FullName;input_sent=$false}
+            } elseif ($unavailable) {
+                $lastUnavailable=$unavailable
+                Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollRequery' @{name=$Name;automation_id=$Part;attempt=($attempt+1);error_type=$unavailable.GetType().FullName}
+            } elseif ($failedScroll) {
+                throw [InvalidOperationException]::new(('Receipt visibility/ownership observation failed after Scroll: '+$_.Exception.Message),$failedScroll)
+            } else {throw}
         }
         Start-Sleep -Milliseconds 100
     }
-    throw [InvalidOperationException]::new('The receipt detail did not become visible within the scroll budget.', $lastUnavailable)
+    $cause=if($failedScroll){$failedScroll}else{$lastUnavailable}
+    throw [InvalidOperationException]::new('The receipt detail did not become visible within the scroll budget.', $cause)
 }
 
 function Get-FileQuayWorkflowText($Binding) {

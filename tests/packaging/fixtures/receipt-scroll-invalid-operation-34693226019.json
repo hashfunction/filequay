@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "run_id": "34693226019",
+  "source_commit": "6254c7d041bb2de7534ccfa63619eea159684d64",
+  "receipt_sha256": "cfb3bc0876dd68d886e507eff6ccc3f3a9c145d3771874a1808ed1aefb9a7dad",
+  "actual_error": "System.Management.Automation.MethodInvocationException: Exception calling \"Scroll\" with \"2\" argument(s): \"Operation is not valid due to the current state of the object.\"\r\n ---> System.InvalidOperationException: Operation is not valid due to the current state of the object.\r\n   at MS.Internal.Automation.UiaCoreApi.CheckError(Int32 hr)\r\n   at CallSite.Target(Closure, CallSite, ScrollPattern, ScrollAmount, Object)\r\n   --- End of inner exception stack trace ---\r\n   at System.Management.Automation.ExceptionHandlingOps.CheckActionPreference(FunctionContext funcContext, Exception exception)\r\n   at System.Management.Automation.Interpreter.ActionCallInstruction`2.Run(InterpretedFrame frame)\r\n   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)\r\n   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)",
+  "scroll_action": {
+    "details": {
+      "automation_id": "ReceiptHistoryList",
+      "name": "",
+      "state": {
+        "target_enabled": true,
+        "element_pid": 1200,
+        "target_live": true,
+        "target_hwnd": 393786,
+        "app_live": true,
+        "element_hwnd": 393786,
+        "main_pid": 1200,
+        "target_visible": true,
+        "element_within_target": true,
+        "element_visible": true,
+        "target_pid": 1200,
+        "main_live": true,
+        "foreground_hwnd": 393786,
+        "element_enabled": true,
+        "target_process_live": true,
+        "owner_chain": [
+          393786,
+          786456
+        ]
+      }
+    },
+    "at_utc": "2026-09-12T12:30:31.3231437+00:00",
+    "step": "ScrollDown"
+  },
+  "observed_nodes": [
+    {
+      "hwnd": 786456,
+      "process_id": 1200,
+      "depth": 6,
+      "property_errors": {},
+      "automation_id": "ReceiptHistoryTab",
+      "name": "Receipts",
+      "class_name": "PivotItem",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.TabItem",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": true
+    },
+    {
+      "hwnd": 786456,
+      "process_id": 1200,
+      "depth": 7,
+      "property_errors": {},
+      "automation_id": "ReceiptExportButton",
+      "name": "Export receipts…",
+      "class_name": "Button",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.Button",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": true
+    },
+    {
+      "hwnd": 786456,
+      "process_id": 1200,
+      "depth": 7,
+      "property_errors": {},
+      "automation_id": "ReceiptClearButton",
+      "name": "Clear receipts",
+      "class_name": "Button",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.Button",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": true
+    },
+    {
+      "hwnd": 786456,
+      "process_id": 1200,
+      "depth": 7,
+      "property_errors": {},
+      "automation_id": "ReceiptHistoryList",
+      "name": "",
+      "class_name": "ListView",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.List",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": false
+    }
+  ],
+  "range_note": "No actual ScrollPattern range was captured in this run. Range transitions in tests are explicit simulated layout states."
+}

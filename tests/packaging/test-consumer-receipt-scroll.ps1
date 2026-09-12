@@ -3,13 +3,17 @@ $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Helpers.ps1')
 . (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Ui.ps1')
+$observed=Get-Content (Join-Path $PSScriptRoot 'fixtures/receipt-scroll-invalid-operation-34693226019.json') -Raw | ConvertFrom-Json
+$owned=$observed.scroll_action.details.state
+$observedList=@($observed.observed_nodes | Where-Object automation_id -CEQ 'ReceiptHistoryList')
+if ($observedList.Count -ne 1 -or $observedList[0].process_id -ne $owned.target_pid -or $observedList[0].offscreen -or -not $observedList[0].enabled -or $observedList[0].class_name -cne 'ListView') {throw 'Actual owned list observation differs.'}
 # Execute production reader, scroll loop, unique selector and action/ownership
 # gates against replaceable UIA providers. This does not claim native UI success.
 Add-Type @'
 using System;
 namespace System.Windows.Automation {
  public class ElementNotAvailableException:Exception {public ElementNotAvailableException():base("Observed unavailable receipt provider") {}}
- public class CurrentInfo {public int ProcessId=1896;public string AutomationId,Name;public bool IsOffscreen,IsEnabled=true;public Rectangle BoundingRectangle=new Rectangle();}
+ public class CurrentInfo {public int ProcessId=Fixture.ProcessId;public string AutomationId,Name;public bool IsOffscreen,IsEnabled=true;public Rectangle BoundingRectangle=new Rectangle();}
  public class Rectangle {public double Top=100;}
  public class Element {
   public CurrentInfo Info=new CurrentInfo();public Element Parent;public int Epoch;
@@ -20,10 +24,11 @@ namespace System.Windows.Automation {
  }
  public class TreeWalker {public static TreeWalker RawViewWalker=new TreeWalker();public Element GetParent(Element e){return e.Parent;}}
  public enum ScrollAmount {NoAmount,SmallIncrement,SmallDecrement}
- public class ScrollInfo {public bool VerticallyScrollable=true;}
+ public class ScrollInfo {public bool VerticallyScrollable=true,HorizontallyScrollable=false;public double VerticalScrollPercent=0,VerticalViewSize=45,HorizontalScrollPercent=-1,HorizontalViewSize=100;}
  public class ScrollPattern {
-  public static object Pattern=new object();public ScrollInfo Current=new ScrollInfo();
+  public static object Pattern=new object();public ScrollInfo Current {get {if(Fixture.Mode=="layout-range-error" && Fixture.InvalidOperationCalls>0)throw new Exception("range unavailable after original scroll failure");var v=new ScrollInfo();if(Fixture.InvalidOperationCalls>0){v.VerticallyScrollable=false;v.VerticalScrollPercent=-1;v.VerticalViewSize=100;}return v;}}
   public void Scroll(ScrollAmount x,ScrollAmount y) {Fixture.ScrollCalls++;Fixture.Epoch++;
+   if(Fixture.Mode.StartsWith("layout-")){Fixture.InvalidOperationCalls++;throw new InvalidOperationException("Operation is not valid due to the current state of the object.");}
    if(Fixture.Mode=="other-error")throw new InvalidOperationException("ElementNotAvailableException is only text, not its exception type");
    if(Fixture.Mode=="always-stale" || Fixture.ScrollCalls==1)throw new ElementNotAvailableException();Fixture.Visible=true;}
  }
@@ -32,7 +37,7 @@ namespace System.Windows.Automation {
   public void Expand(){Fixture.ExpandCalls++;if(Fixture.Mode=="expand-stale")throw new ElementNotAvailableException();}
   public void Collapse(){Fixture.CollapseCalls++;if(Fixture.Mode=="collapse-stale")throw new ElementNotAvailableException();if(element.Info.Name.StartsWith("Move"))Fixture.Collapsed=true;}
  }
- public class Fixture {public static int Epoch,ScrollCalls,ExpandCalls,CollapseCalls,ListQueries;public static bool Collapsed,Visible;public static string Mode;}
+ public class Fixture {public static int Epoch,ScrollCalls,ExpandCalls,CollapseCalls,ListQueries,InvalidOperationCalls,ProcessId;public static bool Collapsed,Visible;public static string Mode;}
 }
 namespace FileQuayQualification {public class ConsumerInput {public static void Foreground(object app,long main,object target,long window){}}}
 '@
@@ -42,18 +47,20 @@ function New-Element([string]$Id,[string]$Name,$Parent=$null) {
     $e.Epoch=[System.Windows.Automation.Fixture]::Epoch;$e.Parent=$Parent;$e
 }
 function New-Binding($Element) {
-    @{scope=@{app_pid=1896;main_hwnd=459052;target_pid=1896;target_hwnd=262700;process=$ui.application};element=$Element}
+    @{scope=@{app_pid=$owned.main_pid;main_hwnd=$owned.owner_chain[1];target_pid=$owned.target_pid;target_hwnd=$owned.target_hwnd;process=$ui.application};element=$Element}
 }
 function New-List {
     [System.Windows.Automation.Fixture]::ListQueries++
-    New-Binding (New-Element 'ReceiptHistoryList' '')
+    New-Binding (New-Element $observedList[0].automation_id $observedList[0].name)
 }
 function Reset-Scenario([string]$Mode='stale-once') {
     [System.Windows.Automation.Fixture]::Epoch=0;[System.Windows.Automation.Fixture]::ScrollCalls=0
     [System.Windows.Automation.Fixture]::ExpandCalls=0;[System.Windows.Automation.Fixture]::CollapseCalls=0
     [System.Windows.Automation.Fixture]::ListQueries=0;[System.Windows.Automation.Fixture]::Collapsed=$false
     [System.Windows.Automation.Fixture]::Visible=$false;[System.Windows.Automation.Fixture]::Mode=$Mode
-    $script:ui=@{application=@{Id=1896};main_hwnd=459052;record=@{trace=[Collections.Generic.List[object]]::new()};
+    [System.Windows.Automation.Fixture]::InvalidOperationCalls=0
+    [System.Windows.Automation.Fixture]::ProcessId=$owned.target_pid
+    $script:ui=@{application=@{Id=$owned.main_pid};main_hwnd=$owned.owner_chain[1];record=@{trace=[Collections.Generic.List[object]]::new()};
         strings=@{ReceiptOperationCopy='Copy';ReceiptOperationMove='Move';ReceiptResultSuccess='Completed'}}
     $script:receipts=@(@{id='move-id';fileOperationType=4;sourcePaths=@('owned/copy/résumé,原稿.txt');destinationPaths=@('owned/move/résumé,原稿.txt')},
         @{id='copy-id';fileOperationType=3;sourcePaths=@('owned/source/résumé,原稿.txt');destinationPaths=@('owned/copy/résumé,原稿.txt')})
@@ -80,17 +87,21 @@ function Find-FileQuayWorkflowElements($Ui,[string]$Id='',[string]$Name='',$With
         New-Binding (New-Element $Id $text $Within.element)
     } else {throw "Unexpected receipt selector $Id"}
 }
-function Get-FileQuayWorkflowElementWindow($Element) {$null=$Element.Current;262700}
+function Get-FileQuayWorkflowElementWindow($Element) {$null=$Element.Current;$owned.target_hwnd}
 function Get-FileQuayWorkflowText($Binding) {$Binding.element.Current.Name}
 function Get-FileQuayWorkflowTargetState($Ui,$Binding) {
     $current=$Binding.element.Current
-    @{app_live=$true;target_process_live=$true;main_live=$true;main_pid=1896;target_live=$true;
-      target_pid=1896;target_hwnd=262700;target_visible=$true;target_enabled=$true;
-      foreground_hwnd=$(if ([System.Windows.Automation.Fixture]::Mode -eq 'foreign-after-stale' -and [System.Windows.Automation.Fixture]::ScrollCalls) {909} else {262700});
-      owner_chain=@(262700,459052);element_pid=$current.ProcessId;element_hwnd=262700;
+    @{app_live=$true;target_process_live=$true;main_live=$true;main_pid=$owned.main_pid;target_live=$true;
+      target_pid=$owned.target_pid;target_hwnd=$owned.target_hwnd;target_visible=$true;target_enabled=$true;
+      foreground_hwnd=$(if ([System.Windows.Automation.Fixture]::Mode -in @('foreign-after-stale','layout-foreign') -and [System.Windows.Automation.Fixture]::ScrollCalls) {909} else {$owned.foreground_hwnd});
+      owner_chain=@($owned.owner_chain);element_pid=$current.ProcessId;element_hwnd=$owned.target_hwnd;
       element_within_target=$true;element_visible=(-not $current.IsOffscreen);element_enabled=$current.IsEnabled}
 }
-function Start-Sleep([int]$Milliseconds) {Require ($Milliseconds -eq 100) 'Scroll cadence changed.';$script:sleeps++}
+function Start-Sleep([int]$Milliseconds) {
+    Require ($Milliseconds -eq 100) 'Scroll cadence changed.';$script:sleeps++
+    if ([System.Windows.Automation.Fixture]::Mode -in @('layout-settles','layout-foreign') -and $sleeps -eq 2) {[System.Windows.Automation.Fixture]::Visible=$true}
+    if ([System.Windows.Automation.Fixture]::Mode -eq 'layout-deadline') {[Threading.Thread]::Sleep(25)}
+}
 function Wait-FileQuayWorkflow([scriptblock]$Observe,[string]$Description,[int]$Seconds=30) {& $Observe}
 $checks=0
 Reset-Scenario
@@ -111,4 +122,27 @@ foreach ($mode in @('always-stale','other-error','foreign-after-stale','duplicat
     elseif ($mode -eq 'collapse-stale') {Require ([System.Windows.Automation.Fixture]::CollapseCalls -eq 1 -and [System.Windows.Automation.Fixture]::ExpandCalls -eq 1) 'Collapse was replayed.'}
     $checks++
 }
+Reset-Scenario 'layout-settles'
+$result=@(Read-FileQuayWorkflowVisibleReceipts $ui $list $receipts)
+Require ($result.Count -eq 2 -and ($result.id -join ',') -ceq 'move-id,copy-id') 'Settled layout lost the original two visible receipt proofs.'
+Require ([System.Windows.Automation.Fixture]::ScrollCalls -eq 1 -and [System.Windows.Automation.Fixture]::ExpandCalls -eq 2 -and [System.Windows.Automation.Fixture]::CollapseCalls -eq 2) 'Failed Scroll or other actions were replayed.'
+$attempts=@($ui.record.trace | Where-Object step -CEQ 'ReceiptScrollAttempt')
+Require ($attempts.Count -eq 1 -and $attempts[0].details.outcome -ceq 'failed' -and $attempts[0].details.before.vertically_scrollable -eq $true -and $attempts[0].details.after.vertically_scrollable -eq $false -and $attempts[0].details.after.vertical_view_size -eq 100) 'Actual before/after range and failed outcome were not retained.'
+$visible=@($ui.record.trace | Where-Object {$_.step -ceq 'ReceiptScrollVisibilityRequery' -and $_.details.ContainsKey('visible') -and $_.details.visible})
+Require ($visible.Count -eq 1 -and -not $visible[0].details.input_sent -and $visible[0].details.state.target_hwnd -eq $owned.target_hwnd -and $visible[0].details.state.element_visible) 'Actual visible owned detail convergence was not retained.'
+$checks++
+foreach ($mode in @('layout-never-visible','layout-foreign','layout-range-error')) {
+    Reset-Scenario $mode;$failure=$null
+    try {Read-FileQuayWorkflowVisibleReceipts $ui $list $receipts | Out-Null} catch {$failure=$_}
+    Require ($null -ne $failure -and [System.Windows.Automation.Fixture]::ScrollCalls -eq 1) "Accepted/replayed $mode"
+    Require ($failure.Exception.ToString().Contains('Operation is not valid due to the current state of the object.')) 'Original provider error was lost.'
+    if ($mode -ceq 'layout-never-visible') {Require ($sleeps -eq 16) 'Read-only convergence escaped the existing 16-attempt budget.'}
+    $checks++
+}
+Reset-Scenario 'layout-deadline'
+[System.Windows.Automation.Fixture]::Collapsed=$true
+$failure=$null
+try {Show-FileQuayWorkflowElement $ui 'Copy · Completed' -MaximumSeconds 0.01 | Out-Null} catch {$failure=$_}
+Require ($failure -and $sleeps -le 1 -and [System.Windows.Automation.Fixture]::ScrollCalls -le 1) 'Elapsed deadline returned accepted or continued the attempt budget.'
+$checks++
 "PASS actual receipt scroll requery, wrapped unavailable provider, fresh scoped identity, exact paths/IDs, ownership refusal, action non-replay and 16-attempt budget: $checks scenarios"
