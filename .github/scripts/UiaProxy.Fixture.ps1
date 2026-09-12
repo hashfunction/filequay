@@ -64,6 +64,10 @@ function Assert-FileQuayUiaFixtureControl($Control,[ValidateSet('Edit','Button')
     } elseif (-not $o.invoke_supported -or $Control.invoke -isnot [System.Windows.Automation.InvokePattern]) {throw 'Native Button proxy has no InvokePattern.'}
 }
 
+function Get-FileQuayUiaFixtureImagePath([Diagnostics.Process]$Process) {
+    [FileQuayQualification.FixtureProcessImage]::Read($Process)
+}
+
 function Get-FileQuayUiaProcessRefusal($Process,[string]$HostPath) {
     $observation=@{at_utc=[DateTime]::UtcNow.ToString('o');expected_path=$HostPath;
         framework=[Runtime.InteropServices.RuntimeInformation]::FrameworkDescription;observation_errors=@()}
@@ -122,7 +126,9 @@ function Invoke-FileQuayUiaProxyPreflight([string]$Root,[string]$Work,$Adapter,$
         $output=[FileQuayQualification.FixtureChildOutput]::new($process.StandardOutput.BaseStream,$process.StandardError.BaseStream)
         $Record.fixture.output_constructor_ms=$outputClock.ElapsedMilliseconds
         try {
-            if ($process.HasExited -or $process.SafeHandle.IsInvalid -or $process.SafeHandle.IsClosed -or $process.Path -ine $hostPath) {throw 'Native UIA fixture process could not be retained.'}
+            if ($process.HasExited -or $process.SafeHandle.IsInvalid -or $process.SafeHandle.IsClosed) {throw 'Native UIA fixture process could not be retained.'}
+            $Record.fixture.retained_image_path=Get-FileQuayUiaFixtureImagePath $process
+            if ($Record.fixture.retained_image_path -ine $hostPath) {throw 'Native UIA fixture process could not be retained.'}
         } catch {
             $refusal=$_
             try {$Record.fixture.retention_refusal=Get-FileQuayUiaProcessRefusal $process $hostPath}
@@ -165,7 +171,7 @@ function Invoke-FileQuayUiaProxyPreflight([string]$Root,[string]$Work,$Adapter,$
         if ($process) {
             try {
                 if (-not $process.HasExited) {
-                    if ($process.SafeHandle.IsClosed -or $process.SafeHandle.IsInvalid -or $process.Path -ine $Record.fixture.host_path) {throw 'Fixture cleanup retained process identity changed.'}
+                    if ($process.SafeHandle.IsClosed -or $process.SafeHandle.IsInvalid -or (Get-FileQuayUiaFixtureImagePath $process) -ine $Record.fixture.host_path) {throw 'Fixture cleanup retained process identity changed.'}
                     $Record.fixture.close_requested=$process.CloseMainWindow()
                     if (-not $process.WaitForExit(3000)) {$process.Kill();$Record.fixture.forced_cleanup=$true;if (-not $process.WaitForExit(3000)) {throw 'Owned native fixture survived forced cleanup.'}}
                 }

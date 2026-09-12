@@ -1,12 +1,45 @@
 // Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 using System;
 using System.IO;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FileQuayQualification
 {
+    public static class FixtureProcessImage
+    {
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool QueryFullProcessImageNameW(SafeProcessHandle process, uint flags,
+            StringBuilder image, ref uint size);
+
+        public static string Read(Process process)
+        {
+            // Use the original retained process handle, never reopen a PID or
+            // enumerate startup modules through PowerShell's Path property.
+            SafeProcessHandle handle = process.SafeHandle;
+            RequireLive(process, handle);
+            var image = new StringBuilder(32768);
+            uint size = (uint)image.Capacity;
+            if (!QueryFullProcessImageNameW(handle, 0, image, ref size))
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Retained fixture image query failed.");
+            RequireLive(process, handle);
+            if (size == 0 || size >= image.Capacity || image.Length != size)
+                throw new InvalidOperationException("Retained fixture image query returned an invalid length.");
+            return image.ToString();
+        }
+        private static void RequireLive(Process process, SafeProcessHandle handle)
+        {
+            if (process.HasExited || handle.IsInvalid || handle.IsClosed)
+                throw new InvalidOperationException("Native UIA fixture process could not be retained.");
+        }
+    }
+
     // Observation only: continuously drain both pipes without retaining unlimited
     // output or waiting for EOF on the native readiness/input thread.
     public sealed class FixtureChildOutput
