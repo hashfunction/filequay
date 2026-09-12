@@ -51,3 +51,57 @@ foreach ($mode in @('wrong-nonce','wrong-value','no-invoke','duplicate-invoke','
     Reject {Assert-FileQuayUiaFixtureResult $r $nonce $exit} $mode;$checks++
 }
 "PASS exact provider provenance and independent native control result: $checks cases"
+
+# Preserve the real C# exception/inner stack at the actual registration boundary.
+# This deliberately failing public API is a test double, not a Windows provider.
+# Reuse an already loaded read-only host assembly solely for the load boundary;
+# the identity-policy test above remains responsible for rejecting foreign DLLs.
+$assemblyPath=[System.Management.Automation.PSObject].Assembly.Location
+Add-Type -TypeDefinition @'
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+namespace System.Windows.Automation {
+ public sealed class FixtureDiagnosticException : Exception {
+  public FixtureDiagnosticException() : base("original-registration-failure") {}
+  public override string ToString() { throw new InvalidOperationException("diagnostic-format-failure"); }
+ }
+ public static class ClientSettings {
+  public static int Calls; public static bool BreakDiagnostic;
+  [MethodImpl(MethodImplOptions.NoInlining)]
+  public static void RegisterClientSideProviderAssembly(AssemblyName name) {
+   Calls++;
+   if(name.Name!="UIAutomationClientsideProviders")throw new ArgumentException("Unexpected provider name");
+   if(BreakDiagnostic)throw new FixtureDiagnosticException();
+   FailInTypedFrame();
+  }
+  [MethodImpl(MethodImplOptions.NoInlining)]
+  static void FailInTypedFrame() { throw new NullReferenceException("fixture-null-reference"); }
+ }
+}
+'@
+ function Get-FileQuayUiaProxyEvidence($Record) {
+  $Record.client=@{path=$assemblyPath};$Record.proxy=@{path=$assemblyPath};$Record.registered=$false
+ }
+ $r=@{registered=$false}
+ $caught=$null;try{Register-FileQuayUiaProxy $r}catch{$caught=$_}
+ Require ($null -ne $caught -and [System.Windows.Automation.ClientSettings]::Calls -eq 1 -and -not $r.registered) 'Registration failure was swallowed, retried or marked registered.'
+ $saved=$r|ConvertTo-Json -Depth 15|ConvertFrom-Json -AsHashtable
+ $trace=$saved.registration_exception
+ Require ($trace.exception_text.text -like '*fixture-null-reference*' -and $trace.exception_text.text -like '*FailInTypedFrame*' -and
+  $trace.script_stack_trace.text -like '*Register-FileQuayUiaProxy*') 'Real exception ToString/inner/script stack did not survive JSON.'
+ Require (@($trace.chain|Where-Object {$_.type -ceq 'System.NullReferenceException' -and $_.stack_trace.text -like '*FailInTypedFrame*'}).Count -eq 1 -and
+  $saved.registration_call.api -ceq 'System.Windows.Automation.ClientSettings.RegisterClientSideProviderAssembly' -and
+  $saved.registration_call.route -ceq 'direct PowerShell public API') 'Exact native exception chain/unchanged call route missing.'
+ # Bounded metadata retains explicit truncation, including an over-depth chain.
+ $deep=[Exception]::new(('x'*70000))
+ foreach($i in 1..10){$deep=[Exception]::new("wrapper-$i",$deep)}
+ $failure=[Management.Automation.ErrorRecord]::new($deep,'long-exception',[Management.Automation.ErrorCategory]::NotSpecified,$null)
+ $bounded=Get-FileQuayUiaExceptionEvidence $failure
+ Require ($bounded.exception_text.text.Length -eq 32768 -and $bounded.exception_text.truncated -and
+  $bounded.chain.Count -eq 8 -and $bounded.chain_truncated) 'Exception metadata exceeded text/chain bounds or hid truncation.'
+ [System.Windows.Automation.ClientSettings]::BreakDiagnostic=$true
+ $r=@{registered=$false};$caught=$null;try{Register-FileQuayUiaProxy $r}catch{$caught=$_}
+ Require ($caught.Exception.Message -like '*original-registration-failure*' -and -not $r.registered -and
+  $r.registration_exception_error -like '*diagnostic-format-failure*' -and [System.Windows.Automation.ClientSettings]::Calls -eq 2) 'Diagnostic formatting failure masked primary registration refusal or caused replay.'
+ 'PASS actual registration-boundary C# exception/JSON retention, bounded chain/text and original-error preservation (no native UI claim).'

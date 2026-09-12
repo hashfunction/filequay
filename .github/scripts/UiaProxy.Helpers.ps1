@@ -38,6 +38,27 @@ function Get-FileQuayUiaProxyEvidence($Record) {
     Assert-FileQuayUiaProxyIdentity $Record.client $Record.proxy $PSHOME
 }
 
+function Get-FileQuayUiaBoundedExceptionText([string]$Text,[int]$Limit) {
+    if ($null -eq $Text) {$Text=''}
+    @{text=$(if ($Text.Length -gt $Limit) {$Text.Substring(0,$Limit)} else {$Text});
+      original_chars=$Text.Length;truncated=($Text.Length -gt $Limit)}
+}
+
+function Get-FileQuayUiaExceptionEvidence([Management.Automation.ErrorRecord]$Failure) {
+    if ($null -eq $Failure -or $null -eq $Failure.Exception) {throw 'Original UIA registration exception required.'}
+    $exception=$Failure.Exception;$chain=[Collections.Generic.List[object]]::new()
+    for ($index=0;$index -lt 8 -and $null -ne $exception;$index++) {
+        $chain.Add(@{type=$exception.GetType().FullName;hresult=$exception.HResult;
+            message=(Get-FileQuayUiaBoundedExceptionText $exception.Message 4096);
+            stack_trace=(Get-FileQuayUiaBoundedExceptionText $exception.StackTrace 16384)})
+        $exception=$exception.InnerException
+    }
+    @{schema_version=1;exception_text=(Get-FileQuayUiaBoundedExceptionText $Failure.Exception.ToString() 32768);
+      script_stack_trace=(Get-FileQuayUiaBoundedExceptionText $Failure.ScriptStackTrace 8192);
+      error_id=(Get-FileQuayUiaBoundedExceptionText $Failure.FullyQualifiedErrorId 1024);
+      chain=@($chain);chain_truncated=($null -ne $exception);observed_utc=[DateTime]::UtcNow.ToString('o')}
+}
+
 function Register-FileQuayUiaProxy($Record) {
     Get-FileQuayUiaProxyEvidence $Record
     $path=$Record.proxy.path
@@ -47,7 +68,18 @@ function Register-FileQuayUiaProxy($Record) {
     # determines the public provider table namespace (lower-case "side").
     $name=[Reflection.AssemblyName]::new($assembly.FullName)
     $name.Name='UIAutomationClientsideProviders'
-    [System.Windows.Automation.ClientSettings]::RegisterClientSideProviderAssembly($name)
+    $Record.registration_call=@{api='System.Windows.Automation.ClientSettings.RegisterClientSideProviderAssembly';
+        route='direct PowerShell public API';assembly_name=$name.FullName}
+    try {
+        [System.Windows.Automation.ClientSettings]::RegisterClientSideProviderAssembly($name)
+    } catch {
+        $primary=$_
+        # Capture here, before outer cleanup replaces the ErrorRecord with its
+        # short message. Diagnostics must never replace the original refusal.
+        try {$Record.registration_exception=Get-FileQuayUiaExceptionEvidence $primary}
+        catch {$Record.registration_exception_error=(Get-FileQuayUiaBoundedExceptionText $_.Exception.Message 4096).text}
+        throw $primary
+    }
     foreach ($row in @($Record.client,$Record.proxy)) {
         $after=Get-FileQuayUiaAssemblyIdentity $row.path
         foreach ($key in $row.Keys) {

@@ -68,3 +68,54 @@ UIAutomationClientSideProviders857896 bytes, SHA-256
 c60be0bba0652ff58fb38db1b0535e4bb9f6bd8bf035e56d89b7d87690963f19.
 The complete metadata receipt is retained under
 /private/tmp/foldersail-34689919450-review/FolderSail-Win32-UIA-proxy-diagnostic.
+
+## Registration exception trace (diagnostics only)
+
+Run `34690270201`, public source
+`32ca2fefa9b9ffae4753b54cd9d822042d5dcd31` (local `7fb62256`), passed both
+exact assembly identity checks with the same hashes/sizes recorded above. Host
+PowerShell 7.6.5 reports .NET 10.0.11. The loaded-provider list was empty before
+registration. The original public registration call threw a wrapped
+NullReferenceException; `registered:false`, `passed:false`, and
+`consumer_acceptance:false` remained correct. No fixture child was started and
+cleanup errors are empty. The 4,066-byte receipt SHA-256 is
+`4bbe621a2e194cb94624fe9f7fe1ebbb41d952416d4017ecb8cea09460e83421`.
+The actual receipt retains only the outer exception's
+Message, so it does not establish the failing framework method or stack frame.
+
+The exact WPF v10.0.11 `ProxyManager.LoadDefaultProxies` source linked above
+walks caller frames and dereferences `MethodBase.ReflectedType.Assembly` without
+a null check (lines 309–315). A PowerShell dynamic method can lack that reflected
+type, making this a plausible explanation. It is not yet a proven diagnosis of
+this actual run. No typed shim, alternate assembly, framework-private mutation,
+retry, or provider fallback is introduced in this diagnostic candidate.
+
+`Register-FileQuayUiaProxy` now records the unchanged public API route and exact
+assembly-name argument. If that call fails, it captures the original ErrorRecord
+before the outer preflight reduces it to its Message: full Exception.ToString
+(up to 32,768 characters), script stack (8,192), error ID (1,024), and up to eight
+inner exceptions with type/HResult/message (4,096)/stack (16,384). Each bounded
+text reports its original length and explicit truncation; chain truncation is
+also explicit. A trace formatting error is recorded separately (4,096-character
+bound), and the original registration refusal is rethrown. There is one call,
+no replay, and no change to original Win32 fixture, ownership, input, cleanup, or
+consumer acceptance requirements.
+
+Inspect `proxy.registration_exception.exception_text.text` and
+`proxy.registration_exception.chain` in the next short diagnostic artifact. Only
+if the actual stack confirms the default-loader dynamic-frame defect should a
+source-owned compiled, non-inlined typed caller of the same public API be tested
+in a subsequent fresh host. A process that already attempted default registration
+must not be treated as an equivalent fresh first-call test.
+
+The existing `test-uia-proxy.ps1` now executes the production registration
+boundary with a deliberately failing compiled C# public-API double. Its real
+inner NullReference stack and PowerShell stack survive JSON; an oversized deep
+exception verifies bounds; a diagnostic ToString failure preserves the primary
+refusal with exactly one call per attempt. It reuses a read-only already loaded
+host assembly only for this loader-boundary replay and does not load a foreign
+provider. All original 24 identity/result cases also pass. Additional focused
+checks: 23 real-pattern policy cases, absent-host refusal, production locked
+Win32 fixture build/hash-tamper refusal using `.tools/dotnet-10.0.401/dotnet`, and
+the actual installer `ProxyFailure` scenario. No native registration/UI success
+is claimed from local macOS verification.
