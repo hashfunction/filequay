@@ -50,6 +50,7 @@
 
     <Import Project="..\..\distribution\FileQuay.Runtime.props" />
     <Import Project="..\..\distribution\FileQuay.SQLite.props" />
+    <Import Project="..\..\distribution\FileQuay.CorrespondingSource.props" />
 
     <ItemGroup>
         <Manifest Include="app.manifest" />

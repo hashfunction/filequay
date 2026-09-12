@@ -1,16 +1,21 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 # Executes the real installer in an isolated fixture with failing AppX/certificate
 # APIs. No package, certificate store, activation API or user environment is touched.
-param([ValidateSet('InstallationAndCleanup','PreinstalledFramework','FailedAddRace','PackageChanged','ReportingFailure','AdapterFailure','ProxyFailure')][string]$Scenario='InstallationAndCleanup')
+param([ValidateSet('InstallationAndCleanup','PreinstalledFramework','FailedAddRace','PackageChanged','ReportingFailure','AdapterFailure','ProxyFailure')][string]$Scenario='InstallationAndCleanup',
+      [ValidateSet('Qualification','Store')][string]$IdentityMode='Qualification')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $source = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+. (Join-Path $source '.github/scripts/PackageIdentity.Helpers.ps1')
+$fixtureIdentity=Get-FolderSailPackageIdentity $IdentityMode Consumer
+$fixtureOutputKind=if ($IdentityMode -eq 'Store') {'Store-Consumer'} else {'Consumer'}
 $temporary = Join-Path ([IO.Path]::GetTempPath()) ('filequay-install-failure-' + [Guid]::NewGuid().ToString('N'))
 $null = New-Item -ItemType Directory -Path (Join-Path $temporary '.github/scripts'), (Join-Path $temporary 'distribution'), (Join-Path $temporary 'package/Dependencies/x64'), (Join-Path $temporary 'validated'), (Join-Path $temporary 'artifacts/qualification') -Force
 $installerSource = Join-Path $source '.github/scripts/Test-CIInstallation.ps1'
 if ($env:FILEQUAY_INSTALLER_SOURCE) { $installerSource = $env:FILEQUAY_INSTALLER_SOURCE }
 Copy-Item $installerSource (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1')
 Copy-Item (Join-Path $source '.github/scripts/InstallationQualification.Helpers.ps1') (Join-Path $temporary '.github/scripts/')
+Copy-Item (Join-Path $source '.github/scripts/PackageIdentity.Helpers.ps1') (Join-Path $temporary '.github/scripts/')
 Copy-Item (Join-Path $source '.github/scripts/ConsumerWorkflow.Helpers.ps1'),(Join-Path $source '.github/scripts/ConsumerWorkflow.Ui.ps1'),(Join-Path $source '.github/scripts/ConsumerWorkflow.PickerDiagnostic.ps1') (Join-Path $temporary '.github/scripts/')
 # Only the external SDK/build/CLR-loading boundary is doubled. The actual
 # installer must call it before any trust/package mutation, even on failure.
@@ -39,7 +44,7 @@ function Write-TestArchive([string]$Path, [string]$Manifest) {
     finally { $archive.Dispose() }
 }
 $namespace = 'http://schemas.microsoft.com/appx/manifest/foundation/windows10'
-Write-TestArchive (Join-Path $temporary 'package/main.msix') "<Package xmlns='$namespace'><Identity Name='Trieflow.FileQuay.Qualification' ProcessorArchitecture='x64' /><Dependencies><PackageDependency Name='Microsoft.WindowsAppRuntime.2.4' Publisher='CN=Microsoft' MinVersion='2.4.0.0' /></Dependencies></Package>"
+Write-TestArchive (Join-Path $temporary 'package/main.msix') "<Package xmlns='$namespace'><Identity Name='$($fixtureIdentity.name)' ProcessorArchitecture='x64' /><Dependencies><PackageDependency Name='Microsoft.WindowsAppRuntime.2.4' Publisher='CN=Microsoft' MinVersion='2.4.0.0' /></Dependencies></Package>"
 Write-TestArchive (Join-Path $temporary 'package/Dependencies/x64/runtime.msix') "<Package xmlns='$namespace'><Identity Name='Microsoft.WindowsAppRuntime.2.4' Publisher='CN=Microsoft' Version='2.4.0.0' ProcessorArchitecture='x64' /><Properties><Framework>true</Framework></Properties></Package>"
 Add-Type -TypeDefinition 'namespace Files.App { public sealed class ConsumerFixture {} }' -OutputAssembly (Join-Path $temporary 'validated/FolderSail.dll')
 $fakeSignTool = Join-Path $temporary 'sign.ps1'
@@ -50,7 +55,7 @@ $global:FileQuayAdapterAttempts=0; $global:FileQuayProxyAttempts=0; $global:File
 $global:FileQuayRaceRegistration = $null
 function Get-AppxPackage {
     param($Name)
-    if ($Scenario -eq 'FailedAddRace' -and $Name -eq 'Trieflow.FileQuay.Qualification' -and $global:FileQuayRaceRegistration) {
+    if ($Scenario -eq 'FailedAddRace' -and $Name -eq $fixtureIdentity.name -and $global:FileQuayRaceRegistration) {
         return $global:FileQuayRaceRegistration
     }
     if ($Scenario -eq 'PreinstalledFramework' -and (-not $Name -or $Name -eq 'Microsoft.WindowsAppRuntime.2.4')) {
@@ -65,15 +70,15 @@ function Add-AppxPackage {
     $global:FileQuayMutationAttempts++
     if ($Scenario -eq 'FailedAddRace') {
         $global:FileQuayRaceRegistration = [pscustomobject]@{
-            Name='Trieflow.FileQuay.Qualification';Publisher='CN=FileQuay-CI-Qualification';Version='1.0.1.0';Architecture='X64';IsFramework=$false
-            PackageFullName='Trieflow.FileQuay.Qualification_1.0.1.0_x64__raced';PackageFamilyName='Trieflow.FileQuay.Qualification_raced'
+            Name=$fixtureIdentity.name;Publisher=$fixtureIdentity.publisher;Version='1.0.1.0';Architecture='X64';IsFramework=$false
+            PackageFullName=($fixtureIdentity.name+'_1.0.1.0_x64__raced');PackageFamilyName=($fixtureIdentity.name+'_raced')
         }
     }
     if ($Scenario -eq 'PackageChanged') {
         [IO.File]::AppendAllText((Join-Path $temporary 'package/main.msix'), 'changed after preflight')
     }
     if ($Scenario -eq 'ReportingFailure') {
-        $resultPath = Join-Path $temporary 'artifacts/qualification/Consumer/installation-result.json'
+        $resultPath = Join-Path $temporary ('artifacts/qualification/'+$fixtureOutputKind+'/installation-result.json')
         [IO.File]::WriteAllBytes($resultPath, [Text.Encoding]::UTF8.GetBytes('previous qualification evidence'))
     }
     throw 'primary fixture installation error'
@@ -102,12 +107,13 @@ try {
     # Process-local mock preconditions; native APIs above remain test doubles.
     $env:OS = 'Windows_NT'; $env:CI = 'true'
     [Environment]::SetEnvironmentVariable('ProgramFiles(x86)', $temporary)
-    $resultPath = Join-Path $temporary 'artifacts/qualification/Consumer/installation-result.json'
+    $resultPath = Join-Path $temporary ('artifacts/qualification/'+$fixtureOutputKind+'/installation-result.json')
     $failure = ''
-    try { & (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1') -PackagePath (Join-Path $temporary 'package/main.msix') -ValidatedPackageDirectory (Join-Path $temporary 'validated') -BuildKind Consumer }
+    try { & (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1') -PackagePath (Join-Path $temporary 'package/main.msix') -ValidatedPackageDirectory (Join-Path $temporary 'validated') -BuildKind Consumer -IdentityMode $IdentityMode }
     catch { $failure = $_.Exception.Message }
     if ($Scenario -ne 'ReportingFailure' -and -not (Test-Path $resultPath)) { throw "Installer fixture produced no receipt; original failure: $failure" }
     $record = if ($Scenario -ne 'ReportingFailure') { Get-Content $resultPath -Raw | ConvertFrom-Json } else { $null }
+    if ($record -and ($record.identity_mode -cne $IdentityMode -or $record.identity -cne $fixtureIdentity.name -or $record.publisher -cne $fixtureIdentity.publisher)) {throw 'Installer failure receipt used the wrong identity mode.'}
     if ($global:FileQuayAdapterAttempts -ne 1) {throw 'Installer did not initialize the adapter exactly once.'}
     if ($global:FileQuayProxyAttempts -ne $(if ($Scenario -eq 'AdapterFailure') {0} else {1})) {throw 'Installer proxy preflight invocation count differs.'}
     if ($Scenario -eq 'ProxyFailure') {

@@ -1,0 +1,3086 @@
+{
+  "schema_version": 1,
+  "product": "FolderSail",
+  "baseline_run": "34694585269",
+  "baseline_source": "ffeedc1c61a6fd0f09268380aea5a154d4f05f47",
+  "note": "Baseline inventory identifies original dependency versions and files; it is not full Consumer acceptance. The stable SDK replacement requires a fresh native build.",
+  "packages": {
+    "Microsoft.NETCore.App.Runtime.win-x64": {
+      "version": "10.0.12",
+      "assets": {
+        "runtime": [
+          "Microsoft.CSharp.dll",
+          "Microsoft.VisualBasic.Core.dll",
+          "Microsoft.Win32.Primitives.dll",
+          "Microsoft.Win32.Registry.dll",
+          "System.AppContext.dll",
+          "System.Buffers.dll",
+          "System.Collections.Concurrent.dll",
+          "System.Collections.Immutable.dll",
+          "System.Collections.NonGeneric.dll",
+          "System.Collections.Specialized.dll",
+          "System.Collections.dll",
+          "System.ComponentModel.Annotations.dll",
+          "System.ComponentModel.DataAnnotations.dll",
+          "System.ComponentModel.EventBasedAsync.dll",
+          "System.ComponentModel.Primitives.dll",
+          "System.ComponentModel.TypeConverter.dll",
+          "System.ComponentModel.dll",
+          "System.Configuration.dll",
+          "System.Console.dll",
+          "System.Core.dll",
+          "System.Data.Common.dll",
+          "System.Data.DataSetExtensions.dll",
+          "System.Data.dll",
+          "System.Diagnostics.Contracts.dll",
+          "System.Diagnostics.Debug.dll",
+          "System.Diagnostics.DiagnosticSource.dll",
+          "System.Diagnostics.FileVersionInfo.dll",
+          "System.Diagnostics.Process.dll",
+          "System.Diagnostics.StackTrace.dll",
+          "System.Diagnostics.TextWriterTraceListener.dll",
+          "System.Diagnostics.Tools.dll",
+          "System.Diagnostics.TraceSource.dll",
+          "System.Diagnostics.Tracing.dll",
+          "System.Drawing.Primitives.dll",
+          "System.Dynamic.Runtime.dll",
+          "System.Formats.Asn1.dll",
+          "System.Formats.Tar.dll",
+          "System.Globalization.Calendars.dll",
+          "System.Globalization.Extensions.dll",
+          "System.Globalization.dll",
+          "System.IO.Compression.Brotli.dll",
+          "System.IO.Compression.FileSystem.dll",
+          "System.IO.Compression.ZipFile.dll",
+          "System.IO.Compression.dll",
+          "System.IO.FileSystem.AccessControl.dll",
+          "System.IO.FileSystem.DriveInfo.dll",
+          "System.IO.FileSystem.Primitives.dll",
+          "System.IO.FileSystem.Watcher.dll",
+          "System.IO.FileSystem.dll",
+          "System.IO.IsolatedStorage.dll",
+          "System.IO.MemoryMappedFiles.dll",
+          "System.IO.Pipelines.dll",
+          "System.IO.Pipes.AccessControl.dll",
+          "System.IO.Pipes.dll",
+          "System.IO.UnmanagedMemoryStream.dll",
+          "System.IO.dll",
+          "System.Linq.AsyncEnumerable.dll",
+          "System.Linq.Expressions.dll",
+          "System.Linq.Parallel.dll",
+          "System.Linq.Queryable.dll",
+          "System.Linq.dll",
+          "System.Memory.dll",
+          "System.Net.Http.Json.dll",
+          "System.Net.Http.dll",
+          "System.Net.HttpListener.dll",
+          "System.Net.Mail.dll",
+          "System.Net.NameResolution.dll",
+          "System.Net.NetworkInformation.dll",
+          "System.Net.Ping.dll",
+          "System.Net.Primitives.dll",
+          "System.Net.Quic.dll",
+          "System.Net.Requests.dll",
+          "System.Net.Security.dll",
+          "System.Net.ServerSentEvents.dll",
+          "System.Net.ServicePoint.dll",
+          "System.Net.Sockets.dll",
+          "System.Net.WebClient.dll",
+          "System.Net.WebHeaderCollection.dll",
+          "System.Net.WebProxy.dll",
+          "System.Net.WebSockets.Client.dll",
+          "System.Net.WebSockets.dll",
+          "System.Net.dll",
+          "System.Numerics.Vectors.dll",
+          "System.Numerics.dll",
+          "System.ObjectModel.dll",
+          "System.Private.CoreLib.dll",
+          "System.Private.DataContractSerialization.dll",
+          "System.Private.Uri.dll",
+          "System.Private.Xml.Linq.dll",
+          "System.Private.Xml.dll",
+          "System.Reflection.DispatchProxy.dll",
+          "System.Reflection.Emit.ILGeneration.dll",
+          "System.Reflection.Emit.Lightweight.dll",
+          "System.Reflection.Emit.dll",
+          "System.Reflection.Extensions.dll",
+          "System.Reflection.Metadata.dll",
+          "System.Reflection.Primitives.dll",
+          "System.Reflection.TypeExtensions.dll",
+          "System.Reflection.dll",
+          "System.Resources.Reader.dll",
+          "System.Resources.ResourceManager.dll",
+          "System.Resources.Writer.dll",
+          "System.Runtime.CompilerServices.Unsafe.dll",
+          "System.Runtime.CompilerServices.VisualC.dll",
+          "System.Runtime.Extensions.dll",
+          "System.Runtime.Handles.dll",
+          "System.Runtime.InteropServices.JavaScript.dll",
+          "System.Runtime.InteropServices.RuntimeInformation.dll",
+          "System.Runtime.InteropServices.dll",
+          "System.Runtime.Intrinsics.dll",
+          "System.Runtime.Loader.dll",
+          "System.Runtime.Numerics.dll",
+          "System.Runtime.Serialization.Formatters.dll",
+          "System.Runtime.Serialization.Json.dll",
+          "System.Runtime.Serialization.Primitives.dll",
+          "System.Runtime.Serialization.Xml.dll",
+          "System.Runtime.Serialization.dll",
+          "System.Runtime.dll",
+          "System.Security.AccessControl.dll",
+          "System.Security.Claims.dll",
+          "System.Security.Cryptography.Algorithms.dll",
+          "System.Security.Cryptography.Cng.dll",
+          "System.Security.Cryptography.Csp.dll",
+          "System.Security.Cryptography.Encoding.dll",
+          "System.Security.Cryptography.OpenSsl.dll",
+          "System.Security.Cryptography.Primitives.dll",
+          "System.Security.Cryptography.X509Certificates.dll",
+          "System.Security.Cryptography.dll",
+          "System.Security.Principal.Windows.dll",
+          "System.Security.Principal.dll",
+          "System.Security.SecureString.dll",
+          "System.Security.dll",
+          "System.ServiceModel.Web.dll",
+          "System.ServiceProcess.dll",
+          "System.Text.Encoding.CodePages.dll",
+          "System.Text.Encoding.Extensions.dll",
+          "System.Text.Encoding.dll",
+          "System.Text.Encodings.Web.dll",
+          "System.Text.Json.dll",
+          "System.Text.RegularExpressions.dll",
+          "System.Threading.AccessControl.dll",
+          "System.Threading.Channels.dll",
+          "System.Threading.Overlapped.dll",
+          "System.Threading.Tasks.Dataflow.dll",
+          "System.Threading.Tasks.Extensions.dll",
+          "System.Threading.Tasks.Parallel.dll",
+          "System.Threading.Tasks.dll",
+          "System.Threading.Thread.dll",
+          "System.Threading.ThreadPool.dll",
+          "System.Threading.Timer.dll",
+          "System.Threading.dll",
+          "System.Transactions.Local.dll",
+          "System.Transactions.dll",
+          "System.ValueTuple.dll",
+          "System.Web.HttpUtility.dll",
+          "System.Web.dll",
+          "System.Windows.dll",
+          "System.Xml.Linq.dll",
+          "System.Xml.ReaderWriter.dll",
+          "System.Xml.Serialization.dll",
+          "System.Xml.XDocument.dll",
+          "System.Xml.XPath.XDocument.dll",
+          "System.Xml.XPath.dll",
+          "System.Xml.XmlDocument.dll",
+          "System.Xml.XmlSerializer.dll",
+          "System.Xml.dll",
+          "System.dll",
+          "WindowsBase.dll",
+          "mscorlib.dll",
+          "netstandard.dll"
+        ],
+        "native": [
+          "Microsoft.DiaSymReader.Native.amd64.dll",
+          "System.IO.Compression.Native.dll",
+          "clretwrc.dll",
+          "clrgc.dll",
+          "clrgcexp.dll",
+          "clrjit.dll",
+          "coreclr.dll",
+          "createdump.exe",
+          "hostfxr.dll",
+          "hostpolicy.dll",
+          "mscordaccore.dll",
+          "mscordaccore_amd64_amd64_10.0.1226.42308.dll",
+          "mscordbi.dll",
+          "mscorrc.dll",
+          "msquic.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.NETCore.App.Runtime.win-x64.10.0.12/1-LICENSE.TXT",
+          "bytes": 1139,
+          "sha256": "d7a68596ab69b06f51ca278a6545148e4269a9381c26d597c13df5d88e08cf5b",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.netcore.app.runtime.win-x64/10.0.12/microsoft.netcore.app.runtime.win-x64.10.0.12.nupkg",
+            "archive_path": "LICENSE.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        },
+        {
+          "path": "notices/Microsoft.NETCore.App.Runtime.win-x64.10.0.12/2-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.netcore.app.runtime.win-x64/10.0.12/microsoft.netcore.app.runtime.win-x64.10.0.12.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "95017c711e6afc1085133d440e42b4bd78155701"
+        }
+      }
+    },
+    "Microsoft.WindowsDesktop.App.Runtime.win-x64": {
+      "version": "10.0.12",
+      "assets": {
+        "runtime": [
+          "Accessibility.dll",
+          "Microsoft.VisualBasic.Forms.dll",
+          "Microsoft.VisualBasic.dll",
+          "Microsoft.Win32.Registry.AccessControl.dll",
+          "Microsoft.Win32.SystemEvents.dll",
+          "System.CodeDom.dll",
+          "System.Configuration.ConfigurationManager.dll",
+          "System.Design.dll",
+          "System.Diagnostics.EventLog.Messages.dll",
+          "System.Diagnostics.EventLog.dll",
+          "System.Diagnostics.PerformanceCounter.dll",
+          "System.DirectoryServices.dll",
+          "System.Drawing.Common.dll",
+          "System.Drawing.Design.dll",
+          "System.Drawing.dll",
+          "System.Formats.Nrbf.dll",
+          "System.IO.Packaging.dll",
+          "System.Private.Windows.Core.dll",
+          "System.Private.Windows.GdiPlus.dll",
+          "System.Resources.Extensions.dll",
+          "System.Security.Cryptography.Pkcs.dll",
+          "System.Security.Cryptography.ProtectedData.dll",
+          "System.Security.Cryptography.Xml.dll",
+          "System.Security.Permissions.dll",
+          "System.Windows.Extensions.dll",
+          "System.Windows.Forms.Design.Editors.dll",
+          "System.Windows.Forms.Design.dll",
+          "System.Windows.Forms.Primitives.dll",
+          "System.Windows.Forms.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.WindowsDesktop.App.Runtime.win-x64.10.0.12/1-LICENSE",
+          "bytes": 1137,
+          "sha256": "a89886665765362eb77e0f8e26602c924520041d1711b2eedc136434fe4d01ab",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsdesktop.app.runtime.win-x64/10.0.12/microsoft.windowsdesktop.app.runtime.win-x64.10.0.12.nupkg",
+            "archive_path": "LICENSE",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "95017c711e6afc1085133d440e42b4bd78155701"
+        }
+      }
+    },
+    "Microsoft.Windows.SDK.NET.Ref": {
+      "version": "10.0.26100.70",
+      "assets": {
+        "runtime": [
+          "Microsoft.Windows.SDK.NET.dll",
+          "WinRT.Runtime.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Windows.SDK.NET.Ref.10.0.26100.70/license.rtf",
+          "bytes": 246945,
+          "sha256": "dd07eb178e00c6bba4148457fc00ff77cd4887eb521d504186fe59c9ec8bbe62",
+          "origin": {
+            "url": "https://aka.ms/WinSDKLicenseURL",
+            "package": "Microsoft.Windows.SDK.NET.Ref/10.0.26100.70"
+          }
+        }
+      ],
+      "declared_license": {
+        "license_url": "https://aka.ms/WinSDKLicenseURL"
+      }
+    },
+    "ByteSize": {
+      "version": "2.1.2",
+      "assets": {
+        "runtime": [
+          "lib/net5.0/ByteSize.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-omar-ByteSize-28f1bd5aa265c4a436e4091cf85fc7ad76bd5083/LICENSE",
+          "bytes": 1102,
+          "sha256": "8e53a079a8caf4fdd373086911877a4c4f38a3d96cebb7b58017f199e33f78d9",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/omar/ByteSize/28f1bd5aa265c4a436e4091cf85fc7ad76bd5083/LICENSE",
+            "source_commit": "28f1bd5aa265c4a436e4091cf85fc7ad76bd5083",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/omar/ByteSize",
+          "branch": "tags/v2.1.2",
+          "commit": "28f1bd5aa265c4a436e4091cf85fc7ad76bd5083"
+        }
+      }
+    },
+    "ColorCode.Core": {
+      "version": "2.0.15",
+      "assets": {
+        "runtime": [
+          "lib/netstandard2.0/ColorCode.Core.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-CommunityToolkit-ColorCode-Universal-e6c2701c365a7a91d74d7ef38a6b60075008ce94/license.md",
+          "bytes": 1140,
+          "sha256": "14cfe2c51ddf3a537bf5f88f946fadde3be3ef118d86568e2c3d7be6bac1e28c",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/CommunityToolkit/ColorCode-Universal/e6c2701c365a7a91d74d7ef38a6b60075008ce94/license.md",
+            "source_commit": "e6c2701c365a7a91d74d7ef38a6b60075008ce94",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/ColorCode-Universal",
+          "commit": "e6c2701c365a7a91d74d7ef38a6b60075008ce94"
+        }
+      }
+    },
+    "ColorCode.WinUI": {
+      "version": "2.0.15",
+      "assets": {
+        "runtime": [
+          "lib/net5.0-windows10.0.17763/ColorCode.WinUI.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-CommunityToolkit-ColorCode-Universal-e6c2701c365a7a91d74d7ef38a6b60075008ce94/license.md",
+          "bytes": 1140,
+          "sha256": "14cfe2c51ddf3a537bf5f88f946fadde3be3ef118d86568e2c3d7be6bac1e28c",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/CommunityToolkit/ColorCode-Universal/e6c2701c365a7a91d74d7ef38a6b60075008ce94/license.md",
+            "source_commit": "e6c2701c365a7a91d74d7ef38a6b60075008ce94",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/ColorCode-Universal",
+          "commit": "e6c2701c365a7a91d74d7ef38a6b60075008ce94"
+        }
+      }
+    },
+    "CommunityToolkit.Common": {
+      "version": "8.2.1",
+      "assets": {
+        "runtime": [
+          "lib/net6.0/CommunityToolkit.Common.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.Common.8.2.1/1-License.md",
+          "bytes": 1158,
+          "sha256": "651997ef19dbb9ecb8dd660dbc86444a65af21f18cfe08daa69bf201cd5cfdfc",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.common/8.2.1/communitytoolkit.common.8.2.1.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        },
+        {
+          "path": "notices/CommunityToolkit.Common.8.2.1/2-ThirdPartyNotices.txt",
+          "bytes": 8600,
+          "sha256": "7774f8b0ab66bfb47ec154ce24a2d6d574febc44a74d940b8a037d1c56756163",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.common/8.2.1/communitytoolkit.common.8.2.1.nupkg",
+            "archive_path": "ThirdPartyNotices.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/dotnet",
+          "commit": "2258fd310359fb7434d2040b34f04366efbacbf8"
+        }
+      }
+    },
+    "CommunityToolkit.Labs.WinUI.Controls.MarkdownTextBlock": {
+      "version": "0.1.250206-build.2040",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Controls.MarkdownTextBlock.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-CommunityToolkit-Labs-Windows-05456dfaa941d015dfbf3b1da392a4e190a5b57e/License.md",
+          "bytes": 1148,
+          "sha256": "134aa3b1d2c509dcf57196ccaa7b69db0eb9ae34fa9189c3d683c02d9923175d",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/CommunityToolkit/Labs-Windows/05456dfaa941d015dfbf3b1da392a4e190a5b57e/License.md",
+            "source_commit": "05456dfaa941d015dfbf3b1da392a4e190a5b57e",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Labs-Windows",
+          "branch": "refs/heads/main",
+          "commit": "05456dfaa941d015dfbf3b1da392a4e190a5b57e"
+        }
+      }
+    },
+    "CommunityToolkit.Labs.WinUI.DependencyPropertyGenerator": {
+      "version": "0.1.250206-build.2040",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.DependencyPropertyGenerator.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-CommunityToolkit-Labs-Windows-05456dfaa941d015dfbf3b1da392a4e190a5b57e/License.md",
+          "bytes": 1148,
+          "sha256": "134aa3b1d2c509dcf57196ccaa7b69db0eb9ae34fa9189c3d683c02d9923175d",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/CommunityToolkit/Labs-Windows/05456dfaa941d015dfbf3b1da392a4e190a5b57e/License.md",
+            "source_commit": "05456dfaa941d015dfbf3b1da392a4e190a5b57e",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Labs-Windows",
+          "branch": "refs/heads/main",
+          "commit": "05456dfaa941d015dfbf3b1da392a4e190a5b57e"
+        }
+      }
+    },
+    "CommunityToolkit.Labs.WinUI.Shimmer": {
+      "version": "0.1.250206-build.2040",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.Labs.WinUI.Shimmer.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-CommunityToolkit-Labs-Windows-05456dfaa941d015dfbf3b1da392a4e190a5b57e/License.md",
+          "bytes": 1148,
+          "sha256": "134aa3b1d2c509dcf57196ccaa7b69db0eb9ae34fa9189c3d683c02d9923175d",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/CommunityToolkit/Labs-Windows/05456dfaa941d015dfbf3b1da392a4e190a5b57e/License.md",
+            "source_commit": "05456dfaa941d015dfbf3b1da392a4e190a5b57e",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Labs-Windows",
+          "branch": "refs/heads/main",
+          "commit": "05456dfaa941d015dfbf3b1da392a4e190a5b57e"
+        }
+      }
+    },
+    "CommunityToolkit.Mvvm": {
+      "version": "8.4.0",
+      "assets": {
+        "runtime": [
+          "lib/net8.0-windows10.0.17763/CommunityToolkit.Mvvm.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.Mvvm.8.4.0/1-License.md",
+          "bytes": 1158,
+          "sha256": "651997ef19dbb9ecb8dd660dbc86444a65af21f18cfe08daa69bf201cd5cfdfc",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.mvvm/8.4.0/communitytoolkit.mvvm.8.4.0.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        },
+        {
+          "path": "notices/CommunityToolkit.Mvvm.8.4.0/2-ThirdPartyNotices.txt",
+          "bytes": 8600,
+          "sha256": "7774f8b0ab66bfb47ec154ce24a2d6d574febc44a74d940b8a037d1c56756163",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.mvvm/8.4.0/communitytoolkit.mvvm.8.4.0.nupkg",
+            "archive_path": "ThirdPartyNotices.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/dotnet",
+          "commit": "638b41dad30dffabb123a39aa38eabc7e3721371"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Animations": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Animations.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Animations.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.animations/8.2.251219/communitytoolkit.winui.animations.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Behaviors": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Behaviors.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Behaviors.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.behaviors/8.2.251219/communitytoolkit.winui.behaviors.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Controls.ColorPicker": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Controls.ColorPicker.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Controls.ColorPicker.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.controls.colorpicker/8.2.251219/communitytoolkit.winui.controls.colorpicker.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Controls.Primitives": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Controls.Primitives.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Controls.Primitives.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.controls.primitives/8.2.251219/communitytoolkit.winui.controls.primitives.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Controls.Segmented": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Controls.Segmented.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Controls.Segmented.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.controls.segmented/8.2.251219/communitytoolkit.winui.controls.segmented.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Controls.SettingsControls": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Controls.SettingsControls.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Controls.SettingsControls.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.controls.settingscontrols/8.2.251219/communitytoolkit.winui.controls.settingscontrols.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Controls.Sizers": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Controls.Sizers.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Controls.Sizers.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.controls.sizers/8.2.251219/communitytoolkit.winui.controls.sizers.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Converters": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Converters.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Converters.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.converters/8.2.251219/communitytoolkit.winui.converters.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Extensions": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Extensions.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Extensions.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.extensions/8.2.251219/communitytoolkit.winui.extensions.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Helpers": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Helpers.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Helpers.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.helpers/8.2.251219/communitytoolkit.winui.helpers.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "CommunityToolkit.WinUI.Triggers": {
+      "version": "8.2.251219",
+      "assets": {
+        "runtime": [
+          "lib/net9.0-windows10.0.19041/CommunityToolkit.WinUI.Triggers.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/CommunityToolkit.WinUI.Triggers.8.2.251219/1-License.md",
+          "bytes": 1161,
+          "sha256": "c12410935503a2c9c4d3d4d14fdfdff49d0a37ad0046dc761b07867e8d499e97",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/communitytoolkit.winui.triggers/8.2.251219/communitytoolkit.winui.triggers.8.2.251219.nupkg",
+            "archive_path": "License.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CommunityToolkit/Windows",
+          "branch": "refs/heads/rel/8.2.251219",
+          "commit": "a6b4dc451c0e54dd29f58743894a956100e7f713"
+        }
+      }
+    },
+    "DiscUtils.Core": {
+      "version": "0.16.13",
+      "assets": {
+        "runtime": [
+          "lib/net5.0/DiscUtils.Core.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-DiscUtils-DiscUtils-59d7cadab839c6d8dfcf52f8be5efe6d2ced190f/LICENSE.txt",
+          "bytes": 1091,
+          "sha256": "7f62225e8d08b717f9e580e3768d64791df324dd1ff509a6b5d2a684b9e058c4",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/DiscUtils/DiscUtils/59d7cadab839c6d8dfcf52f8be5efe6d2ced190f/LICENSE.txt",
+            "source_commit": "59d7cadab839c6d8dfcf52f8be5efe6d2ced190f",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/DiscUtils/DiscUtils",
+          "commit": "59d7cadab839c6d8dfcf52f8be5efe6d2ced190f"
+        }
+      }
+    },
+    "DiscUtils.Iso9660": {
+      "version": "0.16.13",
+      "assets": {
+        "runtime": [
+          "lib/net5.0/DiscUtils.Iso9660.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-DiscUtils-DiscUtils-59d7cadab839c6d8dfcf52f8be5efe6d2ced190f/LICENSE.txt",
+          "bytes": 1091,
+          "sha256": "7f62225e8d08b717f9e580e3768d64791df324dd1ff509a6b5d2a684b9e058c4",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/DiscUtils/DiscUtils/59d7cadab839c6d8dfcf52f8be5efe6d2ced190f/LICENSE.txt",
+            "source_commit": "59d7cadab839c6d8dfcf52f8be5efe6d2ced190f",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/DiscUtils/DiscUtils",
+          "commit": "59d7cadab839c6d8dfcf52f8be5efe6d2ced190f"
+        }
+      }
+    },
+    "DiscUtils.Streams": {
+      "version": "0.16.13",
+      "assets": {
+        "runtime": [
+          "lib/net5.0/DiscUtils.Streams.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-DiscUtils-DiscUtils-59d7cadab839c6d8dfcf52f8be5efe6d2ced190f/LICENSE.txt",
+          "bytes": 1091,
+          "sha256": "7f62225e8d08b717f9e580e3768d64791df324dd1ff509a6b5d2a684b9e058c4",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/DiscUtils/DiscUtils/59d7cadab839c6d8dfcf52f8be5efe6d2ced190f/LICENSE.txt",
+            "source_commit": "59d7cadab839c6d8dfcf52f8be5efe6d2ced190f",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/DiscUtils/DiscUtils",
+          "commit": "59d7cadab839c6d8dfcf52f8be5efe6d2ced190f"
+        }
+      }
+    },
+    "DiscUtils.Udf": {
+      "version": "0.16.13",
+      "assets": {
+        "runtime": [
+          "lib/net5.0/DiscUtils.Udf.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-DiscUtils-DiscUtils-59d7cadab839c6d8dfcf52f8be5efe6d2ced190f/LICENSE.txt",
+          "bytes": 1091,
+          "sha256": "7f62225e8d08b717f9e580e3768d64791df324dd1ff509a6b5d2a684b9e058c4",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/DiscUtils/DiscUtils/59d7cadab839c6d8dfcf52f8be5efe6d2ced190f/LICENSE.txt",
+            "source_commit": "59d7cadab839c6d8dfcf52f8be5efe6d2ced190f",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/DiscUtils/DiscUtils",
+          "commit": "59d7cadab839c6d8dfcf52f8be5efe6d2ced190f"
+        }
+      }
+    },
+    "Dongle.GuidRVAGen": {
+      "version": "1.0.5",
+      "assets": {
+        "runtime": [
+          "lib/netstandard1.1/GuidRVAGen.Attributes.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Dongle.GuidRVAGen.1.0.5/LICENSE.txt",
+          "bytes": 1050,
+          "sha256": "71d8f58b340e985772a52ec095e73dd704ec6fe9b7278cb113e45f64630cea9d",
+          "origin": {
+            "source_path": ".github/NOTICE.md",
+            "section": "Dongle.GuidRVAGen",
+            "license_expression_in_exact_nuspec": "MIT"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {}
+      }
+    },
+    "FluentFTP": {
+      "version": "53.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net9.0/FluentFTP.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/FluentFTP.53.0.2/1-LICENSE.TXT",
+          "bytes": 1092,
+          "sha256": "bb961fbe36659e8a1bb5769fc8041b504e4ecea2de445b6d2e3875077d5a7fbc",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/fluentftp/53.0.2/fluentftp.53.0.2.nupkg",
+            "archive_path": "LICENSE.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/robinrodricks/FluentFTP",
+          "commit": "074f222240ad8e1db7768697db0a4d0a6c3a92cf"
+        }
+      }
+    },
+    "HtmlAgilityPack": {
+      "version": "1.11.71",
+      "assets": {
+        "runtime": [
+          "lib/netstandard2.0/HtmlAgilityPack.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-zzzprojects-html-agility-pack-973972a5d96a542a3efce84ffa172c1d1019cc25/LICENSE",
+          "bytes": 1045,
+          "sha256": "601b80e87b30b47c7b5389d3077fda67a37e7cb6b200405e4524217989c1fe92",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/zzzprojects/html-agility-pack/973972a5d96a542a3efce84ffa172c1d1019cc25/LICENSE",
+            "source_commit": "973972a5d96a542a3efce84ffa172c1d1019cc25",
+            "note": "Exact upstream v1.11.71 tag."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/zzzprojects/html-agility-pack/"
+        }
+      }
+    },
+    "LibGit2Sharp": {
+      "version": "0.30.0",
+      "assets": {
+        "runtime": [
+          "lib/net6.0/LibGit2Sharp.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/LibGit2Sharp.0.30.0/1-LICENSE.md",
+          "bytes": 1081,
+          "sha256": "d745334f7db93761cf9c1ffd4c03d0a843618ff87f594077bd6029a73dd0ccb2",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/libgit2sharp/0.30.0/libgit2sharp.0.30.0.nupkg",
+            "archive_path": "App_Readme/LICENSE.md",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "App_Readme/LICENSE.md",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/libgit2/libgit2sharp",
+          "commit": "5085a0c6173cdb2a3fde205330b327a8eb0a26c4"
+        }
+      }
+    },
+    "LibGit2Sharp.NativeBinaries": {
+      "version": "2.0.322",
+      "assets": {
+        "native": [
+          "runtimes/win-x64/native/git2-a418d9d.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/native-LibGit2Sharp.NativeBinaries/libgit2.license.txt",
+          "bytes": 61857,
+          "sha256": "6f3c2cd59b057e366c1acc073b038135c52d77892bb33bd4d931c5369d3f062b",
+          "origin": {
+            "original_archive": "libgit2sharp-native-2c5c31e8119c8b068066cf755573cb9dd8c78fbb.tar.gz",
+            "archive_path": "libgit2sharp.nativebinaries-2c5c31e8119c8b068066cf755573cb9dd8c78fbb/nuget.package/libgit2/libgit2.license.txt"
+          }
+        },
+        {
+          "path": "notices/native-LibGit2Sharp.NativeBinaries/LICENSE.md",
+          "bytes": 1081,
+          "sha256": "d745334f7db93761cf9c1ffd4c03d0a843618ff87f594077bd6029a73dd0ccb2",
+          "origin": {
+            "original_archive": "libgit2sharp-native-2c5c31e8119c8b068066cf755573cb9dd8c78fbb.tar.gz",
+            "archive_path": "libgit2sharp.nativebinaries-2c5c31e8119c8b068066cf755573cb9dd8c78fbb/LICENSE.md"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "libgit2\\libgit2.license.txt",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/libgit2/libgit2sharp.nativebinaries.git"
+        }
+      }
+    },
+    "Markdig": {
+      "version": "0.38.0",
+      "assets": {
+        "runtime": [
+          "lib/net8.0/Markdig.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-xoofx-markdig-f734e915682764162cee034aeb50a653e81cbef9/license.txt",
+          "bytes": 1318,
+          "sha256": "ae543293657b6782e3d4a76257dc4157210ce88a352ef8392065d3f04dcd88d1",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/xoofx/markdig/f734e915682764162cee034aeb50a653e81cbef9/license.txt",
+            "source_commit": "f734e915682764162cee034aeb50a653e81cbef9",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "BSD-2-Clause",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/BSD-2-Clause",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/xoofx/markdig",
+          "commit": "f734e915682764162cee034aeb50a653e81cbef9"
+        }
+      }
+    },
+    "MessageFormat": {
+      "version": "7.1.3",
+      "assets": {
+        "runtime": [
+          "lib/net8.0/Jeffijoe.MessageFormat.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-jeffijoe-messageformat.net-79da44e80b4bd1d7f3ad9ad7dd44e52a50e08d86/LICENSE",
+          "bytes": 1077,
+          "sha256": "a3100c4ac7e32ee5fbe7903cadf04275c22f579c21547dbce3e015d27dd87e7c",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/jeffijoe/messageformat.net/79da44e80b4bd1d7f3ad9ad7dd44e52a50e08d86/LICENSE",
+            "source_commit": "79da44e80b4bd1d7f3ad9ad7dd44e52a50e08d86",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": null,
+        "license_type": null,
+        "license_url": null,
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/jeffijoe/messageformat.net",
+          "commit": "79da44e80b4bd1d7f3ad9ad7dd44e52a50e08d86"
+        }
+      }
+    },
+    "Microsoft.Bcl.AsyncInterfaces": {
+      "version": "8.0.0",
+      "assets": {
+        "runtime": [
+          "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Bcl.AsyncInterfaces.8.0.0/1-LICENSE.TXT",
+          "bytes": 1139,
+          "sha256": "d7a68596ab69b06f51ca278a6545148e4269a9381c26d597c13df5d88e08cf5b",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.bcl.asyncinterfaces/8.0.0/microsoft.bcl.asyncinterfaces.8.0.0.nupkg",
+            "archive_path": "LICENSE.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        },
+        {
+          "path": "notices/Microsoft.Bcl.AsyncInterfaces.8.0.0/2-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 68911,
+          "sha256": "19c19dcac9f3ee6302cfbc6745bb8e79f08efc4c933eb8dc5509bf14b88347ec",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.bcl.asyncinterfaces/8.0.0/microsoft.bcl.asyncinterfaces.8.0.0.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/runtime",
+          "commit": "5535e31a712343a63f5d7d796cd874e563e5ac14"
+        }
+      }
+    },
+    "Microsoft.Data.Sqlite.Core": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net8.0/Microsoft.Data.Sqlite.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-dotnet-dotnet-44525024595742ebe09023abe709df51de65009b/LICENSE.TXT",
+          "bytes": 1115,
+          "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/dotnet/dotnet/44525024595742ebe09023abe709df51de65009b/LICENSE.TXT",
+            "source_commit": "44525024595742ebe09023abe709df51de65009b",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Configuration": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Configuration.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Configuration.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.configuration/10.0.2/microsoft.extensions.configuration.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Configuration.Abstractions": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Configuration.Abstractions.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Configuration.Abstractions.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.configuration.abstractions/10.0.2/microsoft.extensions.configuration.abstractions.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Configuration.Binder": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Configuration.Binder.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Configuration.Binder.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.configuration.binder/10.0.2/microsoft.extensions.configuration.binder.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Configuration.CommandLine": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Configuration.CommandLine.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Configuration.CommandLine.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.configuration.commandline/10.0.2/microsoft.extensions.configuration.commandline.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Configuration.EnvironmentVariables": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Configuration.EnvironmentVariables.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Configuration.EnvironmentVariables.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.configuration.environmentvariables/10.0.2/microsoft.extensions.configuration.environmentvariables.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Configuration.FileExtensions": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Configuration.FileExtensions.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Configuration.FileExtensions.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.configuration.fileextensions/10.0.2/microsoft.extensions.configuration.fileextensions.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Configuration.Json": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Configuration.Json.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Configuration.Json.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.configuration.json/10.0.2/microsoft.extensions.configuration.json.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Configuration.UserSecrets": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Configuration.UserSecrets.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Configuration.UserSecrets.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.configuration.usersecrets/10.0.2/microsoft.extensions.configuration.usersecrets.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.DependencyInjection": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.DependencyInjection.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.DependencyInjection.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.dependencyinjection/10.0.2/microsoft.extensions.dependencyinjection.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.DependencyInjection.Abstractions": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.DependencyInjection.Abstractions.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.dependencyinjection.abstractions/10.0.2/microsoft.extensions.dependencyinjection.abstractions.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Diagnostics": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Diagnostics.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Diagnostics.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.diagnostics/10.0.2/microsoft.extensions.diagnostics.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Diagnostics.Abstractions": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Diagnostics.Abstractions.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Diagnostics.Abstractions.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.diagnostics.abstractions/10.0.2/microsoft.extensions.diagnostics.abstractions.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.FileProviders.Abstractions": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.FileProviders.Abstractions.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.FileProviders.Abstractions.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.fileproviders.abstractions/10.0.2/microsoft.extensions.fileproviders.abstractions.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.FileProviders.Physical": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.FileProviders.Physical.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.FileProviders.Physical.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.fileproviders.physical/10.0.2/microsoft.extensions.fileproviders.physical.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.FileSystemGlobbing": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.FileSystemGlobbing.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.FileSystemGlobbing.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.filesystemglobbing/10.0.2/microsoft.extensions.filesystemglobbing.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Hosting": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Hosting.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Hosting.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.hosting/10.0.2/microsoft.extensions.hosting.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Hosting.Abstractions": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Hosting.Abstractions.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Hosting.Abstractions.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.hosting.abstractions/10.0.2/microsoft.extensions.hosting.abstractions.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Logging": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Logging.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Logging.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.logging/10.0.2/microsoft.extensions.logging.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Logging.Abstractions": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Logging.Abstractions.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Logging.Abstractions.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.logging.abstractions/10.0.2/microsoft.extensions.logging.abstractions.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Logging.Configuration": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Logging.Configuration.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Logging.Configuration.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.logging.configuration/10.0.2/microsoft.extensions.logging.configuration.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Logging.Console": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Logging.Console.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Logging.Console.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.logging.console/10.0.2/microsoft.extensions.logging.console.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Logging.Debug": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Logging.Debug.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Logging.Debug.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.logging.debug/10.0.2/microsoft.extensions.logging.debug.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Logging.EventLog": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Logging.EventLog.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Logging.EventLog.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.logging.eventlog/10.0.2/microsoft.extensions.logging.eventlog.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Logging.EventSource": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Logging.EventSource.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Logging.EventSource.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.logging.eventsource/10.0.2/microsoft.extensions.logging.eventsource.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.ObjectPool": {
+      "version": "8.0.10",
+      "assets": {
+        "runtime": [
+          "lib/net8.0/Microsoft.Extensions.ObjectPool.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.ObjectPool.8.0.10/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 56748,
+          "sha256": "307d014f65d8482314f1400ddeae7a0cbabb96c2207bcc77f6233cc10588e5d9",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.objectpool/8.0.10/microsoft.extensions.objectpool.8.0.10.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/aspnetcore",
+          "commit": "c2a442982e736e17ae6bcadbfd8ccba278ee1be6"
+        }
+      }
+    },
+    "Microsoft.Extensions.Options": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Options.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Options.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.options/10.0.2/microsoft.extensions.options.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Options.ConfigurationExtensions": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Options.ConfigurationExtensions.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Options.ConfigurationExtensions.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.options.configurationextensions/10.0.2/microsoft.extensions.options.configurationextensions.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Extensions.Primitives": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/Microsoft.Extensions.Primitives.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Extensions.Primitives.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.extensions.primitives/10.0.2/microsoft.extensions.primitives.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "Microsoft.Graphics.Win2D": {
+      "version": "1.3.2",
+      "assets": {
+        "runtime": [
+          "lib/net6.0-windows10.0.19041.0/Microsoft.Graphics.Canvas.Interop.dll"
+        ],
+        "native": [
+          "runtimes/win-x64/native/Microsoft.Graphics.Canvas.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-microsoft-Win2D-25680382dd2136779e10ea6084f0c5ba437ae288/LICENSE.txt",
+          "bytes": 1116,
+          "sha256": "c3ba493105fa52657c4c60d9b1680da7c01b188a8665d7a823c2a187fd259808",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/microsoft/Win2D/25680382dd2136779e10ea6084f0c5ba437ae288/LICENSE.txt",
+            "source_commit": "25680382dd2136779e10ea6084f0c5ba437ae288",
+            "note": "Microsoft source license notice as observed2026-09-12; package1.3.2 separately names the original Microsoft Win2D NuGet EULA URL. This source commit is not asserted as the binary build commit."
+          }
+        },
+        {
+          "path": "notices/native-Microsoft.Win2D/eula_win2d_10012014.htm",
+          "bytes": 44042,
+          "sha256": "7b10b2c7d15a3062037d3820bfd5528235f8a287ded3d131e22c2f5286e61633",
+          "origin": {
+            "original_declared_url": "http://www.microsoft.com/web/webpi/eula/eula_win2d_10012014.htm",
+            "archive_url": "https://web.archive.org/web/20250113180923id_/https://www.microsoft.com/web/webpi/eula/eula_win2d_10012014.htm",
+            "encoding": "windows-1252",
+            "cdx_sha1_base32": "T472OIPFCTEW25XVAQGV6KFWFTSPG4PV"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": null,
+        "license_type": null,
+        "license_url": "http://www.microsoft.com/web/webpi/eula/eula_win2d_10012014.htm",
+        "repository": {}
+      },
+      "provenance": {
+        "bytes": 2964113,
+        "sha256": "80557bf78a05f40831e97946f6624b02d8d1abf60b58ddb7c617113cf62ee0ad",
+        "dlls": {
+          "runtimes/win-x64/native/Microsoft.Graphics.Canvas.dll": {
+            "bytes": 1729568,
+            "sha256": "813c714a54df82227fb02fa295dea8379061c3c408b57bff18532f7953118dbf",
+            "codeview": {
+              "guid": "05a9fd4d-9c79-43c9-8991-160647ab7ceb",
+              "age": 1,
+              "path": "c:\\__w\\1\\s\\bin\\uapx64\\release\\winrt.dll.uap\\Microsoft.Graphics.Canvas.pdb"
+            },
+            "version_strings": [
+              "LegalCopyright",
+              "Copyright (c) Microsoft Corporation",
+              "1.3.2 (feefabe2d8ef80025030c1dd7c9d3d71e2462cd3)"
+            ]
+          },
+          "lib/net6.0-windows10.0.19041.0/Microsoft.Graphics.Canvas.Interop.dll": {
+            "bytes": 1181728,
+            "sha256": "1f54381b9c138601ac60612e2d8f401b680725dc284561c37427427bf687fbf0",
+            "codeview": {
+              "guid": "e40bf956-96ea-4492-872a-19784c8172fb",
+              "age": 1,
+              "path": "c:\\__w\\1\\s\\obj\\winrt.projection\\anycpu\\release\\net6.0-windows10.0.19041.0\\Microsoft.Graphics.Canvas.Interop.pdb"
+            },
+            "version_strings": [
+              "1.3.1.0",
+              "LegalCopyright",
+              "1.3.1+feefabe2d8ef80025030c1dd7c9d3d71e2462cd3",
+              "1.3.1.0"
+            ]
+          }
+        },
+        "source_revision": "feefabe2d8ef80025030c1dd7c9d3d71e2462cd3",
+        "source_gap": "Both original DLLs and Win2d.githash.txt identify this revision; microsoft/Win2D commit API reports no public commit. Included Microsoft source MIT notice is separately attributed, not claimed as this build source. The original NuGet EULA was recovered from two byte-identical archived Microsoft captures; the current official URL still redirects.",
+        "archive_sha512": "x4c9LbU03WQNaL0cWf6vYMtM+SiZkmRal4xyJ4mqlBFHCsR7EZ0O9n8AbtIm7YrbdfOSkvTe4GEaZuV8Q8UBuA==",
+        "nuget_lock_content_hash": "xAv4+Xj8wePW1innIUSXebX6UHMGDzOxwKPwYNUNY7mBrsRL/hPFEtuPLpBSxc3iBnuaCogPDCDeN7T4b1xV0Q==",
+        "hash_note": "Full original downloaded archive SHA-512 and restored NuGet content hash are distinct values; their equivalence is not asserted. The original native DLL was separately byte-matched to the actual package."
+      },
+      "redistribution_review": {
+        "status": "original-eula-reviewed",
+        "license_notice_path": "notices/native-Microsoft.Win2D/eula_win2d_10012014.htm",
+        "original_declared_url": "http://www.microsoft.com/web/webpi/eula/eula_win2d_10012014.htm",
+        "original_package_sha256": "80557bf78a05f40831e97946f6624b02d8d1abf60b58ddb7c617113cf62ee0ad",
+        "grant": "Section 2.a.i permits object-code redistribution subject to the complete requirements and restrictions in the original agreement.",
+        "application_primary_functionality": "FolderSail is a file manager with navigation, copying, moving, receipt history and CSV export; Win2D provides supporting graphics.",
+        "captures": [
+          {
+            "timestamp": "20210507221235",
+            "archive_url": "https://web.archive.org/web/20210507221235id_/https://www.microsoft.com/web/webpi/eula/eula_win2d_10012014.htm",
+            "bytes": 44042,
+            "sha256": "7b10b2c7d15a3062037d3820bfd5528235f8a287ded3d131e22c2f5286e61633",
+            "cdx_sha1_base32": "T472OIPFCTEW25XVAQGV6KFWFTSPG4PV"
+          },
+          {
+            "timestamp": "20250113180923",
+            "archive_url": "https://web.archive.org/web/20250113180923id_/https://www.microsoft.com/web/webpi/eula/eula_win2d_10012014.htm",
+            "bytes": 44042,
+            "sha256": "7b10b2c7d15a3062037d3820bfd5528235f8a287ded3d131e22c2f5286e61633",
+            "cdx_sha1_base32": "T472OIPFCTEW25XVAQGV6KFWFTSPG4PV"
+          }
+        ],
+        "downstream_terms": {
+          "source_file": "distribution/store-license-terms.txt",
+          "package_file": "FolderSail-License-Terms.txt",
+          "bytes": 9993,
+          "sha256": "a8026cbbb476d4ac085580f33558bcb3e795565aeb8f27d778be0f7cc9ade2ac",
+          "delivery": "Include unchanged in the package and use this exact text as the Store license terms before submission.",
+          "characters_including_crlf": 9876
+        },
+        "store_license_terms_delivery_required": true,
+        "source_gap": "The identified binary build revision is not public. The separately attributed MIT source notice is not asserted to license or reproduce this NuGet binary."
+      }
+    },
+    "Microsoft.Web.WebView2": {
+      "version": "1.0.3719.77",
+      "assets": {
+        "native": [
+          "runtimes/win-x64/native/WebView2Loader.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Web.WebView2.1.0.3719.77/1-LICENSE.txt",
+          "bytes": 1487,
+          "sha256": "0af8f1b807512aae39c2ac1aa4d0cae65cabecb6fd554b8439a5162a0d6eca55",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/1.0.3719.77/microsoft.web.webview2.1.0.3719.77.nupkg",
+            "archive_path": "LICENSE.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        },
+        {
+          "path": "notices/Microsoft.Web.WebView2.1.0.3719.77/2-NOTICE.txt",
+          "bytes": 3894,
+          "sha256": "106423785c5b7eba0a8e61d1837f2132e9c828e20ad530f565d981c1df60dd90",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/1.0.3719.77/microsoft.web.webview2.1.0.3719.77.nupkg",
+            "archive_path": "NOTICE.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "LICENSE.txt",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {}
+      }
+    },
+    "Microsoft.Windows.AI.MachineLearning": {
+      "version": "2.1.74",
+      "assets": {
+        "runtime": [
+          "lib/net8.0-windows10.0.17763.0/Microsoft.ML.OnnxRuntime.dll",
+          "lib/net8.0-windows10.0.17763.0/Microsoft.Windows.AI.MachineLearning.Projection.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Windows.AI.MachineLearning.2.1.74/1-license.txt",
+          "bytes": 13996,
+          "sha256": "66395f8cb219087fae2bd025010bd9076b736c14f03b48f20295471c0c376814",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windows.ai.machinelearning/2.1.74/microsoft.windows.ai.machinelearning.2.1.74.nupkg",
+            "archive_path": "license.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        },
+        {
+          "path": "notices/Microsoft.Windows.AI.MachineLearning.2.1.74/2-ThirdPartyNotices.txt",
+          "bytes": 331175,
+          "sha256": "fb0af774b4d7cffc5b9d046f2aaeade2f37df2f80abf8033c95dfffcc77a8866",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windows.ai.machinelearning/2.1.74/microsoft.windows.ai.machinelearning.2.1.74.nupkg",
+            "archive_path": "ThirdPartyNotices.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "license.txt",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {}
+      }
+    },
+    "Microsoft.WindowsAppSDK.AI": {
+      "version": "2.4.4",
+      "assets": {
+        "runtime": [
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Graphics.Imaging.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.AI.ContentSafety.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.AI.Foundation.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.AI.Imaging.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.AI.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.AI.Text.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.AI.Video.Projection.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.WindowsAppSDK.AI.2.4.4/1-license.txt",
+          "bytes": 12637,
+          "sha256": "5b11e6347756e40fe0274bc08c97f89201b94f0d50181a09a00f1f4740840501",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.ai/2.4.4/microsoft.windowsappsdk.ai.2.4.4.nupkg",
+            "archive_path": "license.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "license.txt",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {}
+      }
+    },
+    "Microsoft.WindowsAppSDK.Foundation": {
+      "version": "2.3.9",
+      "assets": {
+        "runtime": [
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Security.Authentication.OAuth.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.AppLifecycle.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.AppNotifications.Builder.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.AppNotifications.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.ApplicationModel.Background.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.ApplicationModel.DynamicDependency.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.ApplicationModel.Resources.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.ApplicationModel.WindowsAppRuntime.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.BadgeNotifications.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.Foundation.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.Management.Deployment.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.Media.Capture.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.PushNotifications.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.Security.AccessControl.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.Storage.Pickers.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.Storage.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.System.Power.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.System.Projection.dll",
+          "lib/net6.0-windows10.0.17763.0/Microsoft.WindowsAppRuntime.Bootstrap.Net.dll"
+        ],
+        "native": [
+          "runtimes/win-x64/native/Microsoft.Windows.ApplicationModel.Background.UniversalBGTask.dll",
+          "runtimes/win-x64/native/Microsoft.WindowsAppRuntime.Bootstrap.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.WindowsAppSDK.Foundation.2.3.9/1-license.txt",
+          "bytes": 12637,
+          "sha256": "5b11e6347756e40fe0274bc08c97f89201b94f0d50181a09a00f1f4740840501",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.foundation/2.3.9/microsoft.windowsappsdk.foundation.2.3.9.nupkg",
+            "archive_path": "license.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "license.txt",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {}
+      }
+    },
+    "Microsoft.WindowsAppSDK.InteractiveExperiences": {
+      "version": "2.1.6",
+      "assets": {
+        "runtime": [
+          "lib/net6.0-windows10.0.18362.0/Microsoft.InteractiveExperiences.Projection.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.WindowsAppSDK.InteractiveExperiences.2.1.6/1-license.txt",
+          "bytes": 12637,
+          "sha256": "5b11e6347756e40fe0274bc08c97f89201b94f0d50181a09a00f1f4740840501",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.interactiveexperiences/2.1.6/microsoft.windowsappsdk.interactiveexperiences.2.1.6.nupkg",
+            "archive_path": "license.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "license.txt",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {}
+      }
+    },
+    "Microsoft.WindowsAppSDK.Search": {
+      "version": "2.4.4",
+      "assets": {
+        "runtime": [
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.Search.Projection.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.WindowsAppSDK.Search.2.4.4/1-license.txt",
+          "bytes": 12637,
+          "sha256": "5b11e6347756e40fe0274bc08c97f89201b94f0d50181a09a00f1f4740840501",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.search/2.4.4/microsoft.windowsappsdk.search.2.4.4.nupkg",
+            "archive_path": "license.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "license.txt",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {}
+      }
+    },
+    "Microsoft.WindowsAppSDK.Widgets": {
+      "version": "2.0.5",
+      "assets": {
+        "runtime": [
+          "lib/net6.0-windows10.0.17763.0/Microsoft.Windows.Widgets.Projection.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.WindowsAppSDK.Widgets.2.0.5/1-license.txt",
+          "bytes": 12637,
+          "sha256": "5b11e6347756e40fe0274bc08c97f89201b94f0d50181a09a00f1f4740840501",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.widgets/2.0.5/microsoft.windowsappsdk.widgets.2.0.5.nupkg",
+            "archive_path": "license.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "license.txt",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {}
+      }
+    },
+    "Microsoft.WindowsAppSDK.WinUI": {
+      "version": "2.3.6",
+      "assets": {
+        "runtime": [
+          "lib/net6.0-windows10.0.17763.0/Microsoft.WinUI.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.WindowsAppSDK.WinUI.2.3.6/1-license.txt",
+          "bytes": 12637,
+          "sha256": "5b11e6347756e40fe0274bc08c97f89201b94f0d50181a09a00f1f4740840501",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.winui/2.3.6/microsoft.windowsappsdk.winui.2.3.6.nupkg",
+            "archive_path": "license.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        },
+        {
+          "path": "notices/Microsoft.WindowsAppSDK.WinUI.2.3.6/2-NOTICE.txt",
+          "bytes": 2061,
+          "sha256": "e25393c0d340a1821827b093fa4dbbfcccd8feb7bf769e7fa773e3955cd5314b",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.winui/2.3.6/microsoft.windowsappsdk.winui.2.3.6.nupkg",
+            "archive_path": "NOTICE.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        },
+        {
+          "path": "notices/Microsoft.WindowsAppSDK.WinUI.2.3.6/3-NOTICE.txt",
+          "bytes": 638,
+          "sha256": "4a9321fd173ebf4e8bbc79130794d4c3fe233acccbf7db8765e0addb8fbfb8ca",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.winui/2.3.6/microsoft.windowsappsdk.winui.2.3.6.nupkg",
+            "archive_path": "tools/NOTICE.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "license.txt",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {}
+      }
+    },
+    "Microsoft.Xaml.Behaviors.WinUI.Managed": {
+      "version": "3.0.1",
+      "assets": {
+        "runtime": [
+          "lib/net8.0-windows10.0.17763.0/Microsoft.Xaml.Interactivity.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-microsoft-XamlBehaviors-6d9a2b1f4fc03149da933dd3f085b4990e0da861/LICENSE",
+          "bytes": 1077,
+          "sha256": "cf248820bf1178370bb4f1670a59f8748d46bc96d0f64080cd631511c6046409",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/microsoft/XamlBehaviors/6d9a2b1f4fc03149da933dd3f085b4990e0da861/LICENSE",
+            "source_commit": "6d9a2b1f4fc03149da933dd3f085b4990e0da861",
+            "note": "Exact upstream v3.0.1 tag."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "http://go.microsoft.com/fwlink/?LinkID=651678"
+        }
+      }
+    },
+    "OwlCore.Storage": {
+      "version": "0.14.0.999",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/OwlCore.Storage.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/OwlCore.Storage.0.14.0.999/LICENSE.txt",
+          "bytes": 1135,
+          "sha256": "f3fc782261526ffdbffa4c9cb50c16f6bc1398047afef38c5fe19420f0baf3c4",
+          "origin": {
+            "archive": "vendor-pinned OwlCore.Storage.0.14.0.999.nupkg",
+            "archive_path": "LICENSE.txt"
+          }
+        }
+      ]
+    },
+    "Roman-Numerals": {
+      "version": "2.0.1",
+      "assets": {
+        "runtime": [
+          "lib/net8.0/RomanNumerals.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-picrap-RomanNumerals-b1874a09042dbed389890656cf3f06a55136d386/LICENSE",
+          "bytes": 1072,
+          "sha256": "caec5dba0ac12e005e837134211eb322b5759b19a40077559d31eef9dc9dde2a",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/picrap/RomanNumerals/b1874a09042dbed389890656cf3f06a55136d386/LICENSE",
+            "source_commit": "b1874a09042dbed389890656cf3f06a55136d386",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/picrap/RomanNumerals.git",
+          "commit": "b1874a09042dbed389890656cf3f06a55136d386"
+        }
+      }
+    },
+    "SevenZipSharp": {
+      "version": "1.0.3",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/SevenZipSharp.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/native-SevenZipSharp/license",
+          "bytes": 7651,
+          "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
+          "origin": {
+            "original_archive": "sevenzipsharp-9725bda53e1ee018b39a51c268a90c4905915926.tar.gz",
+            "archive_path": "SevenZipSharp-9725bda53e1ee018b39a51c268a90c4905915926/license"
+          }
+        },
+        {
+          "path": "notices/native-SevenZipSharp/GPL-3.0.txt",
+          "bytes": 35147,
+          "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+          "origin": {
+            "license": "GPL-3.0-only",
+            "origin_archive": "qtbase-everywhere-src-6.11.2.tar.xz",
+            "origin_path": "LICENSES/GPL-3.0-only.txt",
+            "origin_note": "Original GNU GPLv3 license text already retained in the audited DupliSift Qt source notices; no Qt code or Qt exception is included.",
+            "bytes": 35147,
+            "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+          }
+        }
+      ]
+    },
+    "SharpZipLib": {
+      "version": "1.4.2",
+      "assets": {
+        "runtime": [
+          "lib/net6.0/ICSharpCode.SharpZipLib.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-icsharpcode-SharpZipLib-33f64eb0f28cdd2b084cb822fcc224c7c5aba553/LICENSE.txt",
+          "bytes": 1072,
+          "sha256": "d7fbbc16f871bf24fa5624c7eaf945054b778985f32676dcacba41fddca61133",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/icsharpcode/SharpZipLib/33f64eb0f28cdd2b084cb822fcc224c7c5aba553/LICENSE.txt",
+            "source_commit": "33f64eb0f28cdd2b084cb822fcc224c7c5aba553",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/icsharpcode/SharpZipLib",
+          "commit": "33f64eb0f28cdd2b084cb822fcc224c7c5aba553"
+        }
+      }
+    },
+    "SQLite": {
+      "version": "3.53.4",
+      "assets": {
+        "native": [
+          "runtimes/win-x64/native/e_sqlite3.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/SQLite.3.53.4/1-LICENSE.txt",
+          "bytes": 61,
+          "sha256": "99464c3a88df7b708ce59e462cdcb85f72dfc9b1335b4fcc68be56131b634b95",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/sqlite/3.53.4/sqlite.3.53.4.nupkg",
+            "archive_path": "LICENSE.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "LICENSE.txt",
+        "license_type": "file",
+        "license_url": "https://aka.ms/deprecateLicenseUrl",
+        "repository": {}
+      }
+    },
+    "SQLitePCLRaw.config.e_sqlite3": {
+      "version": "3.0.5",
+      "assets": {
+        "runtime": [
+          "lib/net8.0/SQLitePCLRaw.batteries_v2.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-ericsink-SQLitePCL.raw-96043b8cff323f21919df86a431c136655d81b4a/LICENSE.TXT",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/96043b8cff323f21919df86a431c136655d81b4a/LICENSE.TXT",
+            "source_commit": "96043b8cff323f21919df86a431c136655d81b4a",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        },
+        {
+          "path": "notices/source-ericsink-SQLitePCL.raw-96043b8cff323f21919df86a431c136655d81b4a/NOTICE.TXT",
+          "bytes": 1697,
+          "sha256": "5a1ab2f670f86dd2f8d42e40a8459cc278ca6d5225a7e2a5fa3ea0184396a6d9",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/96043b8cff323f21919df86a431c136655d81b4a/NOTICE.TXT",
+            "source_commit": "96043b8cff323f21919df86a431c136655d81b4a",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "Apache-2.0",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/Apache-2.0",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/ericsink/SQLitePCL.raw",
+          "commit": "96043b8cff323f21919df86a431c136655d81b4a"
+        }
+      }
+    },
+    "SQLitePCLRaw.core": {
+      "version": "3.0.5",
+      "assets": {
+        "runtime": [
+          "lib/net8.0/SQLitePCLRaw.core.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-ericsink-SQLitePCL.raw-ed046114d5a30534e13294d94d78eb73de896ad4/LICENSE.TXT",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/ed046114d5a30534e13294d94d78eb73de896ad4/LICENSE.TXT",
+            "source_commit": "ed046114d5a30534e13294d94d78eb73de896ad4",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        },
+        {
+          "path": "notices/source-ericsink-SQLitePCL.raw-ed046114d5a30534e13294d94d78eb73de896ad4/NOTICE.TXT",
+          "bytes": 1697,
+          "sha256": "5a1ab2f670f86dd2f8d42e40a8459cc278ca6d5225a7e2a5fa3ea0184396a6d9",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/ed046114d5a30534e13294d94d78eb73de896ad4/NOTICE.TXT",
+            "source_commit": "ed046114d5a30534e13294d94d78eb73de896ad4",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "Apache-2.0",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/Apache-2.0",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/ericsink/SQLitePCL.raw",
+          "commit": "ed046114d5a30534e13294d94d78eb73de896ad4"
+        }
+      }
+    },
+    "SQLitePCLRaw.provider.e_sqlite3": {
+      "version": "3.0.5",
+      "assets": {
+        "runtime": [
+          "lib/net8.0-windows7.0/SQLitePCLRaw.provider.e_sqlite3.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-ericsink-SQLitePCL.raw-ed046114d5a30534e13294d94d78eb73de896ad4/LICENSE.TXT",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/ed046114d5a30534e13294d94d78eb73de896ad4/LICENSE.TXT",
+            "source_commit": "ed046114d5a30534e13294d94d78eb73de896ad4",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        },
+        {
+          "path": "notices/source-ericsink-SQLitePCL.raw-ed046114d5a30534e13294d94d78eb73de896ad4/NOTICE.TXT",
+          "bytes": 1697,
+          "sha256": "5a1ab2f670f86dd2f8d42e40a8459cc278ca6d5225a7e2a5fa3ea0184396a6d9",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/ed046114d5a30534e13294d94d78eb73de896ad4/NOTICE.TXT",
+            "source_commit": "ed046114d5a30534e13294d94d78eb73de896ad4",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "Apache-2.0",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/Apache-2.0",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/ericsink/SQLitePCL.raw",
+          "commit": "ed046114d5a30534e13294d94d78eb73de896ad4"
+        }
+      }
+    },
+    "System.IO.Hashing": {
+      "version": "10.0.2",
+      "assets": {
+        "runtime": [
+          "lib/net10.0/System.IO.Hashing.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/System.IO.Hashing.10.0.2/1-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 78041,
+          "sha256": "6d15e10a101c6bfff2ab4429ed061bf76c456fc4b23ad6b03e0d0f8377148a21",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/system.io.hashing/10.0.2/system.io.hashing.10.0.2.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/dotnet",
+          "commit": "44525024595742ebe09023abe709df51de65009b"
+        }
+      }
+    },
+    "System.Numerics.Tensors": {
+      "version": "9.0.0",
+      "assets": {
+        "runtime": [
+          "lib/net9.0/System.Numerics.Tensors.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/System.Numerics.Tensors.9.0.0/1-LICENSE.TXT",
+          "bytes": 1139,
+          "sha256": "d7a68596ab69b06f51ca278a6545148e4269a9381c26d597c13df5d88e08cf5b",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/system.numerics.tensors/9.0.0/system.numerics.tensors.9.0.0.nupkg",
+            "archive_path": "LICENSE.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        },
+        {
+          "path": "notices/System.Numerics.Tensors.9.0.0/2-THIRD-PARTY-NOTICES.TXT",
+          "bytes": 75640,
+          "sha256": "40686c6447a7d5b5d3693068e4571b5f483d7ed335aeee773ef662440de4c5d5",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/system.numerics.tensors/9.0.0/system.numerics.tensors.9.0.0.nupkg",
+            "archive_path": "THIRD-PARTY-NOTICES.TXT",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotnet/runtime",
+          "commit": "9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3"
+        }
+      }
+    },
+    "TagLibSharp": {
+      "version": "2.3.0",
+      "assets": {
+        "runtime": [
+          "lib/netstandard2.0/TagLibSharp.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/native-TagLibSharp/COPYING",
+          "bytes": 26432,
+          "sha256": "6095e9ffa777dd22839f7801aa845b31c9ed07f3d6bf8a26dc5d2dec8ccc0ef3",
+          "origin": {
+            "original_archive": "taglibsharp-b5ae84f2e84087bf160bb0471420200dd2b5d809.tar.gz",
+            "archive_path": "taglib-sharp-b5ae84f2e84087bf160bb0471420200dd2b5d809/COPYING"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "LGPL-2.1-only",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/LGPL-2.1-only",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/mono/taglib-sharp"
+        }
+      }
+    },
+    "UTF.Unknown": {
+      "version": "2.6.0",
+      "assets": {
+        "runtime": [
+          "lib/net8.0/UtfUnknown.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/native-UTF.Unknown/MPL-1.1.txt",
+          "bytes": 25755,
+          "sha256": "53692a2ed6c6a2c6ec9b32dd0b820dfae91e0a1fcdf625ca9ed0bdf8705fcc4f",
+          "origin": {
+            "original_archive": "utf-unknown-7e69ebbdd6ef96a3625fcaf39df42429b8eb0463.tar.gz",
+            "archive_path": "UTF-unknown-7e69ebbdd6ef96a3625fcaf39df42429b8eb0463/license/MPL-1.1.txt"
+          }
+        },
+        {
+          "path": "notices/native-UTF.Unknown/gpl-2.0.txt",
+          "bytes": 17987,
+          "sha256": "ab15fd526bd8dd18a9e77ebc139656bf4d33e97fc7238cd11bf60e2b9b8666c6",
+          "origin": {
+            "original_archive": "utf-unknown-7e69ebbdd6ef96a3625fcaf39df42429b8eb0463.tar.gz",
+            "archive_path": "UTF-unknown-7e69ebbdd6ef96a3625fcaf39df42429b8eb0463/license/gpl-2.0.txt"
+          }
+        },
+        {
+          "path": "notices/native-UTF.Unknown/lgpl-2.1.txt",
+          "bytes": 26436,
+          "sha256": "5df07007198989c622f5d41de8d703e7bef3d0e79d62e24332ee739a452af62a",
+          "origin": {
+            "original_archive": "utf-unknown-7e69ebbdd6ef96a3625fcaf39df42429b8eb0463.tar.gz",
+            "archive_path": "UTF-unknown-7e69ebbdd6ef96a3625fcaf39df42429b8eb0463/license/lgpl-2.1.txt"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": null,
+        "license_type": null,
+        "license_url": "https://github.com/CharsetDetector/UTF-unknown/blob/master/license/MPL-1.1.txt",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/CharsetDetector/UTF-unknown",
+          "commit": "7e69ebbdd6ef96a3625fcaf39df42429b8eb0463"
+        }
+      }
+    },
+    "WinUIEx": {
+      "version": "2.9.0",
+      "assets": {
+        "runtime": [
+          "lib/net8.0-windows10.0.19041/WinUIEx.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/source-dotMorten-WinUIEx-a5d0e8957956c337be78e41f0e8586d133349bb7/LICENSE",
+          "bytes": 1071,
+          "sha256": "253efe88cea966dc7a9892da3dac7b011e9ada8df022346e273f89e46d72339d",
+          "origin": {
+            "url": "https://raw.githubusercontent.com/dotMorten/WinUIEx/a5d0e8957956c337be78e41f0e8586d133349bb7/LICENSE",
+            "source_commit": "a5d0e8957956c337be78e41f0e8586d133349bb7",
+            "note": "Exact source repository commit recorded in package metadata."
+          }
+        }
+      ],
+      "declared_license": {
+        "license": "MIT",
+        "license_type": "expression",
+        "license_url": "https://licenses.nuget.org/MIT",
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/dotMorten/WinUIEx",
+          "commit": "a5d0e8957956c337be78e41f0e8586d133349bb7"
+        }
+      }
+    },
+    "Microsoft.Web.WebView2.Core.Projection": {
+      "version": "1.0.3719.77",
+      "assets": {
+        "runtime": [
+          "Microsoft.Web.WebView2.Core.Projection.dll"
+        ]
+      },
+      "notices": [
+        {
+          "path": "notices/Microsoft.Web.WebView2.1.0.3719.77/1-LICENSE.txt",
+          "bytes": 1487,
+          "sha256": "0af8f1b807512aae39c2ac1aa4d0cae65cabecb6fd554b8439a5162a0d6eca55",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/1.0.3719.77/microsoft.web.webview2.1.0.3719.77.nupkg",
+            "archive_path": "LICENSE.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        },
+        {
+          "path": "notices/Microsoft.Web.WebView2.1.0.3719.77/2-NOTICE.txt",
+          "bytes": 3894,
+          "sha256": "106423785c5b7eba0a8e61d1837f2132e9c828e20ad530f565d981c1df60dd90",
+          "origin": {
+            "archive_url": "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/1.0.3719.77/microsoft.web.webview2.1.0.3719.77.nupkg",
+            "archive_path": "NOTICE.txt",
+            "verification": "TLS partial ZIP reads with ZIP CRC; original complete archive not downloaded by this notice audit"
+          }
+        }
+      ],
+      "declared_license": {
+        "license": null,
+        "license_type": null,
+        "license_url": null,
+        "repository": null
+      }
+    }
+  },
+  "additional_native_components": {
+    "7-Zip": {
+      "version": "26.00",
+      "module": "7z64.dll",
+      "notices": [
+        {
+          "path": "notices/native-7-Zip/License.txt",
+          "bytes": 6341,
+          "sha256": "9ac2b4a97ab5d523965534d8b2d5868e511b39096d51fff458ab72c38b80fccc",
+          "origin": {
+            "original_archive": "7z2600-src.tar.xz",
+            "archive_path": "DOC/License.txt"
+          }
+        },
+        {
+          "path": "notices/native-7-Zip/copying.txt",
+          "bytes": 27032,
+          "sha256": "1e7e6bae5a5bde32f1ae5a7c37a082d1ab03cf89354f7f936ac40be9e39a6531",
+          "origin": {
+            "original_archive": "7z2600-src.tar.xz",
+            "archive_path": "DOC/copying.txt"
+          }
+        },
+        {
+          "path": "notices/native-7-Zip/unRarLicense.txt",
+          "bytes": 1921,
+          "sha256": "17bd9fa4399092c777536fff045b41df76ec9d2ac4c9b8e7345d3b8b6ccc7976",
+          "origin": {
+            "original_archive": "7z2600-src.tar.xz",
+            "archive_path": "DOC/unRarLicense.txt"
+          }
+        }
+      ]
+    }
+  }
+}

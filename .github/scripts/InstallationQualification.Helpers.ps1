@@ -206,14 +206,17 @@ function Get-FileQuayManagedBuildKindEvidence(
 }
 function Get-FileQuayBuildKindConfiguration(
     [Parameter(Mandatory=$true)][string]$Root,
-    [Parameter(Mandatory=$true)][ValidateSet('Instrumented','Consumer')][string]$BuildKind
+    [Parameter(Mandatory=$true)][ValidateSet('Instrumented','Consumer')][string]$BuildKind,
+    [ValidateSet('Qualification','Store')][string]$IdentityMode='Qualification'
 ) {
+    if ($IdentityMode -eq 'Store' -and $BuildKind -ne 'Consumer') {throw 'Store packages require the Consumer build kind.'}
+    $outputKind=if($IdentityMode -eq 'Store'){'Store-Consumer'}else{$BuildKind}
     return [pscustomobject][ordered]@{
         build_kind = $BuildKind
         qualification_property = $(if ($BuildKind -eq 'Instrumented') { 'true' } else { 'false' })
-        appx_output = Join-Path $Root 'artifacts/appx' $BuildKind
-        validation_output = Join-Path $Root 'artifacts/validated-package' $BuildKind
-        evidence_output = Join-Path $Root 'artifacts/qualification' $BuildKind
+        appx_output = Join-Path $Root 'artifacts/appx' $outputKind
+        validation_output = Join-Path $Root 'artifacts/validated-package' $outputKind
+        evidence_output = Join-Path $Root 'artifacts/qualification' $outputKind
     }
 }
 function Test-FileQuayInstallationAcceptance(

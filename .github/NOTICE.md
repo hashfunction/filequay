@@ -695,3 +695,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
+
+
+## FolderSail 1.0.1 runtime notice supplement
+
+The exact selected runtime dependency notices are included under `Licenses/CorrespondingSource/notices`, mapped by `runtime-notices.json`. The adjacent README documents matching native sources, original license options, source-only archive derivation, library build/replacement instructions, and the explicit Win2D source-revision limitation. Current source and immutable publication records: https://foldersail.trieflow.com/source. These records supplement and preserve the upstream notices above; they do not change their authorship or terms. The current SevenZipSharp 1.0.3 source revision is from squid-box/SevenZipSharp, as recorded in the supplement.

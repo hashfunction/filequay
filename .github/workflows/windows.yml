@@ -72,3 +72,46 @@ jobs:
             artifacts/qualification/**/*.png
           retention-days: 14
           if-no-files-found: error
+
+  store-x64:
+    needs: windows-x64
+    if: needs.windows-x64.result == 'success' && (github.event_name != 'workflow_dispatch' || inputs.dependency_mode == 'RequireClean')
+    name: Windows x64 assigned Store Consumer qualification and export
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
+        with:
+          dotnet-version: '10.0.401'
+      - name: Read both successful independent qualification receipts from this run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: FolderSail-Windows-*-qualification
+          path: artifacts/prior-qualification
+          merge-multiple: false
+      - name: Qualify assigned identity and verify original unsigned Store package
+        shell: pwsh
+        run: ./distribution/qualify-store.ps1
+      - name: Retain verified unsigned Store upload only
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: FolderSail-Store-unsigned
+          path: |
+            artifacts/store-upload/FolderSail_1.0.1.0_x64.msix
+            artifacts/store-upload/release-ready.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Preserve assigned Store qualification metadata
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: FolderSail-Windows-Store-qualification
+          path: |
+            artifacts/qualification/**/*.json
+            artifacts/qualification/**/*.txt
+            artifacts/qualification/**/*.trx
+            artifacts/qualification/**/*.png
+          retention-days: 14
+          if-no-files-found: error

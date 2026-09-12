@@ -675,6 +675,10 @@ function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [str
         Assert-FileQuayWorkflowFile $recovery $fixture.previous_csv
         $workflow.final_files=(Get-FileQuayWorkflowTree $fixture).files
         $workflow.cleared_history_file=Get-FileQuayWorkflowFile $history
+        # Retain the already verified, exclusively owned fictional output so the
+        # separate Store export can repeat the CSV oracle after fixture cleanup.
+        $workflow.csv_bytes_base64=[Convert]::ToBase64String([IO.File]::ReadAllBytes($fixture.csv))
+        $workflow.cleared_history=[IO.File]::ReadAllText($history) | ConvertFrom-Json -AsHashtable
         $workflow.passed=$true
         $Record.consumer_workflow_verified=$true
     } catch {

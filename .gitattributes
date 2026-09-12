@@ -66,3 +66,13 @@ distribution/licenses/SQLite/** -text
 #*.RTF   diff=astextplain
 
 *.h linguist-language=C++
+
+# Preserve imported legal notices and the public release-manifest bytes.
+distribution/corresponding-source/notices/** -text
+distribution/corresponding-source/source-release-assets.json -text
+
+tests/packaging/fixtures/foldersail-runtime-deps-34694585269.json -text
+
+distribution/corresponding-source/source-derivation.json -text
+
+distribution/store-license-terms.txt -text

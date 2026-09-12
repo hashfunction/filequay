@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "product": "FolderSail",
+  "release_tag": "native-sources-2026-09-12",
+  "release_url": "https://github.com/hashfunction/filequay/releases/tag/native-sources-2026-09-12",
+  "application_source": "The exact application Git commit and source archive are bound independently by the Store export receipt.",
+  "assets": [
+    {
+      "component": "7zip",
+      "version": "26.00",
+      "filename": "7z2600-src.tar.xz",
+      "bytes": 1538112,
+      "sha256": "3e596155744af055a77fc433c703d54e3ea9212246287b5b1436a6beac060f16",
+      "upstream_url": "https://github.com/ip7z/7zip/releases/download/26.00/7z2600-src.tar.xz",
+      "license": "LGPL-2.1-or-later AND BSD-2-Clause AND BSD-3-Clause AND unRAR restriction",
+      "modules": [
+        "7z64.dll"
+      ],
+      "source_only_derivation": false
+    },
+    {
+      "component": "sevenzipsharp",
+      "version": "1.0.3",
+      "filename": "sevenzipsharp-9725bda53e1ee018b39a51c268a90c4905915926.tar.gz",
+      "bytes": 2435575,
+      "sha256": "f891bcfe398dd0423079f62ad6ccefa7c4ae1968ee76fa17175ca8bfc21078c6",
+      "upstream_url": "https://codeload.github.com/squid-box/SevenZipSharp/tar.gz/9725bda53e1ee018b39a51c268a90c4905915926",
+      "license": "LGPL-3.0-only",
+      "modules": [
+        "SevenZipSharp.dll"
+      ],
+      "source_only_derivation": false
+    },
+    {
+      "component": "taglibsharp",
+      "version": "2.3.0",
+      "filename": "taglibsharp-b5ae84f2e84087bf160bb0471420200dd2b5d809-source-only.tar",
+      "bytes": 6307840,
+      "sha256": "0a6225a081f490b0e086ec9166fa6da84fb7dbcead7ef2308c7af6e6bbf5cc30",
+      "upstream_url": "https://codeload.github.com/mono/taglib-sharp/tar.gz/b5ae84f2e84087bf160bb0471420200dd2b5d809",
+      "license": "LGPL-2.1-only",
+      "modules": [
+        "TagLibSharp.dll"
+      ],
+      "source_only_derivation": true
+    },
+    {
+      "component": "libgit2",
+      "version": "a418d9d4ab87bae16b87d8f37143a4687ae0e4b2",
+      "filename": "libgit2-a418d9d4ab87bae16b87d8f37143a4687ae0e4b2.tar.gz",
+      "bytes": 7535264,
+      "sha256": "8db20e8cea3a7f415052087c25bd51f620605f24d8cd597c34c969e5863b3ac8",
+      "upstream_url": "https://codeload.github.com/libgit2/libgit2/tar.gz/a418d9d4ab87bae16b87d8f37143a4687ae0e4b2",
+      "license": "GPL-2.0-only WITH linking exception",
+      "modules": [
+        "git2-a418d9d.dll"
+      ],
+      "source_only_derivation": false
+    },
+    {
+      "component": "libgit2-native-build",
+      "version": "2.0.322",
+      "filename": "libgit2sharp-native-2c5c31e8119c8b068066cf755573cb9dd8c78fbb.tar.gz",
+      "bytes": 2815197,
+      "sha256": "7ef5260d376240e1af045e5d397c9367c05e76d38e9326e38f38698086a89be6",
+      "upstream_url": "https://codeload.github.com/libgit2/libgit2sharp.nativebinaries/tar.gz/2c5c31e8119c8b068066cf755573cb9dd8c78fbb",
+      "license": "MIT",
+      "modules": [
+        "git2-a418d9d.dll"
+      ],
+      "source_only_derivation": false
+    },
+    {
+      "component": "utf-unknown",
+      "version": "2.6.0",
+      "filename": "utf-unknown-7e69ebbdd6ef96a3625fcaf39df42429b8eb0463-source-only.tar",
+      "bytes": 1515520,
+      "sha256": "d4aa2e4ecab0960d0559786fc9033dded37a05bc51ace0f7143080cdce6037d4",
+      "upstream_url": "https://codeload.github.com/CharsetDetector/UTF-unknown/tar.gz/7e69ebbdd6ef96a3625fcaf39df42429b8eb0463",
+      "license": "MPL-1.1",
+      "modules": [
+        "UtfUnknown.dll"
+      ],
+      "source_only_derivation": true
+    }
+  ]
+}

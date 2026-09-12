@@ -1,0 +1,13 @@
+<Project>
+  <!-- Keep original library notices and current corresponding-source records in
+       the distributable; explicit records exclude local Python/build outputs. -->
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)corresponding-source\notices\**\*"
+             Link="Licenses\CorrespondingSource\notices\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(MSBuildThisFileDirectory)corresponding-source\README.md;$(MSBuildThisFileDirectory)corresponding-source\runtime-notices.json;$(MSBuildThisFileDirectory)corresponding-source\source-release-assets.json;$(MSBuildThisFileDirectory)corresponding-source\source-derivation.json;$(MSBuildThisFileDirectory)corresponding-source\native-source-publication.json;$(MSBuildThisFileDirectory)corresponding-source\prepare_source.py"
+             Link="Licenses\CorrespondingSource\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(MSBuildThisFileDirectory)store-license-terms.txt" Link="FolderSail-License-Terms.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -1,5 +1,7 @@
 # Copyright (c) Trieflow LLC. Licensed under the MIT License.
-param([string]$PackagePath, [string]$Identity, [string]$Publisher, [string]$OutputDirectory)
+param([string]$PackagePath, [string]$Identity, [string]$Publisher, [string]$OutputDirectory,
+      [ValidateSet('Qualification','Store')][string]$IdentityMode='Qualification',
+      [ValidateSet('Consumer','Instrumented')][string]$BuildKind='Consumer')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 if (-not $IsWindows) { throw 'Package validation requires Windows.' }
@@ -11,10 +13,11 @@ if (-not $makeappx) { throw 'MakeAppx from the Windows SDK is required.' }
 & $makeappx.FullName unpack /p $PackagePath /d $OutputDirectory /v
 if ($LASTEXITCODE -ne 0) { throw "MakeAppx validation/unpack failed: $LASTEXITCODE" }
 [xml]$manifest = Get-Content -LiteralPath (Join-Path $OutputDirectory 'AppxManifest.xml') -Raw
+. (Join-Path $PSScriptRoot '../.github/scripts/PackageIdentity.Helpers.ps1')
+Assert-FolderSailPackageIdentity $manifest $IdentityMode $BuildKind
 if ($manifest.Package.Identity.Name -ne $Identity -or $manifest.Package.Identity.Publisher -ne $Publisher) { throw 'Package identity/publisher differs from explicit build inputs.' }
 if ($manifest.OuterXml -match 'packageManagement|windows.startupTask|windows.appExecutionAlias|windows.fileTypeAssociation|49306atecsolution') { throw 'Package contains an undeclared capability, registration or upstream identity.' }
 if (@($manifest.SelectNodes("//*[local-name()='Protocol']")).Count -ne 1 -or @($manifest.SelectNodes("//*[local-name()='Protocol' and @Name='filequay']")).Count -ne 1) { throw 'Package must declare exactly the owned filequay activation protocol.' }
-if ($manifest.Package.Properties.DisplayName -ne 'FolderSail' -or $manifest.Package.Properties.PublisherDisplayName -ne 'Trieflow LLC') { throw 'Package branding does not match FolderSail.' }
 foreach ($required in @('FolderSail.exe', 'NOTICE.md', 'LICENSE-MIT', 'LICENSE-MPL')) {
     if (-not (Test-Path -LiteralPath (Join-Path $OutputDirectory $required))) { throw "Required package file missing: $required" }
 }
@@ -41,4 +44,4 @@ foreach ($file in $files) {
     }
 }
 $files | ForEach-Object { [ordered]@{ path=[IO.Path]::GetRelativePath($OutputDirectory, $_.FullName); bytes=$_.Length; sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash } } | ConvertTo-Json -Depth 4 | Set-Content ($OutputDirectory + '.files.json') -Encoding utf8NoBOM
-[ordered]@{ makeappx=$makeappx.FullName; makeappx_version=$makeappx.VersionInfo.FileVersion; semantic_unpack_passed=$true; payload_inspection=$payload; runtime_binaries=$runtimeBinaries; runtime_startup_verified=$false; identity=$Identity; publisher=$Publisher; package_sha256=(Get-FileHash $PackagePath -Algorithm SHA256).Hash; installed=$false; wack_passed=$false; license_audit_complete=$false } | ConvertTo-Json -Depth 8 | Set-Content ($OutputDirectory + '.validation.json') -Encoding utf8NoBOM
+[ordered]@{ makeappx=$makeappx.FullName; makeappx_version=$makeappx.VersionInfo.FileVersion; semantic_unpack_passed=$true; payload_inspection=$payload; runtime_binaries=$runtimeBinaries; runtime_startup_verified=$false; identity=$Identity; publisher=$Publisher; identity_mode=$IdentityMode; package_sha256=(Get-FileHash $PackagePath -Algorithm SHA256).Hash; installed=$false; wack_passed=$false; license_audit_complete=$false } | ConvertTo-Json -Depth 8 | Set-Content ($OutputDirectory + '.validation.json') -Encoding utf8NoBOM

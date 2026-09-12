@@ -3,11 +3,13 @@
 param([Parameter(Mandatory=$true)][string]$PackagePath,
       [Parameter(Mandatory=$true)][string]$ValidatedPackageDirectory,
       [Parameter(Mandatory=$true)][ValidateSet('Instrumented','Consumer')][string]$BuildKind,
-      [ValidateSet('RequireClean','AllowPreinstalled')][string]$DependencyMode='RequireClean')
+      [ValidateSet('RequireClean','AllowPreinstalled')][string]$DependencyMode='RequireClean',
+      [ValidateSet('Qualification','Store')][string]$IdentityMode='Qualification')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 if ($env:OS -ne 'Windows_NT' -or $env:CI -ne 'true') { throw 'Requires a disposable Windows CI runner.' }
 . (Join-Path $PSScriptRoot 'InstallationQualification.Helpers.ps1')
+. (Join-Path $PSScriptRoot 'PackageIdentity.Helpers.ps1')
 . (Join-Path $PSScriptRoot 'ConsumerWorkflow.Helpers.ps1')
 . (Join-Path $PSScriptRoot 'ConsumerWorkflow.Ui.ps1')
 . (Join-Path $PSScriptRoot 'ConsumerWorkflow.PickerDiagnostic.ps1')
@@ -15,9 +17,11 @@ if ($env:OS -ne 'Windows_NT' -or $env:CI -ne 'true') { throw 'Requires a disposa
 . (Join-Path $PSScriptRoot 'UiaProxy.Helpers.ps1')
 . (Join-Path $PSScriptRoot 'UiaProxy.Fixture.ps1')
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$identity = 'Trieflow.FileQuay.Qualification'
-$publisher = 'CN=FileQuay-CI-Qualification'
-$version = '1.0.1.0'
+$packageIdentity=Get-FolderSailPackageIdentity $IdentityMode $BuildKind
+if ($IdentityMode -eq 'Store' -and $DependencyMode -ne 'RequireClean') {throw 'Store installation requires clean framework installation.'}
+$identity = $packageIdentity.name
+$publisher = $packageIdentity.publisher
+$version = $packageIdentity.version
 $architecture = 'X64'
 $existingQualificationPackages = @(Get-AppxPackage -Name $identity)
 if ($existingQualificationPackages.Count) { throw 'Refusing to replace an existing installation.' }
@@ -25,7 +29,7 @@ $beforePackages = @(Get-AppxPackage)
 $beforeFullNames = @($beforePackages | Select-Object -ExpandProperty PackageFullName)
 $package = Get-Item -LiteralPath $PackagePath
 $work = Join-Path $root ('artifacts/install-test/' + [Guid]::NewGuid().ToString('N'))
-$evidence = Join-Path $root ('artifacts/qualification/' + $BuildKind)
+$evidence = (Get-FileQuayBuildKindConfiguration $root $BuildKind $IdentityMode).evidence_output
 New-Item -ItemType Directory -Path $work -Force | Out-Null
 New-Item -ItemType Directory -Path $evidence -Force | Out-Null
 $resultPath = Join-Path $evidence 'installation-result.json'
@@ -35,7 +39,9 @@ $publicCertificate = Join-Path $work 'test.cer'
 $packagedAssembly = Get-Item -LiteralPath (Join-Path $ValidatedPackageDirectory 'FolderSail.dll')
 $managedBuild = Get-FileQuayManagedBuildKindEvidence $packagedAssembly.FullName $BuildKind
 $managedBuild | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $evidence 'managed-build-kind.json') -Encoding UTF8
-$record = [ordered]@{ source_commit=$env:GITHUB_SHA; unsigned_package_sha256=(Get-FileHash $package.FullName -Algorithm SHA256).Hash;
+$record = [ordered]@{ source_commit=$env:GITHUB_SHA; workflow_run_id=$env:GITHUB_RUN_ID; workflow_run_attempt=$env:GITHUB_RUN_ATTEMPT;
+    identity_mode=$IdentityMode; identity=$identity; publisher=$publisher; application_id=$packageIdentity.application_id;
+    unsigned_package_sha256=(Get-FileHash $package.FullName -Algorithm SHA256).Hash;
     unsigned_package_final_sha256=$null; unsigned_package_unchanged=$false; evidence_errors=@(); reporting_errors=@();
     requested_build_kind=$BuildKind; actual_build_kind=$managedBuild.actual_build_kind;
     managed_build_kind_verified=$true; ci_probe_type_present=$managedBuild.ci_probe_type_present;
@@ -124,6 +130,8 @@ try {
     $record.dependency_installation_from_artifacts_verified = $DependencyMode -eq 'RequireClean'
     $record.dependency_resolution_only = $DependencyMode -eq 'AllowPreinstalled'
     $manifest = Get-AppxPackageManifest -Package $installed.PackageFullName
+    Assert-FolderSailPackageIdentity $manifest $IdentityMode $BuildKind
+    if ($installed.PackageFamilyName -cne $packageIdentity.family) {throw 'Installed package family differs from the exact qualification mode.'}
     $appNodes = @($manifest.Package.Applications.Application | Where-Object { $_.Executable -eq 'FolderSail.exe' })
     if ($appNodes.Count -ne 1) { throw 'Expected one owned application entry point.' }
     $executable = Join-Path $installed.InstallLocation 'FolderSail.exe'
@@ -135,6 +143,8 @@ try {
     if ($installedManagedBuild.assembly_sha256 -cne $managedBuild.assembly_sha256) { throw 'Installed managed assembly differs from the metadata-inspected package bytes.' }
     $record.installed_managed_assembly_sha256 = $installedManagedBuild.assembly_sha256
     $aumid = $installed.PackageFamilyName + '!' + $appNodes[0].Id
+    $record.aumid=$aumid
+    $record.installed_location=$installed.InstallLocation
     Add-Type -AssemblyName UIAutomationClient
     Add-Type -AssemblyName UIAutomationTypes
     Add-Type -AssemblyName System.Drawing
