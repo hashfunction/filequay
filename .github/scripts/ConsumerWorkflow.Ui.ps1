@@ -282,9 +282,16 @@ function Read-FileQuayWorkflowVisibleReceipts($Ui, $List, [object[]]$Receipts) {
 
 function Open-FileQuayWorkflowExportConfirmation($Ui, $Fixture) {
     Invoke-FileQuayWorkflowAction $Ui (Find-FileQuayWorkflowElement $Ui 'ReceiptExportButton') Invoke
-    $filename = Wait-FileQuayWorkflow {
-        Find-FileQuayWorkflowElement $Ui '1001' -AllowBroker
-    } 'native save picker with a proved owner chain'
+    try {
+        $filename = Wait-FileQuayWorkflow {
+            Find-FileQuayWorkflowElement $Ui '1001' -AllowBroker
+        } 'native save picker with a proved owner chain'
+    } catch {
+        $primary=$_
+        try {$Ui.record.save_picker_failure=Get-FileQuayPickerFailureDiagnostic $Ui}
+        catch {$Ui.record.save_picker_diagnostic_error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
+        throw $primary
+    }
     $picker = @{scope=$filename.scope;element=$filename.scope.root}
     $Ui.record.picker_ownership = @{app_pid=$Ui.application.Id;main_hwnd=$Ui.main_hwnd;picker_pid=$picker.scope.target_pid;picker_hwnd=$picker.scope.target_hwnd;
         owner_chain=[FileQuayQualification.ConsumerInput]::OwnerChain($picker.scope.target_hwnd);process_path=$picker.scope.process.Path}
@@ -402,7 +409,7 @@ function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [str
     foreach ($entry in $resources.root.data) { $strings[[string]$entry.name]=[string]$entry.value }
     $workflow = [ordered]@{schema_version=1;passed=$false;trace=[Collections.Generic.List[object]]::new();cleanup_verified=$false;scope='Copy, Move, persisted/UI receipts, CSV destination decision/recovery, metadata clear'}
     $Record.consumer_workflow=$workflow
-    $ui=@{application=$Application;main_hwnd=[long]$Window.Current.NativeWindowHandle;brokers=@{};record=$workflow;strings=$strings}
+    $ui=@{application=$Application;main_hwnd=[long]$Window.Current.NativeWindowHandle;brokers=@{};record=$workflow;strings=$strings;evidence=$State.evidence}
     $fixture=$null
     try {
         $fixture=New-FileQuayWorkflowFixture $Work

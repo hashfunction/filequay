@@ -10,6 +10,7 @@ if ($env:OS -ne 'Windows_NT' -or $env:CI -ne 'true') { throw 'Requires a disposa
 . (Join-Path $PSScriptRoot 'InstallationQualification.Helpers.ps1')
 . (Join-Path $PSScriptRoot 'ConsumerWorkflow.Helpers.ps1')
 . (Join-Path $PSScriptRoot 'ConsumerWorkflow.Ui.ps1')
+. (Join-Path $PSScriptRoot 'ConsumerWorkflow.PickerDiagnostic.ps1')
 . (Join-Path $PSScriptRoot 'ConsumerWorkflow.Adapter.ps1')
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $identity = 'Trieflow.FileQuay.Qualification'
@@ -52,7 +53,7 @@ $record = [ordered]@{ source_commit=$env:GITHUB_SHA; unsigned_package_sha256=(Ge
     preflight_package_full_names=@(); residual_package_full_names=@() }
 $certificate = $null; $installed = $null; $application = $null; $probe = $null; $server = $null
 $consumerProcessOwned = $false; $consumerActivationAttempted = $false
-$consumerWorkflowState = @{fixture=$null}
+$consumerWorkflowState = @{fixture=$null;evidence=$evidence}
 $probeStem = $null; $primaryError = ''; $cleanupErrors = @(); $evidenceErrors = @(); $reportingErrors = @()
 $packageOwnership = [ordered]@{
     installAttempted=$false; addCompleted=$false; installedByUs=$false; ownedPackageFullName=$null
