@@ -17,3 +17,9 @@ Targeted checks on macOS with source-local PowerShell 7.6.6:
 - `git diff --check` passes.
 
 The Windows test executes the real new Win32 method. Local macOS process tests substitute only that unavailable native image-query I/O with the live process's MainModule filename; they do not prove Windows API behavior or native UIA readiness. Fresh Windows verification is required.
+
+## Follow-up: Windows 34724594633 fixture-only comparison
+
+Both jobs passed the original failed-child cases using the native handle query, then stopped at the late-path fixture's combined zero-read / case-sensitive path assertion. Original logs are retained in `/private/tmp/foldersail-34724594633-review/`. The original combined message did not distinguish the two predicates, so it does not itself prove a Path read occurred. No UIA readiness, installed qualification, Store export or marketing binding was reached.
+
+The fixture now compares both late and deliberately foreign image spellings with the production Windows `-ieq` semantics. Its late case varies only the casing of the real query result, which reproduced the old misleading assertion failure locally. Zero Path reads remains a separate strict assertion, and failure messages retain actual/expected image names and the read count. The existing real-child script passes all six cases after this correction; its production collector check also passes. No production code, readiness timing, ownership check or action changed. Windows continuation remains pending.

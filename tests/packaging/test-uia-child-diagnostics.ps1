@@ -28,7 +28,9 @@ function Get-FileQuayUiaFixtureImagePath([Diagnostics.Process]$Process){
     $image=& $script:readFixtureImage $Process
     # One wrong observation tests the existing immediate comparison; the same
     # real retained child still has its correct identity during owned cleanup.
-    if($script:childMode -ceq 'foreign-image' -and $script:imageQueries -eq 1){$image+'.foreign'}else{$image}
+    if($script:childMode -ceq 'foreign-image' -and $script:imageQueries -eq 1){$image+'.foreign'}
+    # Exercise Windows image-path casing without changing the original queried identity.
+    elseif($script:childMode -ceq 'late-path'){$image.ToUpperInvariant()}else{$image}
 }
 function Require([bool]$ok,[string]$message){if(-not $ok){throw $message}}
 function Assert-FileQuayConsumerAdapter($Adapter){}
@@ -98,7 +100,7 @@ exit 7
         $record=@{};$failure=''
         try{Invoke-FileQuayUiaProxyPreflight $temp $temp @{} $record}catch{$failure=$_.Exception.Message}
         $facts=@{mode=$mode;failure=$failure;retention_refusal=$record.fixture['retention_refusal'];ready_refusal=$record.fixture['ready_refusal'];
-            output_constructor_ms=$record.fixture['output_constructor_ms'];retained_image_path=$record.fixture['retained_image_path'];cleanup_errors=$record.cleanup_errors}|ConvertTo-Json -Depth 6 -Compress
+            output_constructor_ms=$record.fixture['output_constructor_ms'];retained_image_path=$record.fixture['retained_image_path'];expected_image_path=$self.Path;late_path_reads=$script:latePathReads;cleanup_errors=$record.cleanup_errors}|ConvertTo-Json -Depth 6 -Compress
         Require (-not $record.passed -and -not $record.consumer_acceptance) 'Diagnostic accepted a failed child'
         if($mode -ceq 'retained-exit'){
             Require ($failure -ceq 'Native UIA fixture process could not be retained.') "Original early refusal changed: $facts"
@@ -109,13 +111,16 @@ exit 7
                 $refused.stdout_stream_type -and $refused.stderr_stream_type) "Early refusal fields missing: $facts"
         }elseif($mode -ceq 'foreign-image'){
             Require ($failure -ceq 'Native UIA fixture process could not be retained.' -and
-                $record.fixture.retained_image_path -ceq ($self.Path+'.foreign') -and
+                $record.fixture.retained_image_path -ieq ($self.Path+'.foreign') -and
                 $null -eq $record.fixture['ready_refusal'] -and $script:imageQueries -eq 2) "Foreign image was accepted/retried before cleanup: $facts"
         }else{
             Require ($failure -ceq 'Native UIA fixture did not expose its owned window before the deadline.') "Original readiness failure changed: $facts"
             Require ($record.fixture.ready_refusal.has_exited -and $record.fixture.ready_refusal.exit_code -eq 7 -and -not $record.fixture.ready_refusal.ready_exists) "Pre-cleanup exit cause missing: $facts"
         }
-        if($mode -ceq 'late-path'){Require ($script:latePathReads -eq 0 -and $record.fixture.retained_image_path -ceq $self.Path) 'Ownership gate queried the late module-based Path property'}
+        if($mode -ceq 'late-path'){
+            Require ($script:latePathReads -eq 0) "Ownership gate queried the late module-based Path property: $facts"
+            Require ($record.fixture.retained_image_path -ieq $self.Path) "Retained image differs under production Windows path comparison: $facts"
+        }
         Require ($record.fixture.process_cleanup_verified -and -not $record.fixture.forced_cleanup -and $record.fixture.cleanup_exit_code -eq 7) 'Owned child cleanup differs'
         Require ($record.fixture.output_completed) 'Child output did not finish'
         foreach($channel in @('stdout','stderr')){
