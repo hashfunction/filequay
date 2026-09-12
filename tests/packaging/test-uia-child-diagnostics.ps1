@@ -7,6 +7,8 @@ $ErrorActionPreference='Stop';Set-StrictMode -Version Latest
 $source=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 & (Get-Process -Id $PID).Path -NoProfile -File (Join-Path $PSScriptRoot 'test-uia-output-collector.ps1')
 if($LASTEXITCODE -ne 0){throw 'Actual collector blocking-prefix regression failed.'}
+& (Get-Process -Id $PID).Path -NoProfile -File (Join-Path $PSScriptRoot 'test-uia-startup.ps1')
+if($LASTEXITCODE -ne 0){throw 'Actual startup budget regression failed.'}
 $script:childMode=''
 $script:latePathReads=0
 $script:imageQueries=0
@@ -22,6 +24,8 @@ if(-not $IsWindows){
         $Process.MainModule.FileName
     }
 }
+$phaseAst=[Management.Automation.Language.Parser]::ParseFile((Join-Path $source '.github/scripts/Invoke-UiaProxyFixtureChild.ps1'),[ref]$null,[ref]$null)
+$phaseWriter=$phaseAst.Find({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -ceq 'Write-FileQuayFixtureStartup'},$false).Extent.Text
 $script:readFixtureImage=${function:Get-FileQuayUiaFixtureImagePath}
 function Get-FileQuayUiaFixtureImagePath([Diagnostics.Process]$Process){
     $script:imageQueries++
@@ -53,6 +57,7 @@ function Start-FixtureTestProcess($Start){
         }
         $process.PSTypeNames.Insert(0,'LateFixtureProcess')
     }
+    $script:actualChildPid=$process.Id
     $process
 }
 function Build-FileQuayUiaFixture($Root,$Work,$DotNet){
@@ -82,10 +87,12 @@ try {
     Copy-Item (Join-Path $source '.github/scripts/UiaProxy.Diagnostics.cs') (Join-Path $temp '.github/scripts/UiaProxy.Diagnostics.cs')
     Set-Content (Join-Path $temp '.github/scripts/ConsumerWorkflow.Helpers.ps1') '# fixture source only'
     Set-Content (Join-Path $temp 'placeholder.dll') 'fixture bytes only'
-    foreach($mode in @('bounded-error','foreign-record','oversized-record','retained-exit','late-path','foreign-image')){
+    foreach($mode in @('bounded-error','foreign-record','oversized-record','retained-exit','late-path','foreign-image','foreign-startup')){
         $script:childMode=$mode;$script:imageQueries=0
         $child=@'
 param($AssemblyPath,$AssemblyHash,$Directory,$Nonce)
+PHASE_WRITER
+Write-FileQuayFixtureStartup child-entered
 Start-Sleep -Milliseconds 400
 [Console]::Out.Write(('O'*20000))
 [Console]::Error.Write(('E'*24000))
@@ -94,9 +101,9 @@ MODE
 [IO.File]::WriteAllText((Join-Path $Directory 'result.json'),($r|ConvertTo-Json -Compress))
 exit 7
 '@
-        $mutation=switch($mode){'bounded-error' {''};'foreign-record' {"`$r.nonce='foreign'"};'oversized-record' {"`$r.error='X'*5000"};'retained-exit' {''};'late-path' {''};'foreign-image' {''}}
+        $mutation=switch($mode){'bounded-error' {''};'foreign-record' {"`$r.nonce='foreign'"};'oversized-record' {"`$r.error='X'*5000"};'retained-exit' {''};'late-path' {''};'foreign-image' {''};'foreign-startup' {"`$p=Join-Path `$Directory 'startup-child-entered.json';`$v=Get-Content `$p -Raw|ConvertFrom-Json;`$v.process_id=1;[IO.File]::WriteAllText(`$p,(`$v|ConvertTo-Json -Compress))"}}
         if($mode -ceq 'retained-exit'){$child=$child.Replace('Start-Sleep -Milliseconds 400','').Replace('20000','64').Replace('24000','64')}
-        [IO.File]::WriteAllText((Join-Path $temp '.github/scripts/Invoke-UiaProxyFixtureChild.ps1'),$child.Replace('MODE',$mutation))
+        [IO.File]::WriteAllText((Join-Path $temp '.github/scripts/Invoke-UiaProxyFixtureChild.ps1'),$child.Replace('PHASE_WRITER',$phaseWriter).Replace('MODE',$mutation))
         $record=@{};$failure=''
         try{Invoke-FileQuayUiaProxyPreflight $temp $temp @{} $record}catch{$failure=$_.Exception.Message}
         $facts=@{mode=$mode;failure=$failure;retention_refusal=$record.fixture['retention_refusal'];ready_refusal=$record.fixture['ready_refusal'];
@@ -132,6 +139,10 @@ exit 7
         if($mode -cin @('bounded-error','retained-exit','late-path','foreign-image')){
             Require ($record.fixture.diagnostic_errors.Count -eq 0 -and $record.fixture.retained_records['result.json'].record.error -ceq 'original-child-failure') 'Original result not retained'
             Assert-FileQuayWorkflowFile (Join-Path $record.fixture.directory 'result.json') $record.fixture.retained_records['result.json'].file
+            Require ($record.fixture.retained_records['startup-child-entered.json'].record.process_id -eq $script:actualChildPid -and
+                $record.fixture.retained_records['startup-child-entered.json'].record.phase -ceq 'child-entered') 'Original startup phase not retained'
+        }elseif($mode -ceq 'foreign-startup'){Require ($record.fixture.diagnostic_errors.Count -eq 1 -and $record.fixture.retained_records.Count -eq 1 -and
+            $record.fixture.retained_records.ContainsKey('result.json') -and $record.fixture.diagnostic_errors[0] -ceq 'Child startup diagnostic identity differs.') 'Foreign startup record accepted or original result lost'
         }else{Require ($record.fixture.diagnostic_errors.Count -eq 1 -and $record.fixture.retained_records.Count -eq 0) 'Invalid diagnostic file was accepted or original failure masked'}
     }
     'PASS actual failed-child parent: bounded concurrent streams, original file hashes, nonce/size refusals, pre-cleanup exit and unchanged rejection/cleanup.'
