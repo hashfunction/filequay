@@ -4,11 +4,14 @@ $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Helpers.ps1')
 . (Join-Path $PSScriptRoot '../../.github/scripts/UiaProxy.Helpers.ps1')
-. (Join-Path $PSScriptRoot '../../.github/scripts/UiaProxy.Fixture.ps1')
+. (Join-Path $PSScriptRoot 'uia-replay-collision.ps1')
+Initialize-FileQuayUiaReplayCollision @('ValuePattern','InvokePattern','AutomationElement')
+# Remap only bracketed UIA type references in the in-memory production replay.
+. ([scriptblock]::Create((Get-Content (Join-Path $PSScriptRoot '../../.github/scripts/UiaProxy.Fixture.ps1') -Raw).Replace('[System.Windows.Automation.','[FileQuayProxyFixtureReplay.Automation.')))
 function Require([bool]$Condition,[string]$Message) {if (-not $Condition) {throw $Message}}
 function Reject([scriptblock]$Action,[string]$Label) {$failed=$false;try {& $Action} catch {$failed=$true};Require $failed "Accepted $Label"}
 Add-Type -TypeDefinition @'
-namespace System.Windows.Automation {
+namespace FileQuayProxyFixtureReplay.Automation {
  public sealed class ValuePattern {
   public sealed class State { public bool IsReadOnly {get;set;} }
   public State Current {get;} = new State();
@@ -35,7 +38,7 @@ foreach ($mode in @('foreign-pid','wrong-nonce','alias-control','missing-window'
 foreach ($kind in @('Edit','Button')) {
     $control=@{observation=@{role=('ControlType.'+$kind);automation_id=$(if ($kind -ceq 'Edit') {'1001'} else {'1'});
         class=$kind;visible=$true;enabled=$true;value_supported=$true;invoke_supported=$true};
-        value=[System.Windows.Automation.ValuePattern]::new();invoke=[System.Windows.Automation.InvokePattern]::new()}
+        value=[FileQuayProxyFixtureReplay.Automation.ValuePattern]::new();invoke=[FileQuayProxyFixtureReplay.Automation.InvokePattern]::new()}
     Assert-FileQuayUiaFixtureControl $control $kind;$checks++
     foreach ($mode in @('basic-pane','foreign-id','foreign-class','invisible','disabled','unsupported','wrong-pattern','read-only')) {
         if ($mode -ceq 'read-only' -and $kind -ceq 'Button') {continue}
@@ -48,7 +51,7 @@ foreach ($kind in @('Edit','Button')) {
             'disabled' {$c.observation.enabled=$false}
             'unsupported' {$c.observation.value_supported=$false;$c.observation.invoke_supported=$false}
             'wrong-pattern' {$c.value=[object]::new();$c.invoke=[object]::new()}
-            'read-only' {$c.value=[System.Windows.Automation.ValuePattern]::new();$c.value.Current.IsReadOnly=$true}
+            'read-only' {$c.value=[FileQuayProxyFixtureReplay.Automation.ValuePattern]::new();$c.value.Current.IsReadOnly=$true}
         }
         Reject {Assert-FileQuayUiaFixtureControl $c $kind} "$kind $mode";$checks++
     }

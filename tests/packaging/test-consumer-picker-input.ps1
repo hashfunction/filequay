@@ -1,10 +1,13 @@
 # Copyright 2026 Trieflow LLC. MIT. Real picker helper/confirmation sequencing with provider observations replayed.
 $ErrorActionPreference='Stop';Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Helpers.ps1')
-. (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Ui.ps1')
+. (Join-Path $PSScriptRoot 'uia-replay-collision.ps1')
+Initialize-FileQuayUiaReplayCollision @('ValuePattern','ControlType')
+# Remap only bracketed UIA type references in the in-memory production replay.
+. ([scriptblock]::Create((Get-Content (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Ui.ps1') -Raw).Replace('[System.Windows.Automation.','[FileQuayPickerInputReplay.Automation.')))
 Add-Type @'
 using System;using System.Collections.Generic;
-namespace System.Windows.Automation {
+namespace FileQuayPickerInputReplay.Automation {
  public class ControlType {public static string Button="Button";}
  public class ValuePattern {public static object Pattern=new();public ValueInfo Current=new();}
  public class ValueInfo {public bool IsReadOnly;public string Value="";}
@@ -34,7 +37,7 @@ function Reset {
  $process=[pscustomobject]@{Id=1752;Path='C:\Windows\System32\PickerHost.exe'}
  $scope=@{app_pid=9136;main_hwnd=3473742;target_pid=1752;target_hwnd=131642;process=$process;root=$null}
  $script:filename=@{scope=$scope;element=(New-Element '1001' 'File name:' 'Edit' 'Edit' 303 1752)}
- $script:pattern=[System.Windows.Automation.ValuePattern]::new()
+ $script:pattern=[FileQuayPickerInputReplay.Automation.ValuePattern]::new()
  $filename.element|Add-Member ScriptMethod GetCurrentPattern {param($Id)$script:reads++;$script:events.Add('filename-read');$script:pattern}
  $script:save=@{scope=$scope;element=(New-Element '1' 'Save' 'Button' 'Button' 404 1752)}
  $script:yes=@{scope=(@{}+$scope);element=(New-Element '6' 'Yes' 'Button' 'Button' 505 1752)};$yes.scope.target_hwnd=606

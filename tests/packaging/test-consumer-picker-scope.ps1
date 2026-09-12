@@ -1,11 +1,14 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-. (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Ui.ps1')
+. (Join-Path $PSScriptRoot 'uia-replay-collision.ps1')
+Initialize-FileQuayUiaReplayCollision @('AutomationElement','ValuePattern')
+# Remap only bracketed UIA type references in the in-memory production replay.
+. ([scriptblock]::Create((Get-Content (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Ui.ps1') -Raw).Replace('[System.Windows.Automation.','[FileQuayPickerScopeReplay.Automation.')))
 # UIA/native providers are replay fixtures. The production scope/selector functions run unchanged.
 Add-Type @'
 using System;using System.Collections.Generic;
-namespace System.Windows.Automation {
+namespace FileQuayPickerScopeReplay.Automation {
  public enum TreeScope { Children }
  public class Condition { public static object TrueCondition=new object(); }
  public class ValuePattern { public static object Pattern=new object(); }
@@ -47,12 +50,12 @@ function Get-Process([int]$Id) {
 function Reset-Scenario {
     $script:retains=0;$script:changeOwner=$false;$script:broker=New-Process 7760
     $script:ui=@{application=(New-Process 7272);main_hwnd=262620;brokers=@{}}
-    [System.Windows.Automation.AutomationElement]::Roots.Clear();[System.Windows.Automation.AutomationElement]::Reads.Clear()
+    [FileQuayPickerScopeReplay.Automation.AutomationElement]::Roots.Clear();[FileQuayPickerScopeReplay.Automation.AutomationElement]::Reads.Clear()
     [FileQuayQualification.ConsumerInput]::Owners.Clear();[FileQuayQualification.ConsumerInput]::Chains.Clear();[FileQuayQualification.ConsumerInput]::States.Clear()
     foreach ($pair in @(@(262620,7272),@(66112,7760),@(909,999))) {
-        $h=[long]$pair[0];$p=[int]$pair[1];$root=[System.Windows.Automation.AutomationElement]::new()
+        $h=[long]$pair[0];$p=[int]$pair[1];$root=[FileQuayPickerScopeReplay.Automation.AutomationElement]::new()
         $root.Current.NativeWindowHandle=$h;$root.Current.ProcessId=$p
-        [System.Windows.Automation.AutomationElement]::Roots[$h]=$root
+        [FileQuayPickerScopeReplay.Automation.AutomationElement]::Roots[$h]=$root
         [FileQuayQualification.ConsumerInput]::Owners[$h]=[uint32]$p
         [FileQuayQualification.ConsumerInput]::Chains[$h]=[long[]]$(if ($h -eq 66112) {@(66112,262620)} else {@($h)})
         $state=[Collections.Generic.Dictionary[string,object]]::new()
@@ -60,7 +63,7 @@ function Reset-Scenario {
             target_enabled=($h -ne 262620);target_pid=$p;target_hwnd=$h;foreground_hwnd=66112;owner_chain=[FileQuayQualification.ConsumerInput]::Chains[$h]}.GetEnumerator()) {$state[$entry.Key]=$entry.Value}
         [FileQuayQualification.ConsumerInput]::States[$h]=$state
     }
-    [System.Windows.Automation.AutomationElement]::RootElement.Children=@([System.Windows.Automation.AutomationElement]::Roots[262620])
+    [FileQuayPickerScopeReplay.Automation.AutomationElement]::RootElement.Children=@([FileQuayPickerScopeReplay.Automation.AutomationElement]::Roots[262620])
 }
 $checks=0
 Reset-Scenario
@@ -68,13 +71,13 @@ $scopes=@(Get-FileQuayWorkflowScopes $ui -AllowBroker)
 Require ($scopes.Count -eq 2 -and @($scopes | Where-Object target_hwnd -EQ 66112).Count -eq 1) 'Owned foreground picker absent from desktop enumeration was not discovered.';$checks++
 Require ($ui.brokers['7760'] -eq $broker -and $retains -eq 1) 'Picker process handle was not retained exactly once.';$checks++
 Reset-Scenario
-[System.Windows.Automation.AutomationElement]::RootElement.Children+=@([System.Windows.Automation.AutomationElement]::Roots[66112],[System.Windows.Automation.AutomationElement]::Roots[66112])
+[FileQuayPickerScopeReplay.Automation.AutomationElement]::RootElement.Children+=@([FileQuayPickerScopeReplay.Automation.AutomationElement]::Roots[66112],[FileQuayPickerScopeReplay.Automation.AutomationElement]::Roots[66112])
 Require (@(Get-FileQuayWorkflowScopes $ui -AllowBroker).Count -eq 2) 'Duplicate native HWND produced duplicate scopes.';$checks++
 Reset-Scenario
-Require (@(Get-FileQuayWorkflowScopes $ui).Count -eq 1 -and $retains -eq 0 -and 66112 -notin [System.Windows.Automation.AutomationElement]::Reads) 'Broker was read without explicit AllowBroker.';$checks++
+Require (@(Get-FileQuayWorkflowScopes $ui).Count -eq 1 -and $retains -eq 0 -and 66112 -notin [FileQuayPickerScopeReplay.Automation.AutomationElement]::Reads) 'Broker was read without explicit AllowBroker.';$checks++
 Reset-Scenario
 [FileQuayQualification.ConsumerInput]::States[262620]['foreground_hwnd']=909
-Require (@(Get-FileQuayWorkflowScopes $ui -AllowBroker).Count -eq 1 -and 909 -notin [System.Windows.Automation.AutomationElement]::Reads) 'Unowned foreground UI was read.';$checks++
+Require (@(Get-FileQuayWorkflowScopes $ui -AllowBroker).Count -eq 1 -and 909 -notin [FileQuayPickerScopeReplay.Automation.AutomationElement]::Reads) 'Unowned foreground UI was read.';$checks++
 foreach ($scenario in @('app-exited','app-invalid','changed-foreground','changed-target-pid','changed-chain','main-pid','main-gone','broker-exited','broker-closed','broker-invalid','changed-owner','wrong-uia-pid','wrong-uia-hwnd','offscreen','broker-cache-exited','budget')) {
     Reset-Scenario
     switch ($scenario) {
@@ -89,9 +92,9 @@ foreach ($scenario in @('app-exited','app-invalid','changed-foreground','changed
         'broker-closed' {$broker.SafeHandle.IsClosed=$true}
         'broker-invalid' {$broker.SafeHandle.IsInvalid=$true}
         'changed-owner' {$script:changeOwner=$true}
-        'wrong-uia-pid' {[System.Windows.Automation.AutomationElement]::Roots[66112].Current.ProcessId=999}
-        'wrong-uia-hwnd' {[System.Windows.Automation.AutomationElement]::Roots[66112].Current.NativeWindowHandle=909}
-        'offscreen' {[System.Windows.Automation.AutomationElement]::Roots[66112].Current.IsOffscreen=$true}
+        'wrong-uia-pid' {[FileQuayPickerScopeReplay.Automation.AutomationElement]::Roots[66112].Current.ProcessId=999}
+        'wrong-uia-hwnd' {[FileQuayPickerScopeReplay.Automation.AutomationElement]::Roots[66112].Current.NativeWindowHandle=909}
+        'offscreen' {[FileQuayPickerScopeReplay.Automation.AutomationElement]::Roots[66112].Current.IsOffscreen=$true}
         'broker-cache-exited' {$ui.brokers['7760']=$broker;$broker.HasExited=$true}
         'budget' {1..8 | ForEach-Object {$ui.brokers[[string]$_]=New-Process $_}}
     }
@@ -99,7 +102,7 @@ foreach ($scenario in @('app-exited','app-invalid','changed-foreground','changed
     Require (@($accepted | Where-Object target_hwnd -EQ 66112).Count -eq 0) "Accepted $scenario";$checks++
 }
 Reset-Scenario
-[System.Windows.Automation.AutomationElement]::RootElement.Children=@(1..129 | ForEach-Object {[System.Windows.Automation.AutomationElement]::Roots[262620]})
+[FileQuayPickerScopeReplay.Automation.AutomationElement]::RootElement.Children=@(1..129 | ForEach-Object {[FileQuayPickerScopeReplay.Automation.AutomationElement]::Roots[262620]})
 Reject {Get-FileQuayWorkflowScopes $ui -AllowBroker} 'desktop budget';$checks++
 "PASS actual owned-foreground scope discovery and rejection checks: $checks"
 function Reset-Filename {

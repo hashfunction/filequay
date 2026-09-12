@@ -1,8 +1,11 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
-. (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Ui.ps1')
-. (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.PickerDiagnostic.ps1')
+. (Join-Path $PSScriptRoot 'uia-replay-collision.ps1')
+Initialize-FileQuayUiaReplayCollision @('AutomationElement','AutomationProperty','ValuePattern','InvokePattern')
+# Remap only bracketed UIA type references in the in-memory production replay.
+. ([scriptblock]::Create((Get-Content (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Ui.ps1') -Raw).Replace('[System.Windows.Automation.','[FileQuayPickerDiagnosticReplay.Automation.')))
+. ([scriptblock]::Create((Get-Content (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.PickerDiagnostic.ps1') -Raw).Replace('[System.Windows.Automation.','[FileQuayPickerDiagnosticReplay.Automation.')))
 function Require([bool]$Condition,[string]$Message) {if (-not $Condition) {throw $Message}}
 function Reject([scriptblock]$Action,[string]$Message) {
     $failure='';try {& $Action} catch {$failure=$_.Exception.Message}
@@ -77,7 +80,7 @@ function Save-FileQuayPickerDiagnosticScreenshot($Ui,$Scope,[string]$Path) {
 }
 # Model only UIA API results; the production provider observation executes unchanged.
 Add-Type @'
-namespace System.Windows.Automation {
+namespace FileQuayPickerDiagnosticReplay.Automation {
  public class AutomationElement {
   public static object NotSupported=new object();
   public static object IsValuePatternAvailableProperty="value_available";
@@ -128,12 +131,12 @@ Require $observed.patterns.Value.is_read_only 'Read-only was reported as writabl
 $probe.ProviderState.Value=@{supported=$true;pattern=$null}
 $observed=Get-FileQuayPickerProviderObservation $probe $scope
 Require ($observed.patterns.Value.supported -and -not $observed.patterns.Value.returned_pattern) 'Null pattern was concealed.';$checks++
-[System.Windows.Automation.AutomationProperty]::Provider=$null
+[FileQuayPickerDiagnosticReplay.Automation.AutomationProperty]::Provider=$null
 $observed=Get-FileQuayPickerProviderObservation $probe $scope
 Require (-not $observed.properties.provider_description.client_property_registered -and $observed.patterns.Value.supported) 'Missing managed property concealed the actual pattern result.';$checks++
-[System.Windows.Automation.AutomationProperty]::Provider='provider'
+[FileQuayPickerDiagnosticReplay.Automation.AutomationProperty]::Provider='provider'
 $probe.ProviderState.Value=[Exception]::new(('provider unavailable '*100))
-$probe.ProviderState.provider=[System.Windows.Automation.AutomationElement]::NotSupported
+$probe.ProviderState.provider=[FileQuayPickerDiagnosticReplay.Automation.AutomationElement]::NotSupported
 $probe.ProviderState.invoke_available=[Exception]::new('Property provider failed')
 $observed=Get-FileQuayPickerProviderObservation $probe $scope
 Require ($observed.patterns.Value.error.Length -eq 1024 -and $observed.properties.provider_description.supported -eq $false -and
