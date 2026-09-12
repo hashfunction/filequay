@@ -8,6 +8,8 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 if ($env:OS -ne 'Windows_NT' -or $env:CI -ne 'true') { throw 'Requires a disposable Windows CI runner.' }
 . (Join-Path $PSScriptRoot 'InstallationQualification.Helpers.ps1')
+. (Join-Path $PSScriptRoot 'ConsumerWorkflow.Helpers.ps1')
+. (Join-Path $PSScriptRoot 'ConsumerWorkflow.Ui.ps1')
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $identity = 'Trieflow.FileQuay.Qualification'
 $publisher = 'CN=FileQuay-CI-Qualification'
@@ -41,12 +43,14 @@ $record = [ordered]@{ source_commit=$env:GITHUB_SHA; unsigned_package_sha256=(Ge
     window_close_requested=$false; window_disappeared=$false; consumer_process_outcome_accepted=$false;
     consumer_background_process_observed=$false; process_exit_acceptance_pending=$false;
     normal_process_exit_verified=$false; owned_process_cleanup_verified=$false; consumer_com_probe_invoked=$false;
+    consumer_workflow_verified=$false; consumer_fixture_cleanup_verified=$false; consumer_workflow=$null;
     com_activation_verified=$false; server_natural_exit_verified=$false;
     uninstall_verified=$false; trust_removed=$false; installation_qualification_passed=$false; submitted=$false;
     add_appx_completed=$false; registration_ownership_established=$false; owned_package_full_name=$null;
     preflight_package_full_names=@(); residual_package_full_names=@() }
 $certificate = $null; $installed = $null; $application = $null; $probe = $null; $server = $null
 $consumerProcessOwned = $false; $consumerActivationAttempted = $false
+$consumerWorkflowState = @{fixture=$null}
 $probeStem = $null; $primaryError = ''; $cleanupErrors = @(); $evidenceErrors = @(); $reportingErrors = @()
 $packageOwnership = [ordered]@{
     installAttempted=$false; addCompleted=$false; installedByUs=$false; ownedPackageFullName=$null
@@ -257,6 +261,7 @@ namespace FileQuayQualification {
     }
 
     if ($BuildKind -eq 'Consumer') {
+        Invoke-FileQuayConsumerWorkflow $application $window $installed $work $ValidatedPackageDirectory $record $consumerWorkflowState
         $windowPattern = [System.Windows.Automation.WindowPattern]$window.GetCurrentPattern([System.Windows.Automation.WindowPattern]::Pattern)
         $windowPattern.Close(); $record.window_close_requested = $true
         $deadline = (Get-Date).AddSeconds(15)
@@ -389,6 +394,9 @@ namespace FileQuayQualification {
                 }
                 if ($processErrors.Count) { throw ($processErrors -join '; ') }
             }
+        }
+        consumerFixture = {
+            Complete-FileQuayWorkflowFixtureCleanup $consumerWorkflowState $record
         }
         observationHandles = {
             foreach ($observed in @($application, $probe, $server)) { if ($observed) { $observed.Dispose() } }

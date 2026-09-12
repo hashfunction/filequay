@@ -234,5 +234,6 @@ function Test-FileQuayInstallationAcceptance(
         $Record.broker_process_identity_verified -and $Record.ui_tree_captured -and
         $Record.screenshot_captured -and $Record.window_close_requested -and
         $Record.window_disappeared -and $Record.consumer_process_outcome_accepted -and
-        $Record.owned_process_cleanup_verified
+        $Record.owned_process_cleanup_verified -and $Record.consumer_workflow_verified -and
+        $Record.consumer_fixture_cleanup_verified
 }

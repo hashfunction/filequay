@@ -32,6 +32,11 @@ LPARAM
 WM_*
 SetForegroundWindow
 GetForegroundWindow
+GetWindow
+GetAncestor
+IsWindow
+IsWindowEnabled
+SendInput
 GetCurrentThreadId
 GetWindowThreadProcessId
 AttachThreadInput

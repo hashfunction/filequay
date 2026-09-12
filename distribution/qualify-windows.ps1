@@ -35,6 +35,7 @@ Invoke-Checked python @('-m','unittest','discover','-s','tests/packaging','-v')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-helpers.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-build-kind-acceptance.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-observation.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-workflow.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-qualification-record-publication.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-managed-build-kind.ps1')
 & $qualificationPowerShell -NoProfile -File tests/packaging/test-process-observation.ps1 | Set-Content artifacts/qualification/process-observation-tests.json -Encoding utf8NoBOM

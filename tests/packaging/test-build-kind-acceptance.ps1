@@ -27,6 +27,7 @@ $consumer.actual_build_kind='Consumer'; $consumer.ci_probe_type_present=$false
 $consumer.ui_tree_captured=$true; $consumer.screenshot_captured=$true; $consumer.window_close_requested=$true
 $consumer.window_disappeared=$true; $consumer.consumer_process_outcome_accepted=$true; $consumer.owned_process_cleanup_verified=$true
 $consumer.consumer_com_probe_invoked=$false
+$consumer.consumer_workflow_verified=$true; $consumer.consumer_fixture_cleanup_verified=$true
 if (-not (Test-FileQuayInstallationAcceptance $consumer 'Consumer')) { throw 'A complete consumer qualification was rejected.' }
 $consumer.com_activation_verified=$false
 if (-not (Test-FileQuayInstallationAcceptance $consumer 'Consumer')) { throw 'Consumer acceptance incorrectly requires the CI COM probe.' }
@@ -36,7 +37,7 @@ $instrumented.actual_build_kind='Instrumented'; $instrumented.ci_probe_type_pres
 $instrumented.com_activation_verified=$true; $instrumented.server_natural_exit_verified=$true
 if (-not (Test-FileQuayInstallationAcceptance $instrumented 'Instrumented')) { throw 'A complete instrumented qualification was rejected.' }
 
-foreach ($mutation in @('wrong-kind','probe-present','probe-invoked','window-visible','cleanup-missing')) {
+foreach ($mutation in @('wrong-kind','probe-present','probe-invoked','window-visible','cleanup-missing','workflow-missing','fixture-cleanup-missing')) {
     $candidate = [ordered]@{} + $consumer
     switch ($mutation) {
         'wrong-kind' { $candidate.actual_build_kind='Instrumented' }
@@ -44,6 +45,8 @@ foreach ($mutation in @('wrong-kind','probe-present','probe-invoked','window-vis
         'probe-invoked' { $candidate.consumer_com_probe_invoked=$true }
         'window-visible' { $candidate.window_disappeared=$false }
         'cleanup-missing' { $candidate.owned_process_cleanup_verified=$false }
+        'workflow-missing' { $candidate.consumer_workflow_verified=$false }
+        'fixture-cleanup-missing' { $candidate.consumer_fixture_cleanup_verified=$false }
     }
     if (Test-FileQuayInstallationAcceptance $candidate 'Consumer') { throw "Consumer acceptance ignored $mutation." }
 }

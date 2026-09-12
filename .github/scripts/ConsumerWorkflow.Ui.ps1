@@ -1,0 +1,410 @@
+# Copyright 2026 Trieflow LLC. Licensed under the MIT License.
+function Wait-FileQuayWorkflow([scriptblock]$Observe, [string]$Description, [int]$Seconds=30) {
+    $deadline = [DateTime]::UtcNow.AddSeconds($Seconds); $last = 'No matching observation.'
+    while ([DateTime]::UtcNow -lt $deadline) {
+        try { $value = & $Observe; if ($null -ne $value -and $value -ne $false) { return $value } }
+        catch { $last = $_.Exception.Message }
+        Start-Sleep -Milliseconds 100
+    }
+    throw "Timed out waiting for ${Description}: $last"
+}
+
+function Add-FileQuayWorkflowTrace($Ui, [string]$Step, $Details) {
+    if ($Ui.record.trace.Count -lt 96) { $Ui.record.trace.Add(@{step=$Step;at_utc=[DateTimeOffset]::UtcNow.ToString('O');details=$Details}) }
+}
+
+function Get-FileQuayWorkflowScopes($Ui, [switch]$AllowBroker) {
+    if ($Ui.application.HasExited) { throw 'The retained consumer process exited.' }
+    $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
+        [System.Windows.Automation.TreeScope]::Children, [System.Windows.Automation.Condition]::TrueCondition)
+    if ($windows.Count -gt 128) { throw 'Desktop top-level observation exceeded its bounded window budget.' }
+    foreach ($window in $windows) {
+        $current = $window.Current; $handle = [long]$current.NativeWindowHandle
+        if (-not $handle) { continue }
+        $chain = [FileQuayQualification.ConsumerInput]::OwnerChain($handle)
+        if ($Ui.main_hwnd -notin $chain) { continue }
+        $owner = [FileQuayQualification.ConsumerInput]::WindowProcess($handle)
+        if ($owner -ne $Ui.application.Id -and -not $AllowBroker) { continue }
+        if ($current.ProcessId -ne $owner -or $current.IsOffscreen) { continue }
+        $process = $Ui.application
+        if ($owner -ne $Ui.application.Id) {
+            if (-not $Ui.brokers.ContainsKey([string]$owner)) {
+                if ($Ui.brokers.Count -ge 8) { throw 'Native picker process observation exceeded its handle budget.' }
+                $candidate = Get-Process -Id $owner
+                try {
+                    $retained = $candidate.SafeHandle
+                    if ($retained.IsInvalid -or $retained.IsClosed -or $candidate.HasExited -or
+                        [FileQuayQualification.ConsumerInput]::WindowProcess($handle) -ne $owner -or
+                        $Ui.main_hwnd -notin [FileQuayQualification.ConsumerInput]::OwnerChain($handle)) { throw 'Picker ownership changed while retaining its process handle.' }
+                    $Ui.brokers[[string]$owner] = $candidate
+                } catch { $candidate.Dispose(); throw }
+            }
+            $process = $Ui.brokers[[string]$owner]
+        }
+        @{
+            app_pid=$Ui.application.Id;main_hwnd=$Ui.main_hwnd;target_pid=[int]$owner;target_hwnd=$handle
+            process=$process;root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$handle)
+        }
+    }
+}
+
+function Get-FileQuayWorkflowMain($Ui) {
+    $matches = @(Get-FileQuayWorkflowScopes $Ui | Where-Object target_hwnd -EQ $Ui.main_hwnd)
+    if ($matches.Count -ne 1) { throw 'The exact owned main window is absent or ambiguous.' }
+    @{scope=$matches[0];element=$matches[0].root}
+}
+
+function Get-FileQuayWorkflowElementWindow($Element) {
+    $ancestor = $Element
+    for ($i=0; $ancestor -and $i -lt 48; $i++) {
+        $handle = [long]$ancestor.Current.NativeWindowHandle
+        if ($handle) { return [FileQuayQualification.ConsumerInput]::RootWindow($handle) }
+        $ancestor = [System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($ancestor)
+    }
+    throw 'UI element has no provable native window ancestor.'
+}
+
+function Find-FileQuayWorkflowElements($Ui, [string]$Id='', [string]$Name='', $Within=$null, [switch]$AllowBroker, [switch]$IncludeHidden) {
+    $condition = [System.Windows.Automation.Condition]::TrueCondition
+    if ($Id) { $condition = [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::AutomationIdProperty,$Id) }
+    elseif ($Name) { $condition = [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,$Name) }
+    $scopes = if ($Within) { @($Within.scope) } else { @(Get-FileQuayWorkflowScopes $Ui -AllowBroker:$AllowBroker) }
+    $seen = [Collections.Generic.HashSet[string]]::new()
+    foreach ($scope in $scopes) {
+        $root = if ($Within) { $Within.element } else { $scope.root }
+        $found = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)
+        if ($found.Count -gt 256) { throw 'Workflow selector exceeded its bounded element budget.' }
+        foreach ($element in $found) {
+            $current = $element.Current
+            if ($current.ProcessId -ne $scope.target_pid) { continue }
+            if (-not $IncludeHidden -and ($current.IsOffscreen -or -not $current.IsEnabled)) { continue }
+            if ($Name -and $current.Name -cne $Name) { continue }
+            $nativeWindow=Get-FileQuayWorkflowElementWindow $element
+            $bindingScope=$scope
+            if ($nativeWindow -ne $scope.target_hwnd) {
+                if ($Ui.main_hwnd -notin [FileQuayQualification.ConsumerInput]::OwnerChain($nativeWindow) -or
+                    [FileQuayQualification.ConsumerInput]::WindowProcess($nativeWindow) -ne $scope.target_pid) { continue }
+                $bindingScope=@{} + $scope
+                $bindingScope.target_hwnd=$nativeWindow
+                $bindingScope.root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$nativeWindow)
+            }
+            if ($seen.Add([string]::Join(',', [int[]]$element.GetRuntimeId()))) { @{scope=$bindingScope;element=$element} }
+        }
+    }
+}
+
+function Find-FileQuayWorkflowElement($Ui, [string]$Id='', [string]$Name='', $Within=$null, [switch]$AllowBroker, [switch]$IncludeHidden) {
+    $found = @(Find-FileQuayWorkflowElements $Ui $Id $Name $Within -AllowBroker:$AllowBroker -IncludeHidden:$IncludeHidden)
+    if ($found.Count -ne 1) { throw "Expected one owned workflow element '$Id'/'$Name'; observed $($found.Count)." }
+    $found[0]
+}
+
+function Get-FileQuayWorkflowTargetState($Ui, $Binding) {
+    $scope = $Binding.scope; $element = $Binding.element
+    $state = @{}
+    foreach ($pair in [FileQuayQualification.ConsumerInput]::Observe($Ui.application,$Ui.main_hwnd,$scope.process,$scope.target_hwnd).GetEnumerator()) { $state[$pair.Key]=$pair.Value }
+    $rootId = [string]::Join(',', [int[]]$scope.root.GetRuntimeId())
+    $within = $false; $ancestor = $element
+    for ($i=0; $ancestor -and $i -lt 48; $i++) {
+        if ([string]::Join(',', [int[]]$ancestor.GetRuntimeId()) -ceq $rootId) { $within=$true; break }
+        $ancestor = [System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($ancestor)
+    }
+    $current = $element.Current
+    $state.element_pid=$current.ProcessId; $state.element_within_target=$within
+    $state.element_hwnd=Get-FileQuayWorkflowElementWindow $element
+    $state.element_visible=-not $current.IsOffscreen; $state.element_enabled=$current.IsEnabled
+    $state
+}
+
+function Invoke-FileQuayWorkflowAction($Ui, $Binding, [ValidateSet('Invoke','Select','Expand','Collapse','Value','Keys','ScrollUp','ScrollDown')][string]$Action, $Value=$null) {
+    $scope=$Binding.scope; $element=$Binding.element
+    [FileQuayQualification.ConsumerInput]::Foreground($Ui.application,$Ui.main_hwnd,$scope.process,$scope.target_hwnd)
+    $state = Get-FileQuayWorkflowTargetState $Ui $Binding
+    Assert-FileQuayWorkflowTarget $scope $state
+    Add-FileQuayWorkflowTrace $Ui $Action @{automation_id=$element.Current.AutomationId;name=$element.Current.Name;state=$state}
+    switch ($Action) {
+        'Invoke' { ([System.Windows.Automation.InvokePattern]$element.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)).Invoke() }
+        'Select' { ([System.Windows.Automation.SelectionItemPattern]$element.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)).Select() }
+        'Expand' { ([System.Windows.Automation.ExpandCollapsePattern]$element.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)).Expand() }
+        'Collapse' { ([System.Windows.Automation.ExpandCollapsePattern]$element.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)).Collapse() }
+        'Value' { ([System.Windows.Automation.ValuePattern]$element.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)).SetValue([string]$Value) }
+        { $_ -in @('ScrollUp','ScrollDown') } {
+            $direction=if ($Action -eq 'ScrollUp') {[System.Windows.Automation.ScrollAmount]::SmallDecrement} else {[System.Windows.Automation.ScrollAmount]::SmallIncrement}
+            ([System.Windows.Automation.ScrollPattern]$element.GetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern)).Scroll([System.Windows.Automation.ScrollAmount]::NoAmount,$direction)
+        }
+        'Keys' {
+            if ($element.Current.IsKeyboardFocusable) { $element.SetFocus() }
+            elseif ([string]::Join(',', [int[]]$element.GetRuntimeId()) -cne [string]::Join(',', [int[]]$scope.root.GetRuntimeId())) {
+                throw 'The selected workflow element cannot receive keyboard focus.'
+            }
+            Assert-FileQuayWorkflowTarget $scope (Get-FileQuayWorkflowTargetState $Ui $Binding)
+            [FileQuayQualification.ConsumerInput]::Chord($Ui.application,$Ui.main_hwnd,$scope.process,$scope.target_hwnd,[int[]]$Value)
+        }
+    }
+}
+
+function Show-FileQuayWorkflowElement($Ui, $Binding) {
+    for ($attempt=0; $attempt -lt 16; $attempt++) {
+        if (-not $Binding.element.Current.IsOffscreen) { return $Binding }
+        $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($Binding.element)
+        $container=$null
+        for ($i=0; $ancestor -and $i -lt 24; $i++) {
+            if ((Get-FileQuayWorkflowElementWindow $ancestor) -ne $Binding.scope.target_hwnd) { break }
+            $scroll=$null
+            if (-not $ancestor.Current.IsOffscreen -and
+                $ancestor.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern,[ref]$scroll) -and $scroll.Current.VerticallyScrollable) {
+                $container=@{scope=$Binding.scope;element=$ancestor}; break
+            }
+            $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($ancestor)
+        }
+        if (-not $container) { throw 'Offscreen receipt detail has no visible owned scroll container.' }
+        $direction=if ($Binding.element.Current.BoundingRectangle.Top -lt $container.element.Current.BoundingRectangle.Top) {'ScrollUp'} else {'ScrollDown'}
+        Invoke-FileQuayWorkflowAction $Ui $container $direction
+        Start-Sleep -Milliseconds 100
+    }
+    throw 'The receipt detail did not become visible within the scroll budget.'
+}
+
+function Get-FileQuayWorkflowText($Binding) {
+    $value = $null
+    if ($Binding.element.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$value)) { return $value.Current.Value }
+    if ($Binding.element.Current.ControlType -eq [System.Windows.Automation.ControlType]::Text) { return $Binding.element.Current.Name }
+    $text = $null
+    if ($Binding.element.TryGetCurrentPattern([System.Windows.Automation.TextPattern]::Pattern,[ref]$text)) {
+        return $text.DocumentRange.GetText(4096)
+    }
+    $Binding.element.Current.Name
+}
+
+function Set-FileQuayWorkflowFolder($Ui, [string]$Path) {
+    Invoke-FileQuayWorkflowAction $Ui (Get-FileQuayWorkflowMain $Ui) Keys @(17,76)
+    $box = Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $Ui 'PART_TextBox' } 'visible omnibar path entry'
+    Invoke-FileQuayWorkflowAction $Ui $box Value $Path
+    Invoke-FileQuayWorkflowAction $Ui $box Keys @(13)
+    $null = Wait-FileQuayWorkflow {
+        $current = Find-FileQuayWorkflowElement $Ui 'CurrentPathGet' -IncludeHidden
+        if ((Get-FileQuayWorkflowText $current).TrimEnd('\') -ine $Path.TrimEnd('\')) { throw 'Observed current folder differs.' }
+        $true
+    } "navigation to the owned folder $Path"
+}
+
+function Select-FileQuayWorkflowFile($Ui, [string]$Path) {
+    $leaf = [IO.Path]::GetFileName($Path)
+    $binding = Wait-FileQuayWorkflow {
+        $matches = @(); $seen=[Collections.Generic.HashSet[string]]::new()
+        foreach ($name in @($leaf,[IO.Path]::GetFileNameWithoutExtension($leaf))) {
+            foreach ($candidate in @(Find-FileQuayWorkflowElements $Ui -Name $name)) {
+                $element=$candidate.element
+                for ($i=0; $element -and $i -lt 12; $i++) {
+                    if ((Get-FileQuayWorkflowElementWindow $element) -ne $candidate.scope.target_hwnd) { break }
+                    $selection=$null
+                    if ($element.Current.ControlType -in @([System.Windows.Automation.ControlType]::ListItem,[System.Windows.Automation.ControlType]::DataItem) -and
+                        $element.TryGetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern,[ref]$selection)) {
+                        if ($seen.Add([string]::Join(',', [int[]]$element.GetRuntimeId()))) { $matches += @{scope=$candidate.scope;element=$element} }
+                        break
+                    }
+                    $element=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($element)
+                }
+            }
+        }
+        if ($matches.Count -ne 1) { throw "Expected one selectable fixture item; observed $($matches.Count)." }
+        $matches[0]
+    } 'the uniquely named fixture file'
+    Invoke-FileQuayWorkflowAction $Ui $binding Select
+    if (-not ([System.Windows.Automation.SelectionItemPattern]$binding.element.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)).Current.IsSelected) {
+        throw 'The named fixture item was not selected.'
+    }
+}
+
+function Open-FileQuayWorkflowHistory($Ui) {
+    if (@(Find-FileQuayWorkflowElements $Ui 'ReceiptHistoryTab').Count -eq 0) {
+        Invoke-FileQuayWorkflowAction $Ui (Find-FileQuayWorkflowElement $Ui 'ShowStatusCenterButton') Invoke
+    }
+    $tab = Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $Ui 'ReceiptHistoryTab' } 'receipt history tab'
+    Invoke-FileQuayWorkflowAction $Ui $tab Select
+    Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $Ui 'ReceiptHistoryList' } 'receipt history list'
+}
+
+function Read-FileQuayWorkflowVisibleReceipts($Ui, $List, [object[]]$Receipts) {
+    $cards = @(Wait-FileQuayWorkflow {
+        $found = @(Find-FileQuayWorkflowElements $Ui 'ReceiptDetailsExpander' -Within $List)
+        if ($found.Count -ne 2) { throw "Expected two visible receipt cards, observed $($found.Count)." }
+        $found
+    } 'two receipt cards')
+    $seen = [Collections.Generic.HashSet[string]]::new()
+    $result = @()
+    foreach ($card in $cards) {
+        $card=Show-FileQuayWorkflowElement $Ui $card
+        Invoke-FileQuayWorkflowAction $Ui $card Expand
+        $source = Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $Ui 'ReceiptSourcePaths' -Within $card -IncludeHidden } 'expanded receipt source'
+        $source=Show-FileQuayWorkflowElement $Ui $source
+        $sourceText=Get-FileQuayWorkflowText $source
+        $destination=Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $Ui 'ReceiptDestinationPaths' -Within $card -IncludeHidden } 'expanded receipt destination'
+        $destination=Show-FileQuayWorkflowElement $Ui $destination
+        $detail=@{source=$sourceText;destination=(Get-FileQuayWorkflowText $destination)}
+        $matches = @($Receipts | Where-Object { $_.sourcePaths[0] -ceq $detail.source -and $_.destinationPaths[0] -ceq $detail.destination })
+        if ($matches.Count -ne 1 -or -not $seen.Add($matches[0].id)) { throw 'Visible receipt paths do not identify one distinct persisted operation.' }
+        $operation = if ($matches[0].fileOperationType -eq 3) {'Copy'} else {'Move'}
+        $expectedTitle = $Ui.strings["ReceiptOperation$operation"] + ' · ' + $Ui.strings.ReceiptResultSuccess
+        if ($card.element.Current.Name -cne $expectedTitle) { throw 'Visible receipt operation/result differs.' }
+        $result += @{id=$matches[0].id;title=$card.element.Current.Name;source=$detail.source;destination=$detail.destination}
+        Invoke-FileQuayWorkflowAction $Ui $card Collapse
+    }
+    $result
+}
+
+function Open-FileQuayWorkflowExportConfirmation($Ui, $Fixture) {
+    Invoke-FileQuayWorkflowAction $Ui (Find-FileQuayWorkflowElement $Ui 'ReceiptExportButton') Invoke
+    $filename = Wait-FileQuayWorkflow {
+        Find-FileQuayWorkflowElement $Ui '1001' -AllowBroker
+    } 'native save picker with a proved owner chain'
+    $picker = @{scope=$filename.scope;element=$filename.scope.root}
+    $Ui.record.picker_ownership = @{app_pid=$Ui.application.Id;main_hwnd=$Ui.main_hwnd;picker_pid=$picker.scope.target_pid;picker_hwnd=$picker.scope.target_hwnd;
+        owner_chain=[FileQuayQualification.ConsumerInput]::OwnerChain($picker.scope.target_hwnd);process_path=$picker.scope.process.Path}
+    Invoke-FileQuayWorkflowAction $Ui $filename Value $Fixture.csv
+    $save = Find-FileQuayWorkflowElement $Ui '1' -Within $picker
+    Invoke-FileQuayWorkflowAction $Ui $save Invoke
+    # The native picker may ask before returning the existing destination.
+    $next = Wait-FileQuayWorkflow {
+        $custom = @(Find-FileQuayWorkflowElements $Ui 'ReceiptExportConfirmationDialog')
+        if ($custom.Count -eq 1) { return @{kind='custom';binding=$custom[0]} }
+        $overwrite = @(Find-FileQuayWorkflowElements $Ui '6' -AllowBroker)
+        if ($overwrite.Count -eq 1) {
+            if ($overwrite[0].element.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or
+                $overwrite[0].scope.target_hwnd -eq $Ui.main_hwnd) { throw 'Native replacement confirmation is not a distinct owned dialog button.' }
+            $dialog = @{scope=$overwrite[0].scope;element=$overwrite[0].scope.root}
+            $texts = @(Find-FileQuayWorkflowElements $Ui -Within $dialog -IncludeHidden | ForEach-Object { $_.element.Current.Name })
+            if (-not (($texts -join "`n").Contains([IO.Path]::GetFileName($Fixture.csv)))) { throw 'Native replacement dialog does not name the selected CSV.' }
+            return @{kind='native';binding=$overwrite[0]}
+        }
+        $null
+    } 'selected-file snapshot and explicit export confirmation'
+    $confirmation=$next.binding
+    if ($next.kind -eq 'native') {
+        Invoke-FileQuayWorkflowAction $Ui $next.binding Invoke
+        $confirmation=Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $Ui 'ReceiptExportConfirmationDialog' } 'app export confirmation after the native decision'
+    }
+    $null = Wait-FileQuayWorkflow {
+        $texts = @(Find-FileQuayWorkflowElements $Ui -Within $confirmation -IncludeHidden | ForEach-Object { $_.element.Current.Name })
+        if (-not (($texts -join "`n").Contains($Fixture.csv))) { throw 'Export confirmation does not display the exact selected CSV path.' }
+        Find-FileQuayWorkflowElement $Ui 'PrimaryButton' -Within $confirmation
+    } 'enabled export confirmation for the exact path'
+    Assert-FileQuayWorkflowFile $Fixture.csv $Fixture.previous_csv
+    $confirmation
+}
+
+function Get-FileQuayWorkflowFailureObservation($Ui) {
+    $nodes = [Collections.Generic.List[object]]::new()
+    try {
+        foreach ($scope in @(Get-FileQuayWorkflowScopes $Ui -AllowBroker)) {
+            $queue = [Collections.Generic.Queue[object]]::new(); $queue.Enqueue(@{element=$scope.root;depth=0})
+            while ($queue.Count -and $nodes.Count -lt 160) {
+                $next=$queue.Dequeue()
+                try {
+                    $current=$next.element.Current
+                    if ($current.ProcessId -ne $scope.target_pid) { continue }
+                    $nodes.Add(@{hwnd=$scope.target_hwnd;process_id=$scope.target_pid;depth=$next.depth;name=$current.Name.Substring(0,[Math]::Min(1024,$current.Name.Length));
+                        automation_id=$current.AutomationId;control_type=$current.ControlType.ProgrammaticName;offscreen=$current.IsOffscreen;enabled=$current.IsEnabled})
+                    if ($next.depth -lt 8) {
+                        $child=[System.Windows.Automation.TreeWalker]::ControlViewWalker.GetFirstChild($next.element)
+                        while ($child -and $nodes.Count + $queue.Count -lt 160) {
+                            $queue.Enqueue(@{element=$child;depth=$next.depth+1})
+                            $child=[System.Windows.Automation.TreeWalker]::ControlViewWalker.GetNextSibling($child)
+                        }
+                    }
+                } catch { $nodes.Add(@{observation_error=$_.Exception.Message}) }
+            }
+        }
+    } catch { $nodes.Add(@{observation_error=$_.Exception.Message}) }
+    $nodes.ToArray()
+}
+
+function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [string]$Work, [string]$ValidatedPackageDirectory, [System.Collections.IDictionary]$Record, $State) {
+    $native = Join-Path $ValidatedPackageDirectory 'Files.App.CsWin32.dll'
+    $null = [Reflection.Assembly]::LoadFrom($native)
+    $references = @([IO.Directory]::GetFiles((Join-Path $PSHOME 'ref'),'*.dll')) + @($native)
+    Add-Type -Path (Join-Path $PSScriptRoot 'ConsumerWorkflow.Native.cs') -ReferencedAssemblies $references -CompilerOptions '/unsafe'
+    $strings=@{}
+    [xml]$resources = Get-Content (Join-Path $PSScriptRoot '../../src/Files.App/Strings/en-US/Resources.resw') -Raw
+    foreach ($entry in $resources.root.data) { $strings[[string]$entry.name]=[string]$entry.value }
+    $workflow = [ordered]@{schema_version=1;passed=$false;trace=[Collections.Generic.List[object]]::new();cleanup_verified=$false;scope='Copy, Move, persisted/UI receipts, CSV destination decision/recovery, metadata clear'}
+    $Record.consumer_workflow=$workflow
+    $ui=@{application=$Application;main_hwnd=[long]$Window.Current.NativeWindowHandle;brokers=@{};record=$workflow;strings=$strings}
+    $fixture=$null
+    try {
+        $fixture=New-FileQuayWorkflowFixture $Work
+        $State.fixture=$fixture
+        $workflow.fixture_root=$fixture.root; $workflow.initial_files=(Get-FileQuayWorkflowTree $fixture).files
+        $history = Join-Path $env:LOCALAPPDATA ('Packages/' + $Installed.PackageFamilyName + '/LocalState/OperationReceipts/v1.json')
+        $workflow.history_path=$history; $started=[DateTimeOffset]::UtcNow
+        $null=Read-FileQuayWorkflowReceipts $history $fixture 0 $started ([DateTimeOffset]::UtcNow)
+        Assert-FileQuayWorkflowFiles $fixture Initial
+        Set-FileQuayWorkflowFolder $ui ([IO.Path]::GetDirectoryName($fixture.source))
+        Select-FileQuayWorkflowFile $ui $fixture.source
+        Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarCopyButton' } 'enabled Copy action') Invoke
+        Set-FileQuayWorkflowFolder $ui ([IO.Path]::GetDirectoryName($fixture.copied))
+        Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarPasteButton' } 'enabled copy Paste action') Invoke
+        $null=Wait-FileQuayWorkflow { Assert-FileQuayWorkflowFiles $fixture Copied; $true } 'exact copied bytes and protected originals'
+        $null=Wait-FileQuayWorkflow { Read-FileQuayWorkflowReceipts $history $fixture 1 $started ([DateTimeOffset]::UtcNow) } 'one persisted successful copy receipt'
+        $workflow.copy_files=(Get-FileQuayWorkflowTree $fixture).files
+        Select-FileQuayWorkflowFile $ui $fixture.copied
+        Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarCutButton' } 'enabled Cut action') Invoke
+        Set-FileQuayWorkflowFolder $ui ([IO.Path]::GetDirectoryName($fixture.moved))
+        Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarPasteButton' } 'enabled move Paste action') Invoke
+        $null=Wait-FileQuayWorkflow { Assert-FileQuayWorkflowFiles $fixture Moved; $true } 'exact moved bytes, removed copy, and protected originals'
+        $receipts=@(Wait-FileQuayWorkflow { Read-FileQuayWorkflowReceipts $history $fixture 2 $started ([DateTimeOffset]::UtcNow) } 'two distinct successful persisted receipts')
+        $workflow.receipts=$receipts; $workflow.move_files=(Get-FileQuayWorkflowTree $fixture).files
+        $list=Open-FileQuayWorkflowHistory $ui
+        $workflow.visible_receipts=@(Read-FileQuayWorkflowVisibleReceipts $ui $list $receipts)
+        $dialog=Open-FileQuayWorkflowExportConfirmation $ui $fixture
+        Invoke-FileQuayWorkflowAction $ui (Find-FileQuayWorkflowElement $ui 'CloseButton' -Within $dialog) Invoke
+        $null=Wait-FileQuayWorkflow { if (@(Find-FileQuayWorkflowElements $ui 'ReceiptExportConfirmationDialog').Count -eq 0) { $true } } 'cancelled export confirmation to close'
+        Assert-FileQuayWorkflowFiles $fixture Moved
+        $workflow.cancelled_export_preserved_previous_bytes=$true
+        $null=Open-FileQuayWorkflowHistory $ui
+        $dialog=Open-FileQuayWorkflowExportConfirmation $ui $fixture
+        Invoke-FileQuayWorkflowAction $ui (Find-FileQuayWorkflowElement $ui 'PrimaryButton' -Within $dialog) Invoke
+        $recovery=Wait-FileQuayWorkflow {
+            Assert-FileQuayWorkflowCsv $fixture.csv $receipts
+            $bar=Find-FileQuayWorkflowElement $ui 'ReceiptStorageErrorBar'
+            $texts=@(Find-FileQuayWorkflowElements $ui -Within $bar -IncludeHidden | ForEach-Object { $_.element.Current.Name })
+            $text=$texts -join "`n"
+            if (-not $text.Contains($strings.ReceiptExportOriginalPreserved)) { throw 'CSV recovery success message is absent.' }
+            $paths=@([regex]::Matches($text,[regex]::Escape($fixture.csv)+'\.[0-9a-f]{32}\.filequay-original') | ForEach-Object Value | Select-Object -Unique)
+            if ($paths.Count -ne 1) { throw 'CSV recovery path is absent or ambiguous.' }
+            Register-FileQuayWorkflowExport $fixture $receipts $paths[0]
+            $paths[0]
+        } 'CSV rows and displayed preserved-original recovery path'
+        $workflow.csv=Get-FileQuayWorkflowFile $fixture.csv; $workflow.csv_recovery=@{path=$recovery;file=(Get-FileQuayWorkflowFile $recovery)}
+        Assert-FileQuayWorkflowFiles $fixture Moved
+        Invoke-FileQuayWorkflowAction $ui (Find-FileQuayWorkflowElement $ui 'ReceiptClearButton') Invoke
+        $clear=Wait-FileQuayWorkflow {
+            $matches=@(Find-FileQuayWorkflowElements $ui -Name $strings.ReceiptClear | Where-Object { $_.element.Current.ClassName -ceq 'ContentDialog' })
+            if ($matches.Count -ne 1) { throw 'Exact Clear receipts confirmation is absent or ambiguous.' }
+            $matches[0]
+        } 'clear-metadata confirmation'
+        $clearText=@(Find-FileQuayWorkflowElements $ui -Within $clear -IncludeHidden | ForEach-Object { $_.element.Current.Name }) -join "`n"
+        if (-not $clearText.Contains($strings.ReceiptClearConfirm)) { throw 'Clear confirmation text differs from the metadata-only contract.' }
+        Invoke-FileQuayWorkflowAction $ui (Find-FileQuayWorkflowElement $ui 'PrimaryButton' -Within $clear) Invoke
+        $null=Wait-FileQuayWorkflow { $null=Read-FileQuayWorkflowReceipts $history $fixture 0 $started ([DateTimeOffset]::UtcNow); $true } 'persisted empty receipt history'
+        $null=Open-FileQuayWorkflowHistory $ui
+        $null=Wait-FileQuayWorkflow {
+            $empty=Find-FileQuayWorkflowElement $ui -Name $strings.ReceiptEmpty
+            if (@(Find-FileQuayWorkflowElements $ui 'ReceiptDetailsExpander').Count -ne 0) { throw 'Receipt cards remain after clearing.' }
+            $empty
+        } 'visible empty receipt history'
+        Assert-FileQuayWorkflowFiles $fixture Moved
+        Assert-FileQuayWorkflowCsv $fixture.csv $receipts
+        Assert-FileQuayWorkflowFile $recovery $fixture.previous_csv
+        $workflow.final_files=(Get-FileQuayWorkflowTree $fixture).files
+        $workflow.cleared_history_file=Get-FileQuayWorkflowFile $history
+        $workflow.passed=$true
+        $Record.consumer_workflow_verified=$true
+    } catch {
+        $workflow.error=$_.Exception.ToString()
+        $workflow.failure_observation=@(Get-FileQuayWorkflowFailureObservation $ui)
+        throw
+    } finally {
+        foreach ($process in $ui.brokers.Values) { $process.Dispose() }
+    }
+}

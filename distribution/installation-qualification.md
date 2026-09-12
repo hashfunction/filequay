@@ -59,26 +59,76 @@ generated `StartMonitor` call, exact packaged server/CoreCLR checks, and natural
 zero client/server exits. Consumer acceptance does not require or claim those COM
 checks. `normal_store_binary_installation_tested` becomes true only after the
 metadata-proven consumer package passes installation, broker identity, genuine
-UI, close observation, exact owned process cleanup, package removal and trust
-cleanup.
+UI, the consumer workflow below, close observation, exact owned process and
+fixture cleanup, package removal and trust cleanup.
+
+## Consumer file and receipt workflow
+
+Before the normal close request, the existing retained consumer process performs
+Copy and Cut/Paste Move on one generated Unicode/comma-named file. A unique
+marker-owned fixture contains separate source/copy/move/export directories and
+protected sentinels. Independent file hashes prove the copy, the move's removal
+of its prior source, and preservation of the original and sentinels.
+
+The qualifier requires an initially absent or empty receipt history in the
+exact installed package's LocalState. It independently parses the persisted JSON
+and requires one successful Copy and one successful Move receipt, distinct IDs,
+the expected selected paths, valid operation timestamps and nonnegative reported
+counts. It expands both real Status Center receipt cards, using their existing
+automation properties, and checks the visible operation/result and selected
+paths. Reported totals are not treated as a per-file audit trail.
+
+The real save picker selects an existing fixture CSV with known previous bytes.
+After any native replacement prompt, the app's explicit confirmation must show
+the exact selected path and enabled primary action. Cancelling that confirmation
+must preserve every fixture file. A second selection is confirmed; an independent
+CSV parser compares every column of both rows to the persisted receipts, and the
+previous CSV must remain byte-identical at the recovery path displayed by the
+app. Clearing receipts through its confirmation must leave an empty JSON/UI
+history while preserving the source, moved file, CSV, recovery and sentinels.
+
+Input targets are rebound to their actual native window and checked against the
+retained consumer process, exact main HWND, native owner chain, UIA process and
+ancestor, foreground, visibility and enabled state before each action. The small
+native adapter uses the existing generated CsWin32 APIs. A broker-hosted picker
+is usable only after its live process handle and owner chain back to the exact
+main HWND are proved. Those observer handles are disposed without terminating a
+shared broker process. An unproved picker relationship fails qualification and
+retains bounded observations; there is no unrestricted desktop picker fallback.
+
+The consumer process is stopped through the existing owned-handle cleanup before
+fixture deletion. Cleanup checks the marker, allowed paths, file hashes and
+absence of links/reparse points before removing anything. Changed ownership or
+unexpected bytes/entries cause preservation and a cleanup failure; package and
+certificate cleanup still run. Evidence contains only the generated fixture's
+metadata, operation records and bounded UI observations, not its raw payloads or
+the app profile. Both workflow and fixture-cleanup gates are mandatory for
+consumer acceptance. The instrumented COM branch is unchanged.
 
 ## Current evidence and remaining gates
 
-Windows run `34603033361` at source
-`63851b8ca976177ecc82866c01779a26a7f44744` is retained evidence for the strict
-instrumented path. The consumer path added after that run has only local parser,
-fixture and process-test evidence so far; it must run on Windows before any
-normal-package success claim.
+Windows run `34609580070` at public source
+`131729f8e5be66487535853b39b5505b463b2380` passed both strict installation jobs.
+The consumer record includes an empty-argument broker activation, exact package
+identity, 80 observed UI nodes, screenshot and background-close outcome with
+owned cleanup. The instrumented client/server both exited zero. That run predates
+the file/receipt workflow above; the added workflow still requires execution on
+Windows before claiming interactive feature success.
 
 Local verification on macOS used the repository's pinned .NET 10.0.401 and
 PowerShell 7.6.6 tools:
 
 ```text
 34 packaging tests passed.
+44 independent consumer-workflow boundary checks passed: exact file bytes and
+move absence, JSON/CSV correspondence, foreign target rejection, actual link
+refusal, marker ownership and cleanup after process stop.
+Focused CsWin32 build succeeded; the native input adapter compiled against the
+actual generated assembly. No Win32 input API was invoked on macOS.
 Managed metadata: real consumer/instrumented assemblies passed; two coherent
 mislabeled cases and malformed input were rejected.
-Acceptance dispatch: consumer and instrumented success fixtures passed; six
-required-gate mutations were rejected.
+Acceptance dispatch: consumer and instrumented success fixtures passed, including
+rejection when workflow or fixture-cleanup evidence is absent.
 Installer failure fixtures: primary+cleanup aggregation, preinstalled framework,
 failed-Add registration race, final package mutation, and raced result
 publication passed. Existing result bytes were preserved.
@@ -89,9 +139,9 @@ Actual processes: exit 0, exit 7, live timeout and retained-handle cleanup passe
 PowerShell parser and workflow YAML checks passed.
 ```
 
-Store identity, interactive workspace workflows, upgrade behavior, WACK, native
-license/source delivery and publication remain separate gates. The current
-`SQLitePCLRaw.bundle_green` 2.1.11 provider also remains an open shipping gate:
-the [reviewed advisory](https://github.com/advisories/GHSA-2m69-gcr7-jv3q)
-calls for SQLite 3.50.2 or later and lists no patched version of that legacy
-package. This qualification does not suppress that requirement.
+Store identity, execution of this interactive workflow, cancellation and partial
+failure cases, substituted export destinations, tabs/panes, upgrade behavior,
+WACK, full native license/source delivery and publication remain separate gates.
+The legacy SQLite package has since been replaced by the pinned SQLite 3.53.4
+inputs in `distribution/sqlite-dependencies.lock.json`; this does not establish
+clearance for every other native dependency.

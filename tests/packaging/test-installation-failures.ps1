@@ -11,6 +11,7 @@ $installerSource = Join-Path $source '.github/scripts/Test-CIInstallation.ps1'
 if ($env:FILEQUAY_INSTALLER_SOURCE) { $installerSource = $env:FILEQUAY_INSTALLER_SOURCE }
 Copy-Item $installerSource (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1')
 Copy-Item (Join-Path $source '.github/scripts/InstallationQualification.Helpers.ps1') (Join-Path $temporary '.github/scripts/')
+Copy-Item (Join-Path $source '.github/scripts/ConsumerWorkflow.Helpers.ps1'),(Join-Path $source '.github/scripts/ConsumerWorkflow.Ui.ps1') (Join-Path $temporary '.github/scripts/')
 Copy-Item (Join-Path $source 'distribution/verify-package-payload.py') (Join-Path $temporary 'distribution/')
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 function Write-TestArchive([string]$Path, [string]$Manifest) {
