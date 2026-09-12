@@ -143,6 +143,33 @@ function Invoke-FileQuayWorkflowAction($Ui, $Binding, [ValidateSet('Invoke','Sel
     }
 }
 
+function Invoke-FileQuayWorkflowPaste($Ui, [string]$Description) {
+    $ready = Wait-FileQuayWorkflow {
+        $commands = @(Find-FileQuayWorkflowElements $Ui 'InnerNavigationToolbarPasteButton')
+        if ($commands.Count -gt 1) { throw 'The enabled Paste command is ambiguous.' }
+        if ($commands.Count -eq 1) { return @{command=$commands[0];overflow=$null} }
+        $main = Get-FileQuayWorkflowMain $Ui
+        $bar = Find-FileQuayWorkflowElement $Ui 'ContextCommandBar' -Within $main
+        $more = Find-FileQuayWorkflowElement $Ui 'MoreButton' 'More options' -Within $bar
+        foreach ($binding in @($bar,$more)) {
+            if ($binding.scope.target_pid -ne $Ui.application.Id -or $binding.scope.target_hwnd -ne $Ui.main_hwnd -or
+                $binding.element.Current.ProcessId -ne $Ui.application.Id) { throw 'Toolbar overflow is outside the retained main window.' }
+        }
+        if ($bar.element.Current.ClassName -cne 'ApplicationBar' -or $more.element.Current.ClassName -cne 'Button' -or
+            $more.element.Current.Name -cne 'More options') { throw 'The observed toolbar overflow control differs.' }
+        @{command=$null;overflow=$more}
+    } "$Description or the owned toolbar overflow"
+    if ($ready.overflow) {
+        # Invoke once, outside the polling loop; a failed provider call must not toggle it again.
+        Invoke-FileQuayWorkflowAction $Ui $ready.overflow Invoke
+        Add-FileQuayWorkflowClipboardObservation $Ui 'paste-overflow-opened'
+        $command = Wait-FileQuayWorkflow {
+            Find-FileQuayWorkflowElement $Ui 'InnerNavigationToolbarPasteButton'
+        } $Description
+    } else { $command=$ready.command }
+    Invoke-FileQuayWorkflowAction $Ui $command Invoke
+}
+
 function Show-FileQuayWorkflowElement($Ui, $Binding) {
     for ($attempt=0; $attempt -lt 16; $attempt++) {
         if (-not $Binding.element.Current.IsOffscreen) { return $Binding }
@@ -392,7 +419,7 @@ function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [str
         Add-FileQuayWorkflowClipboardObservation $ui 'after-copy-invoke'
         Set-FileQuayWorkflowFolder $ui ([IO.Path]::GetDirectoryName($fixture.copied))
         Add-FileQuayWorkflowClipboardObservation $ui 'copy-destination'
-        Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarPasteButton' } 'enabled copy Paste action') Invoke
+        Invoke-FileQuayWorkflowPaste $ui 'enabled copy Paste action'
         $null=Wait-FileQuayWorkflow { Assert-FileQuayWorkflowFiles $fixture Copied; $true } 'exact copied bytes and protected originals'
         $null=Wait-FileQuayWorkflow { Read-FileQuayWorkflowReceipts $history $fixture 1 $started ([DateTimeOffset]::UtcNow) } 'one persisted successful copy receipt'
         $workflow.copy_files=(Get-FileQuayWorkflowTree $fixture).files
@@ -402,7 +429,7 @@ function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [str
         Add-FileQuayWorkflowClipboardObservation $ui 'after-cut-invoke'
         Set-FileQuayWorkflowFolder $ui ([IO.Path]::GetDirectoryName($fixture.moved))
         Add-FileQuayWorkflowClipboardObservation $ui 'move-destination'
-        Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarPasteButton' } 'enabled move Paste action') Invoke
+        Invoke-FileQuayWorkflowPaste $ui 'enabled move Paste action'
         $null=Wait-FileQuayWorkflow { Assert-FileQuayWorkflowFiles $fixture Moved; $true } 'exact moved bytes, removed copy, and protected originals'
         $receipts=@(Wait-FileQuayWorkflow { Read-FileQuayWorkflowReceipts $history $fixture 2 $started ([DateTimeOffset]::UtcNow) } 'two distinct successful persisted receipts')
         $workflow.receipts=$receipts; $workflow.move_files=(Get-FileQuayWorkflowTree $fixture).files
