@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "run_id": "34694585269",
+  "source_commit": "ffeedc1c61a6fd0f09268380aea5a154d4f05f47",
+  "receipt_bytes": 152466,
+  "receipt_sha256": "6d234688bf6a8980c5efcc45f63d709a07ec842ed30e78584aa2d99ba5428c49",
+  "actual_error": "System.InvalidOperationException: Receipt visibility/ownership observation failed after Scroll: Workflow input target ownership, foreground, or UI state changed.\r\n ---> System.Management.Automation.MethodInvocationException: Exception calling \"Scroll\" with \"2\" argument(s): \"Operation is not valid due to the current state of the object.\"\r\n ---> System.InvalidOperationException: Operation is not valid due to the current state of the object.\r\n   at MS.Internal.Automation.UiaCoreApi.CheckError(Int32 hr)\r\n   at CallSite.Target(Closure, CallSite, Object, ScrollAmount, Object)\r\n   --- End of inner exception stack trace ---\r\n   at System.Management.Automation.ExceptionHandlingOps.CheckActionPreference(FunctionContext funcContext, Exception exception)\r\n   at System.Management.Automation.Interpreter.ActionCallInstruction`2.Run(InterpretedFrame frame)\r\n   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)\r\n   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)\r\n   --- End of inner exception stack trace ---",
+  "scroll_action": {
+    "at_utc": "2026-09-12T13:00:48.1006586+00:00",
+    "step": "ScrollDown",
+    "details": {
+      "automation_id": "ReceiptHistoryList",
+      "state": {
+        "element_hwnd": 10617370,
+        "target_visible": true,
+        "element_within_target": true,
+        "target_pid": 7932,
+        "element_enabled": true,
+        "target_enabled": true,
+        "target_hwnd": 10617370,
+        "target_process_live": true,
+        "owner_chain": [
+          10617370,
+          393522
+        ],
+        "app_live": true,
+        "main_live": true,
+        "target_live": true,
+        "element_pid": 7932,
+        "main_pid": 7932,
+        "foreground_hwnd": 10617370,
+        "element_visible": true
+      },
+      "name": ""
+    }
+  },
+  "scroll_attempt": {
+    "at_utc": "2026-09-12T13:00:48.1092864+00:00",
+    "step": "ReceiptScrollAttempt",
+    "details": {
+      "before": {
+        "vertical_view_size": 100.0,
+        "horizontally_scrollable": false,
+        "vertical_scroll_percent": -1.0,
+        "vertically_scrollable": false,
+        "horizontal_scroll_percent": -1.0,
+        "horizontal_view_size": 100.0
+      },
+      "outcome": "failed",
+      "after": {
+        "vertical_view_size": 100.0,
+        "horizontally_scrollable": false,
+        "vertical_scroll_percent": -1.0,
+        "vertically_scrollable": false,
+        "horizontal_scroll_percent": -1.0,
+        "horizontal_view_size": 100.0
+      },
+      "error": "System.Management.Automation.MethodInvocationException: Exception calling \"Scroll\" with \"2\" argument(s): \"Operation is not valid due to the current state of the object.\"\r\n ---> System.InvalidOperationException: Operation is not valid due to the current state of the object.\r\n   at MS.Internal.Automation.UiaCoreApi.CheckError(Int32 hr)\r\n   at CallSite.Target(Closure, CallSite, Object, ScrollAmount, Object)\r\n   --- End of inner exception stack trace ---\r\n   at System.Management.Automation.ExceptionHandlingOps.CheckActionPreference(FunctionContext funcContext, Exception exception)\r\n   at lambda_method918(Closure, Object[], StrongBox`1[], InterpretedFrame)",
+      "after_error": null,
+      "action": "ScrollDown"
+    }
+  },
+  "observed_nodes": [
+    {
+      "hwnd": 393522,
+      "process_id": 7932,
+      "depth": 7,
+      "property_errors": {},
+      "automation_id": "ReceiptHistoryList",
+      "name": "",
+      "class_name": "ListView",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.List",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": false
+    },
+    {
+      "hwnd": 393522,
+      "process_id": 7932,
+      "depth": 8,
+      "property_errors": {},
+      "automation_id": "",
+      "name": "Move · Completed",
+      "class_name": "ListViewItem",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.ListItem",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": true,
+      "keyboard_focusable": true
+    },
+    {
+      "hwnd": 393522,
+      "process_id": 7932,
+      "depth": 8,
+      "property_errors": {},
+      "automation_id": "",
+      "name": "Copy · Completed",
+      "class_name": "ListViewItem",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.ListItem",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": true
+    }
+  ],
+  "limits": "The rejected post-Scroll target state was not recorded. Which ownership/foreground/UI bit differed is unproven. The only PNG is the earlier Home window, not this failure.",
+  "persisted_receipts": [
+    {
+      "schemaVersion": 1,
+      "id": "56b17e23-2626-46e1-9941-092d5552b310",
+      "startedAtUtc": "2026-09-12T13:00:44.8997948+00:00",
+      "completedAtUtc": "2026-09-12T13:00:45.2901958+00:00",
+      "fileOperationType": 4,
+      "returnResult": 1,
+      "sourcePaths": [
+        "D:\\a\\filequay\\filequay\\artifacts\\install-test\\d34f595cc0ca41b4830f3562d9a93cd2\\consumer-workflow-9a093f8ad01e4a62835d4f34f5bac712\\copy\\résumé,原稿.txt"
+      ],
+      "destinationPaths": [
+        "D:\\a\\filequay\\filequay\\artifacts\\install-test\\d34f595cc0ca41b4830f3562d9a93cd2\\consumer-workflow-9a093f8ad01e4a62835d4f34f5bac712\\move\\résumé,原稿.txt"
+      ],
+      "itemCount": 1,
+      "totalBytes": 84,
+      "failureCode": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "4678ed05-0874-4138-9945-ec487660a20c",
+      "startedAtUtc": "2026-09-12T13:00:41.1863569+00:00",
+      "completedAtUtc": "2026-09-12T13:00:41.5116349+00:00",
+      "fileOperationType": 3,
+      "returnResult": 1,
+      "sourcePaths": [
+        "D:\\a\\filequay\\filequay\\artifacts\\install-test\\d34f595cc0ca41b4830f3562d9a93cd2\\consumer-workflow-9a093f8ad01e4a62835d4f34f5bac712\\source\\résumé,原稿.txt"
+      ],
+      "destinationPaths": [
+        "D:\\a\\filequay\\filequay\\artifacts\\install-test\\d34f595cc0ca41b4830f3562d9a93cd2\\consumer-workflow-9a093f8ad01e4a62835d4f34f5bac712\\copy\\résumé,原稿.txt"
+      ],
+      "itemCount": 1,
+      "totalBytes": 84,
+      "failureCode": null
+    }
+  ]
+}

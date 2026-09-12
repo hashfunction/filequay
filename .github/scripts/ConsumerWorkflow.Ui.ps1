@@ -164,8 +164,13 @@ function Invoke-FileQuayWorkflowAction($Ui, $Binding, [ValidateSet('Invoke','Sel
             $pattern=[System.Windows.Automation.ScrollPattern]$element.GetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern)
             $attempt=@{action=$Action;outcome='not-sent';before=(Get-FileQuayScrollRange $pattern);after=$null;after_error=$null}
             Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollAttempt' $attempt
-            Assert-FileQuayWorkflowTarget $scope (Get-FileQuayWorkflowTargetState $Ui $Binding)
+            $attempt.target_state_before_send=Get-FileQuayWorkflowTargetState $Ui $Binding
+            Assert-FileQuayWorkflowTarget $scope $attempt.target_state_before_send
             try {
+                if (-not $attempt.before.vertically_scrollable) {
+                    $attempt.outcome='not-sent-not-scrollable'
+                    return
+                }
                 $pattern.Scroll([System.Windows.Automation.ScrollAmount]::NoAmount,$direction)
                 $attempt.outcome='completed'
             } catch {
@@ -239,7 +244,9 @@ function Show-FileQuayWorkflowElement($Ui, [string]$Name,
         try {
             if ($failedScroll) {
                 $currentList=Find-FileQuayWorkflowElement $Ui 'ReceiptHistoryList'
-                Assert-FileQuayWorkflowTarget $failedScope (Get-FileQuayWorkflowTargetState $Ui $currentList)
+                $listState=Get-FileQuayWorkflowTargetState $Ui $currentList
+                Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollTargetObservation' @{part='list';name=$Name;expected_hwnd=$failedScope.target_hwnd;expected_pid=$failedScope.target_pid;state=$listState}
+                Assert-FileQuayWorkflowTarget $failedScope $listState
             }
             # ListView templates can replace both cards and their scroll provider.
             # Reobserve the exact owned card/detail before every scrolling attempt.
@@ -247,6 +254,7 @@ function Show-FileQuayWorkflowElement($Ui, [string]$Name,
             if (-not $binding.element.Current.IsOffscreen) {
                 if ($failedScroll) {
                     $visibleState=Get-FileQuayWorkflowTargetState $Ui $binding
+                    Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollTargetObservation' @{part=$Part;name=$Name;expected_hwnd=$failedScope.target_hwnd;expected_pid=$failedScope.target_pid;state=$visibleState}
                     Assert-FileQuayWorkflowTarget $failedScope $visibleState
                     Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollVisibilityRequery' @{name=$Name;automation_id=$Part;attempt=($attempt+1);visible=$true;input_sent=$false;state=$visibleState}
                 }
