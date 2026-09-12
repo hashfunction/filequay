@@ -313,7 +313,7 @@
     <value>Anclar en la barra lateral</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>¡Bienvenido a FileQuay!</value>
+    <value>¡Bienvenido a FolderSail!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>Otorgar permiso</value>
@@ -609,7 +609,7 @@
     <value>{0} - Acceso directo</value>
   </data>
   <data name="ExceptionNotificationBody" xml:space="preserve">
-    <value>FileQuay se encontró con un problema para el que los desarrolladores aún no se prepararon.</value>
+    <value>FolderSail se encontró con un problema para el que los desarrolladores aún no se prepararon.</value>
   </data>
   <data name="ExceptionNotificationHeader" xml:space="preserve">
     <value>¡Algo salió mal!</value>
@@ -1833,10 +1833,10 @@
     <value>Enviar informe de error</value>
   </data>
   <data name="SettingsSetAsDefaultFileManager" xml:space="preserve">
-    <value>Establecer FileQuay como gestor de archivos predeterminado</value>
+    <value>Establecer FolderSail como gestor de archivos predeterminado</value>
   </data>
   <data name="SettingsSetAsOpenDialog" xml:space="preserve">
-    <value>Usar FileQuay como diálogo de apertura de archivos</value>
+    <value>Usar FolderSail como diálogo de apertura de archivos</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>Etiqueta de archivo</value>
@@ -1974,7 +1974,7 @@
     <value>Archivos recientes</value>
   </data>
   <data name="SettingsOpenInLogin" xml:space="preserve">
-    <value>Abrir FileQuay al iniciar Windows</value>
+    <value>Abrir FolderSail al iniciar Windows</value>
   </data>
   <data name="Attributes" xml:space="preserve">
     <value>Atributos</value>
@@ -2049,7 +2049,7 @@
     <value>Fotos</value>
   </data>
   <data name="UpdateFiles" xml:space="preserve">
-    <value>Actualizar FileQuay</value>
+    <value>Actualizar FolderSail</value>
   </data>
   <data name="FileTags" xml:space="preserve">
     <value>Etiquetas</value>
@@ -2112,10 +2112,10 @@
     <value>¡Hola!</value>
   </data>
   <data name="ReviewFilesSubtitle" xml:space="preserve">
-    <value>¿Disfrutando de FileQuay? Por favor, considere hacer una reseña en Microsoft Store.</value>
+    <value>¿Disfrutando de FolderSail? Por favor, considere hacer una reseña en Microsoft Store.</value>
   </data>
   <data name="SponsorSubtitle" xml:space="preserve">
-    <value>¿Qué le parece FileQuay? Considere la posibilidad de apoyar el proyecto en GitHub.</value>
+    <value>¿Qué le parece FolderSail? Considere la posibilidad de apoyar el proyecto en GitHub.</value>
   </data>
   <data name="Sponsor" xml:space="preserve">
     <value>Patrocinador</value>
@@ -3519,7 +3519,7 @@
     <value>No volver a mostrar</value>
   </data>
   <data name="FilesRunningAsAdmin" xml:space="preserve">
-    <value>FileQuay se está ejecutando como administrador</value>
+    <value>FolderSail se está ejecutando como administrador</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
     <value>Debido a una limitación con Windows y WinAppSdk, arrastrar y soltar no está disponible cuando se ejecuta Archivos como administrador. Si desea usar arrastrar y soltar, puede solucionar esta limitación abriendo UAC (Control de cuentas de usuario) desde el Menú Inicio y seleccionando el tercer nivel, y reiniciando Windows. De lo contrario, puede seguir usando Archivos sin arrastrar y soltar.</value>
@@ -3617,7 +3617,7 @@
     <value>elementos</value>
   </data>
   <data name="CannotInitializeGitRepo" xml:space="preserve">
-    <value>FileQuay no puede inicializar este directorio como repositorio Git.</value>
+    <value>FolderSail no puede inicializar este directorio como repositorio Git.</value>
   </data>
   <data name="ContributingArtist" xml:space="preserve">
     <value>Artista colaborador</value>
@@ -3885,7 +3885,7 @@
     <value>No hay operaciones de archivo en curso</value>
   </data>
   <data name="OpenOnStartupDisabled" xml:space="preserve">
-    <value>La opción de abrir FileQuay al iniciar Windows no está disponible debido a la configuración del sistema o política de grupo. Para volver a activarla, abra la página de inicio en el Administrador de tareas.</value>
+    <value>La opción de abrir FolderSail al iniciar Windows no está disponible debido a la configuración del sistema o política de grupo. Para volver a activarla, abra la página de inicio en el Administrador de tareas.</value>
   </data>
   <data name="FailedToRestore" xml:space="preserve">
     <value>Error al restaurar elementos de la papelera de reciclaje</value>
@@ -3981,10 +3981,10 @@
     <value>Editar permisos</value>
   </data>
   <data name="BackgroundRunningNotificationBody" xml:space="preserve">
-    <value>FileQuay sigue ejecutándose en segundo plano para mejorar el rendimiento del arranque.</value>
+    <value>FolderSail sigue ejecutándose en segundo plano para mejorar el rendimiento del arranque.</value>
   </data>
   <data name="BackgroundRunningNotificationHeader" xml:space="preserve">
-    <value>¿Dónde ha ido FileQuay?</value>
+    <value>¿Dónde ha ido FolderSail?</value>
   </data>
   <data name="QuestionsAndDiscussions" xml:space="preserve">
     <value>Preguntas y discusiones</value>
@@ -4255,7 +4255,7 @@
     <value>Vertical</value>
   </data>
   <data name="ShowSystemTrayIcon" xml:space="preserve">
-    <value>Mostrar icono de FileQuay en la bandeja del sistema</value>
+    <value>Mostrar icono de FolderSail en la bandeja del sistema</value>
   </data>
   <data name="CPUThreads" xml:space="preserve">
     <value>Hilos de la CPU</value>

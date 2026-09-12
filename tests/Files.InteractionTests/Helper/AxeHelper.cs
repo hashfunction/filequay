@@ -17,7 +17,7 @@ namespace Files.InteractionTests.Helper
 
 		internal static void InitializeAxe()
 		{
-			var processes = Process.GetProcessesByName("FileQuay");
+			var processes = Process.GetProcessesByName("FolderSail");
 			Assert.IsTrue(processes.Length > 0);
 
 			var config = Config.Builder.ForProcessId(processes[0].Id).Build();

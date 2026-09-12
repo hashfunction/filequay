@@ -1,4 +1,4 @@
-name: FileQuay Windows qualification
+name: FolderSail Windows qualification
 on:
   workflow_dispatch:
     inputs:
@@ -37,7 +37,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: FileQuay-Windows-${{ matrix.build_kind }}-qualification
+          name: FolderSail-Windows-${{ matrix.build_kind }}-qualification
           path: |
             artifacts/qualification/**/*.json
             artifacts/qualification/**/*.txt

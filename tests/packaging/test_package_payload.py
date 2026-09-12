@@ -20,10 +20,10 @@ def pe(machine=0x8664):
 
 class PackagePayloadTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="FileQuay-package-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="FolderSail-package-")
         self.addCleanup(self.temporary.cleanup); self.root = Path(self.temporary.name)
-        self.write("AppxManifest.xml", """<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"><Dependencies><PackageDependency Name="Microsoft.WindowsAppRuntime.2.4" Publisher="CN=Microsoft" MinVersion="2.4.0.0" /></Dependencies><Applications><Application Id="App" Executable="FileQuay.exe" /></Applications><Extensions><Extension><OutOfProcessServer><Path>Files.App.Server\\Files.App.Server.exe</Path></OutOfProcessServer></Extension></Extensions></Package>""")
-        for folder, stem in [("", "FileQuay"), ("Files.App.Server", "Files.App.Server")]:
+        self.write("AppxManifest.xml", """<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"><Dependencies><PackageDependency Name="Microsoft.WindowsAppRuntime.2.4" Publisher="CN=Microsoft" MinVersion="2.4.0.0" /></Dependencies><Applications><Application Id="App" Executable="FolderSail.exe" /></Applications><Extensions><Extension><OutOfProcessServer><Path>Files.App.Server\\Files.App.Server.exe</Path></OutOfProcessServer></Extension></Extensions></Package>""")
+        for folder, stem in [("", "FolderSail"), ("Files.App.Server", "Files.App.Server")]:
             base = self.root / folder; base.mkdir(exist_ok=True)
             for name in [stem + ".exe", stem + ".dll", "coreclr.dll", "clrjit.dll", "hostfxr.dll", "hostpolicy.dll", "System.Private.CoreLib.dll", "System.Runtime.dll", "dependency.dll"]:
                 (base / name).write_bytes(pe())
@@ -45,6 +45,18 @@ class PackagePayloadTests(unittest.TestCase):
         self.assertEqual(2, len(result["entrypoints"]))
         self.assertFalse(result["startup_verified"])
 
+    def test_rejects_old_brand_entrypoint_even_with_valid_renamed_payload(self):
+        manifest = self.root / "AppxManifest.xml"
+        manifest.write_text(manifest.read_text().replace("FolderSail.exe", "FileQuay.exe"))
+        (self.root / "FileQuay.exe").write_bytes(pe())
+        with self.assertRaisesRegex(payload.PayloadError, "entrypoints"):
+            payload.verify(self.root, "10.0.12")
+
+    def test_rejects_missing_renamed_managed_assembly(self):
+        (self.root / "FolderSail.dll").rename(self.root / "FileQuay.dll")
+        with self.assertRaisesRegex(payload.PayloadError, "FolderSail.dll"):
+            payload.verify(self.root, "10.0.12")
+
     def test_rejects_absent_windows_app_runtime_dependency(self):
         p = self.root / "AppxManifest.xml"
         p.write_text(p.read_text().replace('<PackageDependency Name="Microsoft.WindowsAppRuntime.2.4" Publisher="CN=Microsoft" MinVersion="2.4.0.0" />', ''))
@@ -64,7 +76,7 @@ class PackagePayloadTests(unittest.TestCase):
         with self.assertRaisesRegex(payload.PayloadError, "framework-dependent"): payload.verify(self.root, "10.0.12")
 
     def test_rejects_old_runtime_patch(self):
-        p = self.root / "FileQuay.runtimeconfig.json"; p.write_text(p.read_text().replace("10.0.12", "10.0.2"))
+        p = self.root / "FolderSail.runtimeconfig.json"; p.write_text(p.read_text().replace("10.0.12", "10.0.2"))
         with self.assertRaisesRegex(payload.PayloadError, "runtime version"): payload.verify(self.root, "10.0.12")
 
     def test_rejects_missing_runtime_pack_asset(self):
@@ -80,7 +92,7 @@ class PackagePayloadTests(unittest.TestCase):
         with self.assertRaisesRegex(payload.PayloadError, "x64"): payload.verify(self.root, "10.0.12")
 
     def test_rejects_traversing_manifest_executable(self):
-        p = self.root / "AppxManifest.xml"; p.write_text(p.read_text().replace("FileQuay.exe", "../FileQuay.exe"))
+        p = self.root / "AppxManifest.xml"; p.write_text(p.read_text().replace("FolderSail.exe", "../FolderSail.exe"))
         with self.assertRaisesRegex(payload.PayloadError, "Unsafe"): payload.verify(self.root, "10.0.12")
 
     def test_rejects_absent_runtime_notice(self):
@@ -89,7 +101,7 @@ class PackagePayloadTests(unittest.TestCase):
 
     def test_inventory_rejects_observed_metadata_only_server(self):
         with self.assertRaisesRegex(payload.PayloadError, "Files.App.Server/Files.App.Server.exe"):
-            payload.verify_required_names(["FileQuay.exe", "FileQuay.dll", "Files.App.Server.winmd", "FileQuay.runtimeconfig.json"])
+            payload.verify_required_names(["FolderSail.exe", "FolderSail.dll", "Files.App.Server.winmd", "FolderSail.runtimeconfig.json"])
 
 
 if __name__ == "__main__": unittest.main()

@@ -313,7 +313,7 @@
     <value>تثبيت على الشريط الجانبي</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>Welcome to FileQuay!</value>
+    <value>Welcome to FolderSail!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>منح الصلاحية</value>
@@ -1834,10 +1834,10 @@
     <value>إرسال تقرير الأخطاء</value>
   </data>
   <data name="SettingsSetAsDefaultFileManager" xml:space="preserve">
-    <value>تعيين FileQuay كمدير ملفات افتراضي</value>
+    <value>تعيين FolderSail كمدير ملفات افتراضي</value>
   </data>
   <data name="SettingsSetAsOpenDialog" xml:space="preserve">
-    <value>استخدم FileQuay كمربع حوار لفتح الملفات</value>
+    <value>استخدم FolderSail كمربع حوار لفتح الملفات</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>علامة</value>
@@ -1876,7 +1876,7 @@
     <value>استعادة الافتراضي</value>
   </data>
   <data name="OpenTabInExistingInstance" xml:space="preserve">
-    <value>فتح تاب جديدة في نفس الواجهة الموجودة عند فتح FileQuay من تطبيق آخر</value>
+    <value>فتح تاب جديدة في نفس الواجهة الموجودة عند فتح FolderSail من تطبيق آخر</value>
   </data>
   <data name="StartupSettings" xml:space="preserve">
     <value>إعدادات بدء التشغيل</value>
@@ -1975,7 +1975,7 @@
     <value>أخر الملفات</value>
   </data>
   <data name="SettingsOpenInLogin" xml:space="preserve">
-    <value>فتح FileQuay عند بدء تشغيل Windows</value>
+    <value>فتح FolderSail عند بدء تشغيل Windows</value>
   </data>
   <data name="Attributes" xml:space="preserve">
     <value>‏‏سمات</value>
@@ -2050,7 +2050,7 @@
     <value>صور</value>
   </data>
   <data name="UpdateFiles" xml:space="preserve">
-    <value>تحديث FileQuay</value>
+    <value>تحديث FolderSail</value>
   </data>
   <data name="FileTags" xml:space="preserve">
     <value>العلامات</value>
@@ -2113,10 +2113,10 @@
     <value>مرحبًا!</value>
   </data>
   <data name="ReviewFilesSubtitle" xml:space="preserve">
-    <value>هل تستمتع بـ FileQuay؟ يرجى النظر في المراجعة في متجر Microsoft Store.</value>
+    <value>هل تستمتع بـ FolderSail؟ يرجى النظر في المراجعة في متجر Microsoft Store.</value>
   </data>
   <data name="SponsorSubtitle" xml:space="preserve">
-    <value>هل تستمتع بـ FileQuay؟ يرجى النظر في دعم المشروع على GitHub.</value>
+    <value>هل تستمتع بـ FolderSail؟ يرجى النظر في دعم المشروع على GitHub.</value>
   </data>
   <data name="Sponsor" xml:space="preserve">
     <value>دعم المشروع</value>
@@ -3405,7 +3405,7 @@
     <value>أدخل الرمز التالي في الرابط أدناه لبدء العمل مع مستودعات GitHub.</value>
   </data>
   <data name="CannotReachGitHubError" xml:space="preserve">
-    <value>لا يمكن لـ FileQuay الوصول إلى GitHub الآن.</value>
+    <value>لا يمكن لـ FolderSail الوصول إلى GitHub الآن.</value>
   </data>
   <data name="OpenInIDE" xml:space="preserve">
     <value>فتح المجلد في {0}</value>
@@ -3520,7 +3520,7 @@
     <value>لا تُظهر مجدّدًا</value>
   </data>
   <data name="FilesRunningAsAdmin" xml:space="preserve">
-    <value>FileQuay قيد التشغيل كمسئول</value>
+    <value>FolderSail قيد التشغيل كمسئول</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
     <value>بسبب تقييد ناتج من استخدام Windows و WinAppSdk، لا يتوفر السحب والإفلات عند تشغيل الملفات كمشرف. إذا كنت ترغب في استخدام السحب والإفلات، يمكنك العمل حول هذه المشكلة من خلال فتح UAC (التحكم في الحساب) من قائمة البدء وتحديد المستوى الثالث، وإعادة تشغيل Windows. خلاف ذلك، يمكنك الاستمرار في استخدام الملفات دون سحب و إسقاط.</value>
@@ -3886,7 +3886,7 @@
     <value>لا توجد عمليات ملفات جارية</value>
   </data>
   <data name="OpenOnStartupDisabled" xml:space="preserve">
-    <value>خيار فتح FileQuay عند تشغيل Windows غير متوفر بسبب إعدادات النظام أو سياسة المجموعة. لإعادة التفعيل، افتح صفحة بدء التشغيل في Task Manager.</value>
+    <value>خيار فتح FolderSail عند تشغيل Windows غير متوفر بسبب إعدادات النظام أو سياسة المجموعة. لإعادة التفعيل، افتح صفحة بدء التشغيل في Task Manager.</value>
   </data>
   <data name="FailedToRestore" xml:space="preserve">
     <value>تعذر استعادة العناصر من سلة المحذوفات</value>
@@ -3982,10 +3982,10 @@
     <value>تحرير الأذونات</value>
   </data>
   <data name="BackgroundRunningNotificationBody" xml:space="preserve">
-    <value>لا يزال FileQuay قيد التشغيل في الخلفية لتحسين أداء بدء التشغيل.</value>
+    <value>لا يزال FolderSail قيد التشغيل في الخلفية لتحسين أداء بدء التشغيل.</value>
   </data>
   <data name="BackgroundRunningNotificationHeader" xml:space="preserve">
-    <value>أين ذهب FileQuay؟</value>
+    <value>أين ذهب FolderSail؟</value>
   </data>
   <data name="QuestionsAndDiscussions" xml:space="preserve">
     <value>الأسئلة والنقاشات</value>

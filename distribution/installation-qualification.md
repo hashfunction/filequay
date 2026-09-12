@@ -1,4 +1,4 @@
-# FileQuay installed-package qualification
+# FolderSail installed-package qualification
 
 The workflow runs two independent `windows-2025-vs2026` jobs from fresh
 checkouts. `Instrumented` compiles `FileQuayCIQualification=true` and retains the
@@ -8,7 +8,7 @@ probe argument. Both jobs use the disposable qualification identity; neither is
 a Store-identity or publication test.
 
 The requested build kind does not establish what was built. The qualifier reads
-the actual packaged `FileQuay.dll` with `PEReader`, without loading or executing
+the actual packaged `FolderSail.dll` with `PEReader`, without loading or executing
 the assembly, and requires the exact
 `Files.App.Utils.Qualification.CiComActivationProbe` type to be present only in
 `Instrumented`. It repeats that check against the installed assembly and binds

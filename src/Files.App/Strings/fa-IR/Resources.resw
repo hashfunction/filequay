@@ -313,7 +313,7 @@
     <value>چسباندن به نوار کناری</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>Welcome to FileQuay!</value>
+    <value>Welcome to FolderSail!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>اجازه دادن</value>
@@ -1833,10 +1833,10 @@
     <value>ارسال گزارش اشکال نرم افزاری</value>
   </data>
   <data name="SettingsSetAsDefaultFileManager" xml:space="preserve">
-    <value>انتخاب FileQuay به عنوان مدیر فایل پیشفرض</value>
+    <value>انتخاب FolderSail به عنوان مدیر فایل پیشفرض</value>
   </data>
   <data name="SettingsSetAsOpenDialog" xml:space="preserve">
-    <value>استفاده از FileQuay برای Open File Dialog</value>
+    <value>استفاده از FolderSail برای Open File Dialog</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>برچسب</value>
@@ -1974,7 +1974,7 @@
     <value>فایل‌های اخیر</value>
   </data>
   <data name="SettingsOpenInLogin" xml:space="preserve">
-    <value>بازکردن FileQuay همراه با ویندوز</value>
+    <value>بازکردن FolderSail همراه با ویندوز</value>
   </data>
   <data name="Attributes" xml:space="preserve">
     <value>صفات</value>
@@ -2112,10 +2112,10 @@
     <value>Hello!</value>
   </data>
   <data name="ReviewFilesSubtitle" xml:space="preserve">
-    <value>Enjoying FileQuay? Please consider reviewing in the Microsoft Store.</value>
+    <value>Enjoying FolderSail? Please consider reviewing in the Microsoft Store.</value>
   </data>
   <data name="SponsorSubtitle" xml:space="preserve">
-    <value>Enjoying FileQuay? Please consider supporting the project on GitHub.</value>
+    <value>Enjoying FolderSail? Please consider supporting the project on GitHub.</value>
   </data>
   <data name="Sponsor" xml:space="preserve">
     <value>Sponsor</value>
@@ -3404,7 +3404,7 @@
     <value>برای شروع کار با منابع GitHub، کد زیر را در لینک زیر وارد کنید.</value>
   </data>
   <data name="CannotReachGitHubError" xml:space="preserve">
-    <value>FileQuay cannot access GitHub right now.</value>
+    <value>FolderSail cannot access GitHub right now.</value>
   </data>
   <data name="OpenInIDE" xml:space="preserve">
     <value>Open folder in {0}</value>
@@ -3519,10 +3519,10 @@
     <value>دوباره نمایش داده نشود</value>
   </data>
   <data name="FilesRunningAsAdmin" xml:space="preserve">
-    <value>FileQuay is running as administrator</value>
+    <value>FolderSail is running as administrator</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
-    <value>Due to a limitation with Windows and WinAppSdk, drag and drop isn't available when running FileQuay as admin. If you wish to use drag and drop, you can work around this limitation by opening UAC (User Account Control) from the Start Menu and selecting the third level, and restarting Windows. Otherwise, you can keep using FileQuay without drag &amp; drop.</value>
+    <value>Due to a limitation with Windows and WinAppSdk, drag and drop isn't available when running FolderSail as admin. If you wish to use drag and drop, you can work around this limitation by opening UAC (User Account Control) from the Start Menu and selecting the third level, and restarting Windows. Otherwise, you can keep using FolderSail without drag &amp; drop.</value>
   </data>
   <data name="SettingsLeaveAppRunning" xml:space="preserve">
     <value>هنگامی که پنجره برنامه بسته است، برنامه در پس زمینه درحال اجرا بماند</value>
@@ -3981,10 +3981,10 @@
     <value>Edit permissions</value>
   </data>
   <data name="BackgroundRunningNotificationBody" xml:space="preserve">
-    <value>FileQuay is still running in the background to improve startup performance.</value>
+    <value>FolderSail is still running in the background to improve startup performance.</value>
   </data>
   <data name="BackgroundRunningNotificationHeader" xml:space="preserve">
-    <value>Where did FileQuay go?</value>
+    <value>Where did FolderSail go?</value>
   </data>
   <data name="QuestionsAndDiscussions" xml:space="preserve">
     <value>Questions &amp; discussions</value>
@@ -4255,7 +4255,7 @@
     <value>Vertical</value>
   </data>
   <data name="ShowSystemTrayIcon" xml:space="preserve">
-    <value>Show FileQuay icon in the System Tray</value>
+    <value>Show FolderSail icon in the System Tray</value>
   </data>
   <data name="CPUThreads" xml:space="preserve">
     <value>CPU threads</value>

@@ -14,8 +14,8 @@ if ($LASTEXITCODE -ne 0) { throw "MakeAppx validation/unpack failed: $LASTEXITCO
 if ($manifest.Package.Identity.Name -ne $Identity -or $manifest.Package.Identity.Publisher -ne $Publisher) { throw 'Package identity/publisher differs from explicit build inputs.' }
 if ($manifest.OuterXml -match 'packageManagement|windows.startupTask|windows.appExecutionAlias|windows.fileTypeAssociation|49306atecsolution') { throw 'Package contains an undeclared capability, registration or upstream identity.' }
 if (@($manifest.SelectNodes("//*[local-name()='Protocol']")).Count -ne 1 -or @($manifest.SelectNodes("//*[local-name()='Protocol' and @Name='filequay']")).Count -ne 1) { throw 'Package must declare exactly the owned filequay activation protocol.' }
-if ($manifest.Package.Properties.DisplayName -ne 'FileQuay' -or $manifest.Package.Properties.PublisherDisplayName -ne 'Trieflow LLC') { throw 'Package branding does not match FileQuay.' }
-foreach ($required in @('FileQuay.exe', 'NOTICE.md', 'LICENSE-MIT', 'LICENSE-MPL')) {
+if ($manifest.Package.Properties.DisplayName -ne 'FolderSail' -or $manifest.Package.Properties.PublisherDisplayName -ne 'Trieflow LLC') { throw 'Package branding does not match FolderSail.' }
+foreach ($required in @('FolderSail.exe', 'NOTICE.md', 'LICENSE-MIT', 'LICENSE-MPL')) {
     if (-not (Test-Path -LiteralPath (Join-Path $OutputDirectory $required))) { throw "Required package file missing: $required" }
 }
 [xml]$runtimePolicy = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'FileQuay.Runtime.props') -Raw
@@ -33,7 +33,7 @@ $files = @(Get-ChildItem -LiteralPath $OutputDirectory -Recurse -File)
 foreach ($file in $files) {
     $relative = [IO.Path]::GetRelativePath($OutputDirectory, $file.FullName)
     if ($relative -match '(^|[\\/])(Sentry[^\\/]*\.dll|SetFilesAsDefault\.reg|UnsetFilesAsDefault\.reg|Files\.App\.Launcher\.exe)$|Assets[\\/](AppTiles|FilesOpenDialog)[\\/]') { throw "Excluded upstream component packaged: $relative" }
-    if ($file.Name -eq 'FileQuay.dll') {
+    if ($file.Name -eq 'FolderSail.dll') {
         $bytes = [IO.File]::ReadAllBytes($file.FullName)
         foreach ($encoding in @([Text.Encoding]::UTF8, [Text.Encoding]::Unicode)) {
             if ($encoding.GetString($bytes) -match 'sentry\.secret|bingmapskey\.secret|githubclientid\.secret|https://files\.community/blog/posts|SetFilesAsDefault\.reg') { throw 'Application contains an excluded upstream service/default-handler input.' }

@@ -156,15 +156,15 @@ namespace Files.App
 
 		public static class ExternalUrl
 		{
-			public const string GitHubRepoUrl = @"https://filequay.trieflow.com/support";
-			public const string DocumentationUrl = @"https://filequay.trieflow.com/support";
-			public const string DiscordUrl = @"https://filequay.trieflow.com/support";
-			public const string FeatureRequestUrl = @"https://filequay.trieflow.com/support";
-			public const string BugReportUrl = @"https://filequay.trieflow.com/support";
-			public const string PrivacyPolicyUrl = @"https://filequay.trieflow.com/privacy";
-			public const string SupportUsUrl = @"https://filequay.trieflow.com/support";
-			public const string CrowdinUrl = @"https://filequay.trieflow.com/support";
-			public const string ReleaseNotesUrl = "https://filequay.trieflow.com/support";
+			public const string GitHubRepoUrl = @"https://foldersail.trieflow.com/support";
+			public const string DocumentationUrl = @"https://foldersail.trieflow.com/support";
+			public const string DiscordUrl = @"https://foldersail.trieflow.com/support";
+			public const string FeatureRequestUrl = @"https://foldersail.trieflow.com/support";
+			public const string BugReportUrl = @"https://foldersail.trieflow.com/support";
+			public const string PrivacyPolicyUrl = @"https://foldersail.trieflow.com/privacy";
+			public const string SupportUsUrl = @"https://foldersail.trieflow.com/support";
+			public const string CrowdinUrl = @"https://foldersail.trieflow.com/support";
+			public const string ReleaseNotesUrl = "https://foldersail.trieflow.com/support";
 		}
 
 		public static class DocsPath
@@ -237,8 +237,8 @@ namespace Files.App
 		{
 			// These strings are intentionally hardcoded and cannot be moved to resource files.
 			// The Windows App Runtime (which powers the resource loading system) may itself be unavailable at this point
-			public const string MissingRuntimeMessage = "FileQuay failed to start. A required Windows component could not be loaded. Try reinstalling FileQuay from the Microsoft Store or from https://filequay.trieflow.com/support";
-			public const string MissingRuntimeTitle = "FileQuay - Startup Error";
+			public const string MissingRuntimeMessage = "FolderSail failed to start. A required Windows component could not be loaded. Try reinstalling FolderSail from the Microsoft Store or from https://foldersail.trieflow.com/support";
+			public const string MissingRuntimeTitle = "FolderSail - Startup Error";
 		}
 	}
 }

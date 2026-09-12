@@ -1,4 +1,4 @@
-# FileQuay initial Windows qualification
+# FolderSail initial Windows qualification
 
 Source baseline: Files v4.2.9, 99951c66928c4da714da8b1dd46039421182cbab.
 Use Windows x64 with Visual Studio 2026/MSBuild and Windows SDK 26100 or newer,
@@ -11,7 +11,7 @@ proves a compatible supported replacement. No installed Windows tool versions or
 resolved NuGet transitive inventory are claimed from source inspection.
 
 Removed the Satori.targets import: upstream downloaded an unpinned daily/latest
-replacement CLR/JIT from files-community/Satori. FileQuay uses the official .NET
+replacement CLR/JIT from files-community/Satori. FolderSail uses the official .NET
 runtime selected by the SDK and project. No build must fetch that runtime fork.
 
 Run distribution/check-prerequisites.ps1 on Windows. Configure the manifest with
@@ -74,7 +74,7 @@ Run `python -m unittest discover -s tests/packaging` and
 The Python staging tests invoke the exact production MSBuild target using a
 labeled fixture publisher. A separate real SDK 10.0.401 probe cross-published two
 minimal Windows executables on macOS, including both 10.0.12 runtime payloads and
-notices; it is not a FileQuay build, an MSIX or Windows execution.
+notices; it is not a FolderSail build, an MSIX or Windows execution.
 
 Primary references: [Microsoft self-contained Windows deployment](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/self-contained-deploy/deploy-self-contained-apps),
 [.NET runtime patch selection](https://learn.microsoft.com/en-us/dotnet/core/deploying/runtime-patch-selection),

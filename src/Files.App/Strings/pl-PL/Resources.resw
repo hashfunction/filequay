@@ -313,7 +313,7 @@
     <value>Przypnij do panelu bocznego</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>Witamy w FileQuay!</value>
+    <value>Witamy w FolderSail!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>Przyznaj uprawnienia</value>
@@ -609,7 +609,7 @@
     <value>{0} - skrót</value>
   </data>
   <data name="ExceptionNotificationBody" xml:space="preserve">
-    <value>Aplikacja FileQuay napotkała problem, na który się nie przygotowaliśmy.</value>
+    <value>Aplikacja FolderSail napotkała problem, na który się nie przygotowaliśmy.</value>
   </data>
   <data name="ExceptionNotificationHeader" xml:space="preserve">
     <value>Coś poszło nie tak!</value>
@@ -1833,10 +1833,10 @@
     <value>Wyślij raport o błędzie</value>
   </data>
   <data name="SettingsSetAsDefaultFileManager" xml:space="preserve">
-    <value>Ustaw FileQuay jako domyślny menedżer plików</value>
+    <value>Ustaw FolderSail jako domyślny menedżer plików</value>
   </data>
   <data name="SettingsSetAsOpenDialog" xml:space="preserve">
-    <value>Użyj aplikacji FileQuay jako okno dialogowe otwierania plików</value>
+    <value>Użyj aplikacji FolderSail jako okno dialogowe otwierania plików</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>Tag pliku</value>
@@ -1875,7 +1875,7 @@
     <value>Przywróć domyślne</value>
   </data>
   <data name="OpenTabInExistingInstance" xml:space="preserve">
-    <value>Otwórz kartę w istniejącym oknie, gdy otwierasz FileQuay z innej aplikacji</value>
+    <value>Otwórz kartę w istniejącym oknie, gdy otwierasz FolderSail z innej aplikacji</value>
   </data>
   <data name="StartupSettings" xml:space="preserve">
     <value>Ustawienia uruchamiania</value>
@@ -1974,7 +1974,7 @@
     <value>Ostatnie pliki</value>
   </data>
   <data name="SettingsOpenInLogin" xml:space="preserve">
-    <value>Otwórz aplikację FileQuay wraz z systemem Windows</value>
+    <value>Otwórz aplikację FolderSail wraz z systemem Windows</value>
   </data>
   <data name="Attributes" xml:space="preserve">
     <value>Atrybuty</value>
@@ -2049,7 +2049,7 @@
     <value>Obrazy</value>
   </data>
   <data name="UpdateFiles" xml:space="preserve">
-    <value>Zaktualizuj aplikację FileQuay</value>
+    <value>Zaktualizuj aplikację FolderSail</value>
   </data>
   <data name="FileTags" xml:space="preserve">
     <value>Tagi</value>
@@ -2112,10 +2112,10 @@
     <value>Cześć!</value>
   </data>
   <data name="ReviewFilesSubtitle" xml:space="preserve">
-    <value>Podoba Ci się FileQuay? Rozważ zostawienie recenzji w sklepie Microsoft.</value>
+    <value>Podoba Ci się FolderSail? Rozważ zostawienie recenzji w sklepie Microsoft.</value>
   </data>
   <data name="SponsorSubtitle" xml:space="preserve">
-    <value>Podoba Ci się FileQuay? Rozważ wsparcie projektu na GitHub.</value>
+    <value>Podoba Ci się FolderSail? Rozważ wsparcie projektu na GitHub.</value>
   </data>
   <data name="Sponsor" xml:space="preserve">
     <value>Sponsoruj</value>
@@ -3519,7 +3519,7 @@
     <value>Nie pokazuj ponownie</value>
   </data>
   <data name="FilesRunningAsAdmin" xml:space="preserve">
-    <value>Aplikacja FileQuay jest uruchomiona jako administrator</value>
+    <value>Aplikacja FolderSail jest uruchomiona jako administrator</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
     <value>Ze względu na ograniczenie z Windows i WinAppSdk, przeciągnij i upuść nie jest dostępne podczas uruchamiania plików jako administratora. Jeśli chcesz użyć przeciągnij i upuść, możesz pracować nad tym ograniczeniem, otwierając UAC (kontrola konta użytkownika) z Menu Start i wybierając trzeci poziom oraz uruchamiając ponownie Windows. W przeciwnym razie możesz nadal używać plików bez przeciągania i upuszczania.</value>
@@ -3617,7 +3617,7 @@
     <value>elementy</value>
   </data>
   <data name="CannotInitializeGitRepo" xml:space="preserve">
-    <value>FileQuay nie może zainicjować tego folderu jako repozytorium Git.</value>
+    <value>FolderSail nie może zainicjować tego folderu jako repozytorium Git.</value>
   </data>
   <data name="ContributingArtist" xml:space="preserve">
     <value>Współtwórca</value>
@@ -3885,7 +3885,7 @@
     <value>Brak bieżących operacji plików</value>
   </data>
   <data name="OpenOnStartupDisabled" xml:space="preserve">
-    <value>Opcja otwierania FileQuay przy starcie systemu Windows jest niedostępna ze względu na twoje ustawienia systemu lub polisy grupowej. Aby włączyć ponownie, otwórz stronę "uruchamianie" w Menedżerze Zadań.</value>
+    <value>Opcja otwierania FolderSail przy starcie systemu Windows jest niedostępna ze względu na twoje ustawienia systemu lub polisy grupowej. Aby włączyć ponownie, otwórz stronę "uruchamianie" w Menedżerze Zadań.</value>
   </data>
   <data name="FailedToRestore" xml:space="preserve">
     <value>Nie udało się przywrócić plików z kosza</value>
@@ -3981,10 +3981,10 @@
     <value>Edytuj uprawnienia</value>
   </data>
   <data name="BackgroundRunningNotificationBody" xml:space="preserve">
-    <value>FileQuay dalej działa w tle, aby poprawić wydajność uruchamiania.</value>
+    <value>FolderSail dalej działa w tle, aby poprawić wydajność uruchamiania.</value>
   </data>
   <data name="BackgroundRunningNotificationHeader" xml:space="preserve">
-    <value>Gdzie się podziało FileQuay?</value>
+    <value>Gdzie się podziało FolderSail?</value>
   </data>
   <data name="QuestionsAndDiscussions" xml:space="preserve">
     <value>Pytania i dyskusja</value>
@@ -4255,7 +4255,7 @@
     <value>Pionowo</value>
   </data>
   <data name="ShowSystemTrayIcon" xml:space="preserve">
-    <value>Pokaż ikonę FileQuay w zasobniku systemowym</value>
+    <value>Pokaż ikonę FolderSail w zasobniku systemowym</value>
   </data>
   <data name="CPUThreads" xml:space="preserve">
     <value>Wątki CPU</value>

@@ -98,7 +98,7 @@ public sealed class OperationReceiptTests
 	[TestMethod]
 	public void EmptyRecycleBinDisablesCancelAndRecordsActualCompletion()
 	{
-		if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Installed FileQuay tests require Windows.");
+		if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Installed FolderSail tests require Windows.");
 		Assert.AreEqual("1", Environment.GetEnvironmentVariable("FILEQUAY_TEST_DISPOSABLE_RECYCLE_BIN"),
 			"Run only in a disposable Windows account whose Recycle Bin may be emptied.");
 		dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("Shell.Application")!);

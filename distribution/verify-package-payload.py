@@ -14,7 +14,7 @@ class PayloadError(ValueError):
     pass
 
 
-ENTRYPOINTS = ("FileQuay.exe", "Files.App.Server/Files.App.Server.exe")
+ENTRYPOINTS = ("FolderSail.exe", "Files.App.Server/Files.App.Server.exe")
 HOST_FILES = ("coreclr.dll", "clrjit.dll", "hostfxr.dll", "hostpolicy.dll", "System.Private.CoreLib.dll")
 
 
@@ -162,7 +162,7 @@ def verify(root, runtime_version, dependency_directory=None):
         if "framework" in options or "frameworks" in options:
             raise PayloadError("Entrypoint is framework-dependent: " + entry)
         frameworks = {item["name"]: item["version"] for item in options.get("includedFrameworks", [])}
-        required_frameworks = ["Microsoft.NETCore.App"] + (["Microsoft.WindowsDesktop.App"] if entry == "FileQuay.exe" else [])
+        required_frameworks = ["Microsoft.NETCore.App"] + (["Microsoft.WindowsDesktop.App"] if entry == "FolderSail.exe" else [])
         for name in required_frameworks:
             if frameworks.get(name) != runtime_version:
                 raise PayloadError("Wrong or missing runtime version for " + entry + ": " + name + " must be " + runtime_version)
@@ -187,7 +187,7 @@ def verify(root, runtime_version, dependency_directory=None):
                     require(base / relative); assets.add(str(base / relative))
         require(base / "Licenses/DotNetRuntime/LICENSE.TXT")
         require(base / "Licenses/DotNetRuntime/THIRD-PARTY-NOTICES.TXT")
-        if entry == "FileQuay.exe": require("Licenses/WindowsDesktop/LICENSE")
+        if entry == "FolderSail.exe": require("Licenses/WindowsDesktop/LICENSE")
         records.append({"path": entry, "frameworks": frameworks, "dependency_assets_checked": len(assets)})
     dependencies = declared_frameworks(manifest)
     artifact_validation = match_framework_archives(manifest, dependency_directory) if dependency_directory is not None else None

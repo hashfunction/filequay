@@ -1,4 +1,4 @@
-# FileQuay receipt implementation and qualification
+# FolderSail receipt implementation and qualification
 
 The approved intent is one accurate terminal record per operation. Source inspection corrected the original plan: inner progress reports can report per-file success and reuse a mutable model, while outer helpers originally removed a live row and added a new terminal row. `ObservedOperationProgress` observes status synchronously, retaining a batch failure before UI dispatch. `CompleteItem`/`StatusCenterItem.Complete` now finish that same row exactly once. Completion scopes preserve a terminal failure when an outer await throws. Copy, move, delete/recycle, compression/extraction, clone, font install and empty-recycle-bin outer entrypoints use this boundary. Low-level filesystem implementations are unchanged. Preparation cards are temporary discovery UI and are not persisted as completed file operations.
 
@@ -44,6 +44,6 @@ even when MakeAppx accepts the manifest. `WindowsAppSDKSelfContained=false` keep
 the Windows App SDK as an explicit MSIX installation dependency. See
 [toolchain.md](toolchain.md) for source-driven repair evidence and exact policy.
 Neither file inspection nor a minimal SDK cross-publish establishes installed
-FileQuay startup, COM activation, receipt UI behavior or WACK compliance.
+FolderSail startup, COM activation, receipt UI behavior or WACK compliance.
 
 Generated SPDX inventories require resolved application assets. `NOASSERTION` entries, native 7-Zip/unRAR/SevenZipSharp inputs, assets/fonts/native winmd provenance and corresponding source remain release review gates. No package is cleared for distribution by these scripts. Original MIT/MPL notices remain in history and are included in the package. The public vendor download recipe is maintained by the release coordinator.

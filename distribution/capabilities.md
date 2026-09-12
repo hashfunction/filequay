@@ -1,4 +1,4 @@
-# FileQuay package capability qualification
+# FolderSail package capability qualification
 
 The source manifest is intentionally unconfigured. Supply owned identity and
 publisher through Configure-AppxManifest.ps1. No Store identity is invented.
@@ -9,7 +9,7 @@ explicit protected-folder operations; unvirtualizedResources and disabled
 FileSystemWriteVirtualization for editing real user-selected AppData paths.
 These restricted capabilities still require runtime and Store justification.
 
-Removed before first FileQuay build: packageManagement/update task, removableStorage,
+Removed before first FolderSail build: packageManagement/update task, removableStorage,
 internetClient, privateNetworkClientServer, startup registration, file associations,
 upstream preview-extension host, execution alias and protocol. Protocol/alias may
 only be added by explicit packaging inputs; neither changes system defaults.

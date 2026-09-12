@@ -1,8 +1,8 @@
 # Copyright (c) Trieflow LLC. Licensed under the MIT License.
-param([string]$Identity = '', [string]$Publisher = '', [string]$Version = '1.0.0.0')
+param([string]$Identity = '', [string]$Publisher = '', [string]$Version = '1.0.1.0')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-if (-not $IsWindows) { throw 'FileQuay packaging requires Windows; portable test results are not package qualification.' }
+if (-not $IsWindows) { throw 'FolderSail packaging requires Windows; portable test results are not package qualification.' }
 if (-not $Identity -or -not $Publisher) { throw 'Explicit owned Identity and Publisher are required. No Store identity is inferred.' }
 Set-Location (Split-Path $PSScriptRoot -Parent)
 function Invoke-Checked([string]$Program, [string[]]$Arguments) {
@@ -33,7 +33,7 @@ if ($packages.Count -ne 1) { throw "Expected exactly one main unsigned package, 
 $unpacked = Join-Path $runDirectory 'validated-package'
 ./distribution/verify-package.ps1 -PackagePath $packages[0].FullName -Identity $Identity -Publisher $Publisher -OutputDirectory $unpacked
 Invoke-Checked python @('distribution/inventory.py','--package-root',$unpacked)
-$sourceArchive = Join-Path $runDirectory ('FileQuay-source-' + $sourceCommit + '.zip')
+$sourceArchive = Join-Path $runDirectory ('FolderSail-source-' + $sourceCommit + '.zip')
 Invoke-Checked git @('archive','--format=zip',('--output=' + $sourceArchive),$sourceCommit)
 Copy-Item distribution/dependencies.spdx.json,distribution/resources.csv -Destination $runDirectory
 $hashes = @($packages[0].FullName, $sourceArchive, (Join-Path $runDirectory 'dependencies.spdx.json'), (Join-Path $runDirectory 'resources.csv')) | ForEach-Object { [ordered]@{ name=[IO.Path]::GetFileName($_); sha256=(Get-FileHash $_ -Algorithm SHA256).Hash } }

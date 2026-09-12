@@ -313,7 +313,7 @@
     <value>ปักไว้ที่แถบด้านข้าง</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>Welcome to FileQuay!</value>
+    <value>Welcome to FolderSail!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>อนุญาตสิทธิ์การเข้าถึง</value>
@@ -1875,7 +1875,7 @@
     <value>คืนค่าเริ่มต้น</value>
   </data>
   <data name="OpenTabInExistingInstance" xml:space="preserve">
-    <value>Open tab in existing instance when opening FileQuay from another app</value>
+    <value>Open tab in existing instance when opening FolderSail from another app</value>
   </data>
   <data name="StartupSettings" xml:space="preserve">
     <value>การตั้งค่าเมื่อเริ่มต้น</value>
@@ -1974,7 +1974,7 @@
     <value>ไฟล์ล่าสุด</value>
   </data>
   <data name="SettingsOpenInLogin" xml:space="preserve">
-    <value>เปิด FileQuay เมื่อวินโดว์เริ่มทำงาน</value>
+    <value>เปิด FolderSail เมื่อวินโดว์เริ่มทำงาน</value>
   </data>
   <data name="Attributes" xml:space="preserve">
     <value>คุณสมบัติ</value>
@@ -2049,7 +2049,7 @@
     <value>รูปภาพ</value>
   </data>
   <data name="UpdateFiles" xml:space="preserve">
-    <value>อัปเดต FileQuay</value>
+    <value>อัปเดต FolderSail</value>
   </data>
   <data name="FileTags" xml:space="preserve">
     <value>แท็ก</value>
@@ -2112,10 +2112,10 @@
     <value>Hello!</value>
   </data>
   <data name="ReviewFilesSubtitle" xml:space="preserve">
-    <value>Enjoying FileQuay? Please consider reviewing in the Microsoft Store.</value>
+    <value>Enjoying FolderSail? Please consider reviewing in the Microsoft Store.</value>
   </data>
   <data name="SponsorSubtitle" xml:space="preserve">
-    <value>Enjoying FileQuay? Please consider supporting the project on GitHub.</value>
+    <value>Enjoying FolderSail? Please consider supporting the project on GitHub.</value>
   </data>
   <data name="Sponsor" xml:space="preserve">
     <value>Sponsor</value>
@@ -3404,7 +3404,7 @@
     <value>ป้อนรหัสพวกนี้ไปยังลิงก์ที่อยู่ด้านล่างเพื่อเริ่มต้นทำงานกับคลังเก็บที่อยู่ใน GitHub</value>
   </data>
   <data name="CannotReachGitHubError" xml:space="preserve">
-    <value>FileQuay cannot access GitHub right now.</value>
+    <value>FolderSail cannot access GitHub right now.</value>
   </data>
   <data name="OpenInIDE" xml:space="preserve">
     <value>Open folder in {0}</value>
@@ -3519,10 +3519,10 @@
     <value>ไม่ต้องแสดงอีก</value>
   </data>
   <data name="FilesRunningAsAdmin" xml:space="preserve">
-    <value>FileQuay is running as administrator</value>
+    <value>FolderSail is running as administrator</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
-    <value>Due to a limitation with Windows and WinAppSdk, drag and drop isn't available when running FileQuay as admin. If you wish to use drag and drop, you can work around this limitation by opening UAC (User Account Control) from the Start Menu and selecting the third level, and restarting Windows. Otherwise, you can keep using FileQuay without drag &amp; drop.</value>
+    <value>Due to a limitation with Windows and WinAppSdk, drag and drop isn't available when running FolderSail as admin. If you wish to use drag and drop, you can work around this limitation by opening UAC (User Account Control) from the Start Menu and selecting the third level, and restarting Windows. Otherwise, you can keep using FolderSail without drag &amp; drop.</value>
   </data>
   <data name="SettingsLeaveAppRunning" xml:space="preserve">
     <value>ให้แอปทำงานต่อในพื้นหลังเมื่อปิดหน้าต่างไปแล้ว</value>
@@ -3617,7 +3617,7 @@
     <value>รายการ</value>
   </data>
   <data name="CannotInitializeGitRepo" xml:space="preserve">
-    <value>FileQuay can't initialize this directory as a Git repository.</value>
+    <value>FolderSail can't initialize this directory as a Git repository.</value>
   </data>
   <data name="ContributingArtist" xml:space="preserve">
     <value>Contributing Artist</value>
@@ -3885,7 +3885,7 @@
     <value>ยังไม่กระบวนการใด ๆ ในตอนนี้</value>
   </data>
   <data name="OpenOnStartupDisabled" xml:space="preserve">
-    <value>ตัวเลือกเปิด FileQuay เมื่อวินโดว์เริ่มทำงานไม่สามารถใช้งานได้เนื่องจากการตั้งค่าหรือนโยบายระบบของคุณ หากต้องการเปิดใช้งานให้เปิดตัวจัดการงานแล้วไปที่หน้าเริ่มต้น</value>
+    <value>ตัวเลือกเปิด FolderSail เมื่อวินโดว์เริ่มทำงานไม่สามารถใช้งานได้เนื่องจากการตั้งค่าหรือนโยบายระบบของคุณ หากต้องการเปิดใช้งานให้เปิดตัวจัดการงานแล้วไปที่หน้าเริ่มต้น</value>
   </data>
   <data name="FailedToRestore" xml:space="preserve">
     <value>Failed to restore items from Recycle Bin</value>
@@ -3981,10 +3981,10 @@
     <value>แก้ไขสิทธิ</value>
   </data>
   <data name="BackgroundRunningNotificationBody" xml:space="preserve">
-    <value>FileQuay ยังคงทำงานอยู่ในพื้นหลังเพื่อลดเวลาที่ใช้การเปิดโปรแกรม</value>
+    <value>FolderSail ยังคงทำงานอยู่ในพื้นหลังเพื่อลดเวลาที่ใช้การเปิดโปรแกรม</value>
   </data>
   <data name="BackgroundRunningNotificationHeader" xml:space="preserve">
-    <value>FileQuay หายไปไหนแล้ว</value>
+    <value>FolderSail หายไปไหนแล้ว</value>
   </data>
   <data name="QuestionsAndDiscussions" xml:space="preserve">
     <value>ตั้งคำถามสนทนา</value>
@@ -4255,7 +4255,7 @@
     <value>Vertical</value>
   </data>
   <data name="ShowSystemTrayIcon" xml:space="preserve">
-    <value>Show FileQuay icon in the System Tray</value>
+    <value>Show FolderSail icon in the System Tray</value>
   </data>
   <data name="CPUThreads" xml:space="preserve">
     <value>CPU threads</value>

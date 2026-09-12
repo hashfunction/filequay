@@ -15,7 +15,7 @@ if ($env:OS -ne 'Windows_NT' -or $env:CI -ne 'true') { throw 'Requires a disposa
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $identity = 'Trieflow.FileQuay.Qualification'
 $publisher = 'CN=FileQuay-CI-Qualification'
-$version = '1.0.0.0'
+$version = '1.0.1.0'
 $architecture = 'X64'
 $existingQualificationPackages = @(Get-AppxPackage -Name $identity)
 if ($existingQualificationPackages.Count) { throw 'Refusing to replace an existing installation.' }
@@ -28,9 +28,9 @@ New-Item -ItemType Directory -Path $work -Force | Out-Null
 New-Item -ItemType Directory -Path $evidence -Force | Out-Null
 $resultPath = Join-Path $evidence 'installation-result.json'
 if (Test-Path -LiteralPath $resultPath) { throw "Refusing to replace existing qualification evidence: $resultPath" }
-$signedCopy = Join-Path $work 'FileQuay-test.msix'
+$signedCopy = Join-Path $work 'FolderSail-test.msix'
 $publicCertificate = Join-Path $work 'test.cer'
-$packagedAssembly = Get-Item -LiteralPath (Join-Path $ValidatedPackageDirectory 'FileQuay.dll')
+$packagedAssembly = Get-Item -LiteralPath (Join-Path $ValidatedPackageDirectory 'FolderSail.dll')
 $managedBuild = Get-FileQuayManagedBuildKindEvidence $packagedAssembly.FullName $BuildKind
 $managedBuild | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $evidence 'managed-build-kind.json') -Encoding UTF8
 $record = [ordered]@{ source_commit=$env:GITHUB_SHA; unsigned_package_sha256=(Get-FileHash $package.FullName -Algorithm SHA256).Hash;
@@ -119,14 +119,14 @@ try {
     $record.dependency_installation_from_artifacts_verified = $DependencyMode -eq 'RequireClean'
     $record.dependency_resolution_only = $DependencyMode -eq 'AllowPreinstalled'
     $manifest = Get-AppxPackageManifest -Package $installed.PackageFullName
-    $appNodes = @($manifest.Package.Applications.Application | Where-Object { $_.Executable -eq 'FileQuay.exe' })
+    $appNodes = @($manifest.Package.Applications.Application | Where-Object { $_.Executable -eq 'FolderSail.exe' })
     if ($appNodes.Count -ne 1) { throw 'Expected one owned application entry point.' }
-    $executable = Join-Path $installed.InstallLocation 'FileQuay.exe'
+    $executable = Join-Path $installed.InstallLocation 'FolderSail.exe'
     $serverExecutable = Join-Path $installed.InstallLocation 'Files.App.Server\Files.App.Server.exe'
-    foreach ($relative in @('FileQuay.exe','coreclr.dll','hostfxr.dll','Files.App.Server\Files.App.Server.exe','Files.App.Server.winmd')) {
+    foreach ($relative in @('FolderSail.exe','coreclr.dll','hostfxr.dll','Files.App.Server\Files.App.Server.exe','Files.App.Server.winmd')) {
         if (-not (Test-Path -LiteralPath (Join-Path $installed.InstallLocation $relative))) { throw "Installed runtime file missing: $relative" }
     }
-    $installedManagedBuild = Get-FileQuayManagedBuildKindEvidence (Join-Path $installed.InstallLocation 'FileQuay.dll') $BuildKind
+    $installedManagedBuild = Get-FileQuayManagedBuildKindEvidence (Join-Path $installed.InstallLocation 'FolderSail.dll') $BuildKind
     if ($installedManagedBuild.assembly_sha256 -cne $managedBuild.assembly_sha256) { throw 'Installed managed assembly differs from the metadata-inspected package bytes.' }
     $record.installed_managed_assembly_sha256 = $installedManagedBuild.assembly_sha256
     $aumid = $installed.PackageFamilyName + '!' + $appNodes[0].Id
@@ -176,7 +176,7 @@ namespace FileQuayQualification {
         if ($application.Path -ine $executable) { throw 'Normal activation returned a process outside the installed package.' }
         $record.activated_package_full_name = [FileQuayQualification.Activation]::PackageFullName($applicationHandle.DangerousGetHandle())
         if ($record.activated_package_full_name -cne $installed.PackageFullName) { throw 'The activated process does not carry the installed package identity.' }
-        $expectedExecutableHash = (Get-FileHash (Join-Path $ValidatedPackageDirectory 'FileQuay.exe') -Algorithm SHA256).Hash
+        $expectedExecutableHash = (Get-FileHash (Join-Path $ValidatedPackageDirectory 'FolderSail.exe') -Algorithm SHA256).Hash
         $record.executable_sha256 = (Get-FileHash $executable -Algorithm SHA256).Hash
         if ($record.executable_sha256 -cne $expectedExecutableHash) { throw 'Activated executable differs from the validated packaged bytes.' }
         $consumerProcessOwned = $true
@@ -187,7 +187,7 @@ namespace FileQuayQualification {
     $deadline = (Get-Date).AddSeconds(90); $window = $null; $control = $null
     while ((Get-Date) -lt $deadline) {
         if ($BuildKind -eq 'Instrumented') {
-            $application = Get-Process -Name FileQuay -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $executable } | Select-Object -First 1
+            $application = Get-Process -Name FolderSail -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $executable } | Select-Object -First 1
         }
         if ($application) {
             $application.Refresh()
@@ -200,7 +200,7 @@ namespace FileQuayQualification {
         }
         Start-Sleep -Milliseconds 200
     }
-    if (-not $application -or -not $window -or -not $control -or $control.Current.IsOffscreen) { throw 'No installed FileQuay main window with its visible Status Center control.' }
+    if (-not $application -or -not $window -or -not $control -or $control.Current.IsOffscreen) { throw 'No installed FolderSail main window with its visible Status Center control.' }
     Start-Sleep -Seconds 3
     $application.Refresh()
     if ($application.HasExited -or $application.MainWindowHandle -eq [IntPtr]::Zero) { throw 'Installed application exited after appearing.' }
@@ -218,12 +218,12 @@ namespace FileQuayQualification {
     $record.packaged_coreclr_sha256 = (Get-FileHash -LiteralPath $coreclr[0].path -Algorithm SHA256).Hash
 
     if ($BuildKind -eq 'Consumer') {
-        if (-not $application.MainWindowTitle.EndsWith('FileQuay', [StringComparison]::Ordinal)) {
+        if (-not $application.MainWindowTitle.EndsWith('FolderSail', [StringComparison]::Ordinal)) {
             throw "Unexpected main window title: $($application.MainWindowTitle)"
         }
         $bounds = $window.Current.BoundingRectangle
         if ($bounds.Width -lt 1 -or $bounds.Height -lt 1 -or $bounds.Width -gt 8192 -or $bounds.Height -gt 8192 -or
-            $bounds.Width * $bounds.Height -gt 33554432) { throw 'The FileQuay window dimensions are outside the bounded screenshot budget.' }
+            $bounds.Width * $bounds.Height -gt 33554432) { throw 'The FolderSail window dimensions are outside the bounded screenshot budget.' }
         $record.window_bounds = @{ x=$bounds.X; y=$bounds.Y; width=$bounds.Width; height=$bounds.Height }
         $record.consumer_expected_close_behavior = 'Release default LeaveAppRunning=true: close may hide the final window while the verified process remains alive.'
         $automationNodes = [Collections.Generic.List[object]]::new()
@@ -265,7 +265,7 @@ namespace FileQuayQualification {
             $record.screenshot_captured = $true
         } catch {
             $record.screenshot_error = $_.Exception.ToString()
-            throw 'The genuine FileQuay window could not be captured for qualification evidence.'
+            throw 'The genuine FolderSail window could not be captured for qualification evidence.'
         }
     }
 
@@ -296,14 +296,14 @@ namespace FileQuayQualification {
         $record.window_disappearance_final_process_exited = $application.HasExited
         $record.window_disappearance_final_main_window_handle = [int64]$application.MainWindowHandle
         if (-not $record.window_disappeared) {
-            throw "The normal FileQuay window remained after its close request; UIA observation errors: $windowObservationErrorCount."
+            throw "The normal FolderSail window remained after its close request; UIA observation errors: $windowObservationErrorCount."
         }
         $record.consumer_exit = Get-FileQuayProcessExitEvidence $application 3000
         if ($record.consumer_exit.wait_completed) {
-            if (-not $record.consumer_exit.normal_exit) { throw ('Normal FileQuay exited with a failure: ' + ($record.consumer_exit | ConvertTo-Json -Compress)) }
+            if (-not $record.consumer_exit.normal_exit) { throw ('Normal FolderSail exited with a failure: ' + ($record.consumer_exit | ConvertTo-Json -Compress)) }
             $record.normal_process_exit_verified = $true
         } else {
-            if ($record.consumer_exit.observation_error) { throw ('Normal FileQuay process state could not be observed: ' + $record.consumer_exit.observation_error) }
+            if ($record.consumer_exit.observation_error) { throw ('Normal FolderSail process state could not be observed: ' + $record.consumer_exit.observation_error) }
             $record.consumer_background_process_observed = $true
             $record.process_exit_acceptance_pending = $true
         }
@@ -319,7 +319,7 @@ namespace FileQuayQualification {
     $record.client_activation_hresult = [FileQuayQualification.Activation]::Run($aumid, ('--filequay-ci-com-probe=' + $nonce), [ref]$probeId)
     if ($record.client_activation_hresult -lt 0) { throw ('Packaged probe activation failed: 0x{0:X8}' -f $record.client_activation_hresult) }
     $probe = Get-Process -Id $probeId
-    if ($probe.Path -ine $executable) { throw 'Activation returned a process outside the installed FileQuay package.' }
+    if ($probe.Path -ine $executable) { throw 'Activation returned a process outside the installed FolderSail package.' }
     # This Process was attached by PID, not started by this component. Retain its
     # OS handle while alive so exit status remains queryable after it terminates.
     $probeHandle = $probe.SafeHandle
@@ -393,9 +393,9 @@ namespace FileQuayQualification {
                     $record.owned_process_cleanup_verified = Stop-FileQuayOwnedProcess $application 15000
                 }
             } elseif ($installed) {
-                $paths = @((Join-Path $installed.InstallLocation 'FileQuay.exe'), (Join-Path $installed.InstallLocation 'Files.App.Server\Files.App.Server.exe'))
+                $paths = @((Join-Path $installed.InstallLocation 'FolderSail.exe'), (Join-Path $installed.InstallLocation 'Files.App.Server\Files.App.Server.exe'))
                 $processErrors = [System.Collections.Generic.List[string]]::new()
-                foreach ($process in @(Get-Process -Name FileQuay,Files.App.Server -ErrorAction SilentlyContinue | Where-Object { $_.Path -in $paths })) {
+                foreach ($process in @(Get-Process -Name FolderSail,Files.App.Server -ErrorAction SilentlyContinue | Where-Object { $_.Path -in $paths })) {
                     try {
                         Stop-Process -Id $process.Id -Force
                         if (-not $process.WaitForExit(15000)) { throw "Owned process $($process.Id) remained after cleanup." }

@@ -1,6 +1,6 @@
 param()
 $ErrorActionPreference = 'Stop'
-if ($env:OS -ne 'Windows_NT') { throw 'Native FileQuay qualification requires Windows.' }
+if ($env:OS -ne 'Windows_NT') { throw 'Native FolderSail qualification requires Windows.' }
 Set-Location (Split-Path $PSScriptRoot -Parent)
 New-Item -ItemType Directory -Force artifacts/qualification | Out-Null
 dotnet --info | Out-File artifacts/qualification/dotnet-info.txt

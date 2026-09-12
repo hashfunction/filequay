@@ -55,7 +55,7 @@ function New-FileQuayWorkflowFixture([string]$ParentDirectory) {
         source=(Join-Path $root 'source/résumé,原稿.txt');copied=(Join-Path $root 'copy/résumé,原稿.txt')
         moved=(Join-Path $root 'move/résumé,原稿.txt');csv=(Join-Path $root 'export/receipts.csv')
     }
-    [IO.File]::WriteAllBytes($fixture.source, [Text.Encoding]::UTF8.GetBytes("FileQuay owned Unicode fixture. Keep the original.`r`nOriginal: 原稿 / résumé.`r`n"))
+    [IO.File]::WriteAllBytes($fixture.source, [Text.Encoding]::UTF8.GetBytes("FolderSail owned Unicode fixture. Keep the original.`r`nOriginal: 原稿 / résumé.`r`n"))
     foreach ($name in @('source','copy','move')) {
         [IO.File]::WriteAllText((Join-Path $root "$name/protected.txt"), "Protected $name sentinel $token")
     }

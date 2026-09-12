@@ -754,7 +754,7 @@ src/Files.App/Assets/Archives/ExtensionIcon.targetsize-48.png,7492723d9b19bea058
 src/Files.App/Assets/Archives/ExtensionIcon.targetsize-64.png,baac4dcb6b1f86813b6aec784f770d75b3adad26a59326e957341351a32bb3ff,Files baseline 99951c66928c4da714da8b1dd46039421182cbab; verify package-specific origin,NOASSERTION,REVIEW_REQUIRED,REVIEW_REQUIRED
 src/Files.App/Assets/FileQuay/FileQuay.svg,ca5d580b95fa8ae2622c32214cab02931122871f5dbf50dc8dd9a6cd8e971e2c,Trieflow LLC,MIT,src/Files.App/Assets/FileQuay/NOTICE.md,include
 src/Files.App/Assets/FileQuay/Logo.ico,e17d3e33630c9f54f134a435d569883814d40c9e4a063fe1cc3114c47bf65251,Trieflow LLC,MIT,src/Files.App/Assets/FileQuay/NOTICE.md,include
-src/Files.App/Assets/FileQuay/NOTICE.md,c13463d8a69004f21e73236a38b0e2cf4032f5f773f9d6800710ef03ff6166c8,Trieflow LLC,MIT,src/Files.App/Assets/FileQuay/NOTICE.md,include
+src/Files.App/Assets/FileQuay/NOTICE.md,2c7f2ecc7596478a9f6692ae5adcac8deabb9e5ff7a10a6049c939ad92939047,Trieflow LLC,MIT,src/Files.App/Assets/FileQuay/NOTICE.md,include
 src/Files.App/Assets/FileQuay/SplashScreen.png,f781becc4ae08c89c853be3ae6dfcf9e5d57306ce5ee085596a4c207f83921b9,Trieflow LLC,MIT,src/Files.App/Assets/FileQuay/NOTICE.md,include
 src/Files.App/Assets/FileQuay/Square150x150Logo.png,19ae4c29c559f449646b30a254d8e8244ba7f6c2d22774baf522feca18f3bc69,Trieflow LLC,MIT,src/Files.App/Assets/FileQuay/NOTICE.md,include
 src/Files.App/Assets/FileQuay/Square310x310Logo.png,aa9ce4591889af82b5cdff2dc71df074100b6d8b5d48de2785e565e8c9a67321,Trieflow LLC,MIT,src/Files.App/Assets/FileQuay/NOTICE.md,include

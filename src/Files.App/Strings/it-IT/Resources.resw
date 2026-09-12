@@ -313,7 +313,7 @@
     <value>Aggiungi alla barra laterale</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>Welcome to FileQuay!</value>
+    <value>Welcome to FolderSail!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>Concedi l'autorizzazione</value>
@@ -609,7 +609,7 @@
     <value>{0} - collegamento</value>
   </data>
   <data name="ExceptionNotificationBody" xml:space="preserve">
-    <value>FileQuay ha riscontrato un problema per cui gli sviluppatori non erano pronti.</value>
+    <value>FolderSail ha riscontrato un problema per cui gli sviluppatori non erano pronti.</value>
   </data>
   <data name="ExceptionNotificationHeader" xml:space="preserve">
     <value>Si è verificato un errore.</value>
@@ -1833,10 +1833,10 @@
     <value>Segnala un bug</value>
   </data>
   <data name="SettingsSetAsDefaultFileManager" xml:space="preserve">
-    <value>Imposta FileQuay come gestore file predefinito</value>
+    <value>Imposta FolderSail come gestore file predefinito</value>
   </data>
   <data name="SettingsSetAsOpenDialog" xml:space="preserve">
-    <value>Usa FileQuay per le finestre di dialogo "Apri" e "Salva con nome"</value>
+    <value>Usa FolderSail per le finestre di dialogo "Apri" e "Salva con nome"</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>Etichetta</value>
@@ -1875,7 +1875,7 @@
     <value>Ripristina predefiniti</value>
   </data>
   <data name="OpenTabInExistingInstance" xml:space="preserve">
-    <value>Apri la scheda nell'istanza esistente quando apri FileQuay da un'altra app</value>
+    <value>Apri la scheda nell'istanza esistente quando apri FolderSail da un'altra app</value>
   </data>
   <data name="StartupSettings" xml:space="preserve">
     <value>Impostazioni di Avvio</value>
@@ -1974,7 +1974,7 @@
     <value>File recenti</value>
   </data>
   <data name="SettingsOpenInLogin" xml:space="preserve">
-    <value>Apri FileQuay all'avvio di Windows</value>
+    <value>Apri FolderSail all'avvio di Windows</value>
   </data>
   <data name="Attributes" xml:space="preserve">
     <value>Attributi</value>
@@ -2049,7 +2049,7 @@
     <value>Immagini</value>
   </data>
   <data name="UpdateFiles" xml:space="preserve">
-    <value>Aggiorna FileQuay</value>
+    <value>Aggiorna FolderSail</value>
   </data>
   <data name="FileTags" xml:space="preserve">
     <value>Etichette</value>
@@ -2112,10 +2112,10 @@
     <value>Ciao!</value>
   </data>
   <data name="ReviewFilesSubtitle" xml:space="preserve">
-    <value>Ti piace FileQuay? Considera di valutarci sul Microsoft Store.</value>
+    <value>Ti piace FolderSail? Considera di valutarci sul Microsoft Store.</value>
   </data>
   <data name="SponsorSubtitle" xml:space="preserve">
-    <value>Ti piace FileQuay? Considera di sostenere il progetto su GitHub.</value>
+    <value>Ti piace FolderSail? Considera di sostenere il progetto su GitHub.</value>
   </data>
   <data name="Sponsor" xml:space="preserve">
     <value>Supportaci</value>
@@ -3404,7 +3404,7 @@
     <value>Inserisci il codice seguente al link qui sotto per iniziare a usare i repository di GitHub.</value>
   </data>
   <data name="CannotReachGitHubError" xml:space="preserve">
-    <value>FileQuay non può accedere a GitHub in questo momento.</value>
+    <value>FolderSail non può accedere a GitHub in questo momento.</value>
   </data>
   <data name="OpenInIDE" xml:space="preserve">
     <value>Apri cartella in {0}</value>
@@ -3519,10 +3519,10 @@
     <value>Non mostrare più</value>
   </data>
   <data name="FilesRunningAsAdmin" xml:space="preserve">
-    <value>FileQuay è in esecuzione come amministratore</value>
+    <value>FolderSail è in esecuzione come amministratore</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
-    <value>A causa di una limitazione di Windows e WinAppSdk, il drag and drop non è disponibile quando si esegue FIles come amministratore. Se si desidera utilizzare il drag and drop, è possibile aggirare questa limitazione aprendo UAC (User Account Control) dal menu Start, selezionando il terzo livello e riavviando Windows. Altrimenti, è possibile continuare a usare FileQuay senza drag and drop.</value>
+    <value>A causa di una limitazione di Windows e WinAppSdk, il drag and drop non è disponibile quando si esegue FIles come amministratore. Se si desidera utilizzare il drag and drop, è possibile aggirare questa limitazione aprendo UAC (User Account Control) dal menu Start, selezionando il terzo livello e riavviando Windows. Altrimenti, è possibile continuare a usare FolderSail senza drag and drop.</value>
   </data>
   <data name="SettingsLeaveAppRunning" xml:space="preserve">
     <value>Lasciare l'app in esecuzione in background quando la finestra è chiusa</value>
@@ -3617,7 +3617,7 @@
     <value>elementi</value>
   </data>
   <data name="CannotInitializeGitRepo" xml:space="preserve">
-    <value>FileQuay non può inizializzare questa cartella come repository Git.</value>
+    <value>FolderSail non può inizializzare questa cartella come repository Git.</value>
   </data>
   <data name="ContributingArtist" xml:space="preserve">
     <value>Artisti che hanno contribuito</value>
@@ -3885,7 +3885,7 @@
     <value>Nessuna operazione in corso</value>
   </data>
   <data name="OpenOnStartupDisabled" xml:space="preserve">
-    <value>L'opzione per aprire FileQuay all'avvio di Windows non è disponibile a causa delle impostazioni di sistema o dei criteri di gruppo. Per riattivare, apri la pagina App di avvio in Gestione attività.</value>
+    <value>L'opzione per aprire FolderSail all'avvio di Windows non è disponibile a causa delle impostazioni di sistema o dei criteri di gruppo. Per riattivare, apri la pagina App di avvio in Gestione attività.</value>
   </data>
   <data name="FailedToRestore" xml:space="preserve">
     <value>Recupero degli oggetti dal Cestino non riuscito</value>
@@ -3981,10 +3981,10 @@
     <value>Modifica autorizzazioni</value>
   </data>
   <data name="BackgroundRunningNotificationBody" xml:space="preserve">
-    <value>FileQuay è ancora in esecuzione in background per migliorare le prestazioni di avvio.</value>
+    <value>FolderSail è ancora in esecuzione in background per migliorare le prestazioni di avvio.</value>
   </data>
   <data name="BackgroundRunningNotificationHeader" xml:space="preserve">
-    <value>Dove è finito FileQuay?</value>
+    <value>Dove è finito FolderSail?</value>
   </data>
   <data name="QuestionsAndDiscussions" xml:space="preserve">
     <value>Domande e discussioni</value>
@@ -4255,7 +4255,7 @@
     <value>Verticale</value>
   </data>
   <data name="ShowSystemTrayIcon" xml:space="preserve">
-    <value>Mostra l'icona di FileQuay nella barra delle applicazioni</value>
+    <value>Mostra l'icona di FolderSail nella barra delle applicazioni</value>
   </data>
   <data name="CPUThreads" xml:space="preserve">
     <value>Thread CPU</value>

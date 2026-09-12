@@ -1,6 +1,6 @@
 # SQLite dependency qualification
 
-FileQuay's application and `tests/Files.SQLiteQualification` import the same
+FolderSail's application and `tests/Files.SQLiteQualification` import the same
 `FileQuay.SQLite.props`. It retains Microsoft.Data.Sqlite.Core **10.0.2** and
 replaces retired SQLitePCLRaw.bundle_green 2.1.11 with exact
 SQLitePCLRaw.config.e_sqlite3 **3.0.5** and native SQLite **3.53.4**. Raw core and

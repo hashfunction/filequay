@@ -72,7 +72,7 @@ namespace Files.App.Utils.Git
 
 		// Constant already moved into abstraction
 		public static Task RequireGitAuthenticationAsync() => DialogDisplayHelper.ShowDialogAsync(
-			"FileQuay", "FileQuayGitSignInUnavailable".GetLocalizedResource());
+			"FolderSail", "FileQuayGitSignInUnavailable".GetLocalizedResource());
 
 		private const string GIT_RESOURCE_NAME = "FileQuay:https://github.com";
 

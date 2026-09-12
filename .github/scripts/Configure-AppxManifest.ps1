@@ -3,8 +3,8 @@
 param(
     [string]$Identity = '',
     [string]$Publisher = '',
-    [string]$Version = '1.0.0.0',
-    [string]$DisplayName = 'FileQuay',
+    [string]$Version = '1.0.1.0',
+    [string]$DisplayName = 'FolderSail',
     [string]$PublisherDisplayName = 'Trieflow LLC',
     [string]$ExecutableAlias = '',
     [string]$Protocol = '',
@@ -14,7 +14,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 if ([string]::IsNullOrWhiteSpace($Identity) -or [string]::IsNullOrWhiteSpace($Publisher)) {
-    throw 'FileQuay requires an explicit owned package identity and publisher.'
+    throw 'FolderSail requires an explicit owned package identity and publisher.'
 }
 if ($Identity -notmatch '^[A-Za-z0-9][A-Za-z0-9.-]{2,49}$' -or $Identity -match '^(FilesDev$|FilesPreview$|Files$|49306atecsolution\.)' -or $Identity -match 'Required') {
     throw 'Invalid or upstream package identity.'
@@ -64,4 +64,4 @@ $settings = [System.Xml.XmlWriterSettings]::new()
 $settings.Indent = $true; $settings.NewLineChars = "`r`n"; $settings.Encoding = [System.Text.UTF8Encoding]::new($false)
 $writer = [System.Xml.XmlWriter]::Create($PackageManifestPath, $settings)
 try { $doc.Save($writer) } finally { $writer.Dispose() }
-Write-Output "Configured FileQuay manifest; optional protocol/alias are absent unless explicitly supplied."
+Write-Output "Configured FolderSail manifest; optional protocol/alias are absent unless explicitly supplied."

@@ -313,7 +313,7 @@
     <value>Fiksoje te shiriti anÃ«sor</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>Welcome to FileQuay!</value>
+    <value>Welcome to FolderSail!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>Jep lejen</value>
@@ -1833,7 +1833,7 @@
     <value>Paraqisni raportin e gabimeve</value>
   </data>
   <data name="SettingsSetAsDefaultFileManager" xml:space="preserve">
-    <value>Cakto FileQuay si menaxherin e parazgjedhur të skedarëve</value>
+    <value>Cakto FolderSail si menaxherin e parazgjedhur të skedarëve</value>
   </data>
   <data name="SettingsSetAsOpenDialog" xml:space="preserve">
     <value>Përdorni skedarët si dialogun e skedarit të hapur</value>
@@ -3519,10 +3519,10 @@
     <value>Mos u shfaq më</value>
   </data>
   <data name="FilesRunningAsAdmin" xml:space="preserve">
-    <value>FileQuay po ekzekutohet si administrator</value>
+    <value>FolderSail po ekzekutohet si administrator</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
-    <value>Për shkak të një kufizimi me Windows dhe WinAppSdk, tërhiq dhe lësho nuk ofrohet kur ekzekuton FileQuay si administrator. Nëse dëshironi të përdorni drag and drop, mund të zgjidhni këtë kufizim duke hapur UAC (User Account Control) nga menyja Start dhe duke zgjedhur nivelin e tretë dhe duke rifilluar Windows. Përndryshe, mund të vazhdoni të përdorni skedarët pa zvarritje dhe lëshim.</value>
+    <value>Për shkak të një kufizimi me Windows dhe WinAppSdk, tërhiq dhe lësho nuk ofrohet kur ekzekuton FolderSail si administrator. Nëse dëshironi të përdorni drag and drop, mund të zgjidhni këtë kufizim duke hapur UAC (User Account Control) nga menyja Start dhe duke zgjedhur nivelin e tretë dhe duke rifilluar Windows. Përndryshe, mund të vazhdoni të përdorni skedarët pa zvarritje dhe lëshim.</value>
   </data>
   <data name="SettingsLeaveAppRunning" xml:space="preserve">
     <value>Lëreni aplikacionin të funksionojë në sfond kur dritarja është e mbyllur</value>
@@ -3981,10 +3981,10 @@
     <value>Redakto lejet</value>
   </data>
   <data name="BackgroundRunningNotificationBody" xml:space="preserve">
-    <value>FileQuay po ekzekutohet ende në sfond për të përmirësuar performancën e nisjes.</value>
+    <value>FolderSail po ekzekutohet ende në sfond për të përmirësuar performancën e nisjes.</value>
   </data>
   <data name="BackgroundRunningNotificationHeader" xml:space="preserve">
-    <value>Ku shkuan FileQuay?</value>
+    <value>Ku shkuan FolderSail?</value>
   </data>
   <data name="QuestionsAndDiscussions" xml:space="preserve">
     <value>Pyetje dhe diskutime</value>
@@ -4255,7 +4255,7 @@
     <value>Vertikale</value>
   </data>
   <data name="ShowSystemTrayIcon" xml:space="preserve">
-    <value>Shfaq ikonën FileQuay në System Tray</value>
+    <value>Shfaq ikonën FolderSail në System Tray</value>
   </data>
   <data name="CPUThreads" xml:space="preserve">
     <value>Fijet e CPU-së</value>

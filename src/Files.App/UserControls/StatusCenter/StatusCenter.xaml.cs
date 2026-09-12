@@ -29,7 +29,7 @@ namespace Files.App.UserControls.StatusCenter
 			var affectedPath = ViewModel.ReceiptHistoryPath;
 			try
 			{
-				var picker = new FileSavePicker { SuggestedFileName = "FileQuay-receipts", DefaultFileExtension = ".csv" };
+				var picker = new FileSavePicker { SuggestedFileName = "FolderSail-receipts", DefaultFileExtension = ".csv" };
 				picker.FileTypeChoices.Add("CSV", new List<string> { ".csv" });
 				WinRT.Interop.InitializeWithWindow.Initialize(picker, MainWindow.Instance.WindowHandle);
 				var file = await picker.PickSaveFileAsync();

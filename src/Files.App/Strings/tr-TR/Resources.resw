@@ -313,7 +313,7 @@
     <value>Hızlı erişime sabitle</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>Welcome to FileQuay!</value>
+    <value>Welcome to FolderSail!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>İzin ver</value>
@@ -609,7 +609,7 @@
     <value>{0} - kısayol</value>
   </data>
   <data name="ExceptionNotificationBody" xml:space="preserve">
-    <value>FileQuay uygulaması, geliştiricilerin karşılaşmadığı bir sorunla karşılaştı.</value>
+    <value>FolderSail uygulaması, geliştiricilerin karşılaşmadığı bir sorunla karşılaştı.</value>
   </data>
   <data name="ExceptionNotificationHeader" xml:space="preserve">
     <value>Bir şeyler ters gitti!</value>
@@ -1974,7 +1974,7 @@
     <value>Son dosyalar</value>
   </data>
   <data name="SettingsOpenInLogin" xml:space="preserve">
-    <value>Windows başlatıldığında FileQuay'ı aç</value>
+    <value>Windows başlatıldığında FolderSail'ı aç</value>
   </data>
   <data name="Attributes" xml:space="preserve">
     <value>Öznitelikler</value>
@@ -2049,7 +2049,7 @@
     <value>Resimler</value>
   </data>
   <data name="UpdateFiles" xml:space="preserve">
-    <value>FileQuay'ı güncelle</value>
+    <value>FolderSail'ı güncelle</value>
   </data>
   <data name="FileTags" xml:space="preserve">
     <value>Etiketler</value>
@@ -2112,10 +2112,10 @@
     <value>Merhaba!</value>
   </data>
   <data name="ReviewFilesSubtitle" xml:space="preserve">
-    <value>FileQuay hoşunuza mı gitti? Lütfen Microsoft Store'da inceleme yazmayı düşünün.</value>
+    <value>FolderSail hoşunuza mı gitti? Lütfen Microsoft Store'da inceleme yazmayı düşünün.</value>
   </data>
   <data name="SponsorSubtitle" xml:space="preserve">
-    <value>FileQuay'ı beğendiniz mi? Lütfen GitHub'da projeyi desteklemeyi düşünün.</value>
+    <value>FolderSail'ı beğendiniz mi? Lütfen GitHub'da projeyi desteklemeyi düşünün.</value>
   </data>
   <data name="Sponsor" xml:space="preserve">
     <value>Destekle</value>
@@ -3404,7 +3404,7 @@
     <value>GitHub repolarıyla çalışmaya başlamak için aşağıdaki bağlantıya aşağıdaki kodu girin.</value>
   </data>
   <data name="CannotReachGitHubError" xml:space="preserve">
-    <value>FileQuay, GitHub'a şu anda erişemiyor.</value>
+    <value>FolderSail, GitHub'a şu anda erişemiyor.</value>
   </data>
   <data name="OpenInIDE" xml:space="preserve">
     <value>Klasörü {0} içinde aç</value>
@@ -3519,10 +3519,10 @@
     <value>Bir daha gösterme</value>
   </data>
   <data name="FilesRunningAsAdmin" xml:space="preserve">
-    <value>FileQuay yönetici olarak çalışıyor</value>
+    <value>FolderSail yönetici olarak çalışıyor</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
-    <value>Windows ile WinAppSdk arasındaki bir kısıtlamadan ötürü sürükle ve bırak, FileQuay yönetici olarak çalışırken kullanılamaz. Sürükle ve bırakı kullanmak istiyorsanız, geçici bir çözüm olarak Başlat Menüsünden UAC'ı (Kullanıcı Hesap Denetimi) başlatın ve üçüncü düzeyi seçin, ardından Windows'u yeniden başlatın. Aksi hâlde FileQuay'ı sürükle ve bırak olmadan kullanmaya devam edebilirsiniz.</value>
+    <value>Windows ile WinAppSdk arasındaki bir kısıtlamadan ötürü sürükle ve bırak, FolderSail yönetici olarak çalışırken kullanılamaz. Sürükle ve bırakı kullanmak istiyorsanız, geçici bir çözüm olarak Başlat Menüsünden UAC'ı (Kullanıcı Hesap Denetimi) başlatın ve üçüncü düzeyi seçin, ardından Windows'u yeniden başlatın. Aksi hâlde FolderSail'ı sürükle ve bırak olmadan kullanmaya devam edebilirsiniz.</value>
   </data>
   <data name="SettingsLeaveAppRunning" xml:space="preserve">
     <value>Pencere kapatıldığında uygulamayı arka planda çalışır durumda bırak</value>
@@ -3981,10 +3981,10 @@
     <value>İzinleri düzenle</value>
   </data>
   <data name="BackgroundRunningNotificationBody" xml:space="preserve">
-    <value>FileQuay başlangıç performansını iyileştirmek için hâlâ arka planda çalışıyor.</value>
+    <value>FolderSail başlangıç performansını iyileştirmek için hâlâ arka planda çalışıyor.</value>
   </data>
   <data name="BackgroundRunningNotificationHeader" xml:space="preserve">
-    <value>FileQuay nereye gitti?</value>
+    <value>FolderSail nereye gitti?</value>
   </data>
   <data name="QuestionsAndDiscussions" xml:space="preserve">
     <value>Sorular ve tartışmalar</value>
@@ -4255,7 +4255,7 @@
     <value>Dikey</value>
   </data>
   <data name="ShowSystemTrayIcon" xml:space="preserve">
-    <value>Sistem tepsisinde FileQuay simgesini göster</value>
+    <value>Sistem tepsisinde FolderSail simgesini göster</value>
   </data>
   <data name="CPUThreads" xml:space="preserve">
     <value>CPU iş parçacıkları</value>

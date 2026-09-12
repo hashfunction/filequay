@@ -22,6 +22,33 @@ public class JsonOperationReceiptStoreTests
 	}
 
 	[TestMethod]
+	public async Task RenamedAppLoadsExistingV1HistoryWithoutRewritingOrChangingPaths()
+	{
+		// The pre-rename v1 wire format is fixed here, independent of the current encoder.
+		byte[] existing = Encoding.UTF8.GetBytes("""
+			{"schemaVersion":1,"receipts":[{"schemaVersion":1,"id":"290f7c43-c358-4327-b6a6-c2ff07a64d03","startedAtUtc":"2026-09-11T10:00:00+00:00","completedAtUtc":"2026-09-11T10:00:01+00:00","fileOperationType":3,"returnResult":1,"sourcePaths":["C:\\FileQuay notes\\résumé.txt"],"destinationPaths":["D:\\收据"],"itemCount":1,"totalBytes":4096,"failureCode":null}]}
+			""");
+		string receiptDirectory = Path.Combine(directory, "OperationReceipts");
+		Directory.CreateDirectory(receiptDirectory);
+		string history = Path.Combine(receiptDirectory, "v1.json");
+		await File.WriteAllBytesAsync(history, existing);
+		var store = new JsonOperationReceiptStore(receiptDirectory);
+		Assert.AreEqual(history, store.HistoryPath);
+		var original = (await store.LoadAsync()).Single();
+		Assert.AreEqual(Guid.Parse("290f7c43-c358-4327-b6a6-c2ff07a64d03"), original.Id);
+		Assert.AreEqual(@"C:\FileQuay notes\résumé.txt", original.SourcePaths.Single());
+		CollectionAssert.AreEqual(existing, await File.ReadAllBytesAsync(history));
+		await store.AppendAsync(OperationReceiptCodecTests.Sample(1));
+		var reopened = (await new JsonOperationReceiptStore(receiptDirectory).LoadAsync()).Single(r => r.Id == original.Id);
+		Assert.AreEqual(original.TotalBytes, reopened.TotalBytes);
+		CollectionAssert.AreEqual(original.SourcePaths.ToArray(), reopened.SourcePaths.ToArray());
+		CollectionAssert.AreEqual(original.DestinationPaths.ToArray(), reopened.DestinationPaths.ToArray());
+		string export = Path.Combine(directory, "FolderSail-receipts.csv");
+		await store.ExportCsvAsync(export);
+		StringAssert.Contains(await File.ReadAllTextAsync(export), @"C:\FileQuay notes\résumé.txt");
+	}
+
+	[TestMethod]
 	public async Task ConcurrentStoreInstancesDoNotLoseAppends()
 	{
 		var receipts = Enumerable.Range(0, 40).Select(i => OperationReceiptCodecTests.Sample(i)).ToArray();

@@ -1836,7 +1836,7 @@
     <value>Files를 기본 파일 탐색기로 설정</value>
   </data>
   <data name="SettingsSetAsOpenDialog" xml:space="preserve">
-    <value>파일 열기 대화 창에서 FileQuay 사용</value>
+    <value>파일 열기 대화 창에서 FolderSail 사용</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>파일 태그</value>
@@ -2049,7 +2049,7 @@
     <value>사진</value>
   </data>
   <data name="UpdateFiles" xml:space="preserve">
-    <value>FileQuay 업데이트</value>
+    <value>FolderSail 업데이트</value>
   </data>
   <data name="FileTags" xml:space="preserve">
     <value>태그</value>
@@ -4255,7 +4255,7 @@
     <value>수직</value>
   </data>
   <data name="ShowSystemTrayIcon" xml:space="preserve">
-    <value>FileQuay 아이콘을 시스템 트레이에 표시</value>
+    <value>FolderSail 아이콘을 시스템 트레이에 표시</value>
   </data>
   <data name="CPUThreads" xml:space="preserve">
     <value>CPU 스레드</value>

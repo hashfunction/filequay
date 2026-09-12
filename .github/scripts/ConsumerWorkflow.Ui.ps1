@@ -14,18 +14,34 @@ function Add-FileQuayWorkflowTrace($Ui, [string]$Step, $Details) {
 }
 
 function Get-FileQuayWorkflowScopes($Ui, [switch]$AllowBroker) {
-    if ($Ui.application.HasExited) { throw 'The retained consumer process exited.' }
+    if ($Ui.application.HasExited -or $Ui.application.SafeHandle.IsClosed -or $Ui.application.SafeHandle.IsInvalid) { throw 'The retained consumer process exited or its handle is unavailable.' }
     $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
         [System.Windows.Automation.TreeScope]::Children, [System.Windows.Automation.Condition]::TrueCondition)
     if ($windows.Count -gt 128) { throw 'Desktop top-level observation exceeded its bounded window budget.' }
+    $handles = [Collections.Generic.HashSet[long]]::new()
     foreach ($window in $windows) {
-        $current = $window.Current; $handle = [long]$current.NativeWindowHandle
-        if (-not $handle) { continue }
+        $handle = [long]$window.Current.NativeWindowHandle
+        if ($handle) { $null=$handles.Add($handle) }
+    }
+    # The owned broker can be absent from UIA desktop children. Native ownership
+    # is checked before reading its UIA root, then again after retaining its process.
+    $main = [FileQuayQualification.ConsumerInput]::Observe($Ui.application,$Ui.main_hwnd,$Ui.application,$Ui.main_hwnd)
+    if (-not $main.app_live -or -not $main.main_live -or $main.main_pid -ne $Ui.application.Id) {
+        throw 'The retained consumer main window ownership changed.'
+    }
+    $foreground = [long]$main.foreground_hwnd
+    if ($foreground -and $Ui.main_hwnd -in [FileQuayQualification.ConsumerInput]::OwnerChain($foreground)) {
+        $owner = [FileQuayQualification.ConsumerInput]::WindowProcess($foreground)
+        if ($owner -eq $Ui.application.Id -or ($owner -gt 0 -and $AllowBroker)) { $null=$handles.Add($foreground) }
+    }
+    foreach ($handle in $handles) {
         $chain = [FileQuayQualification.ConsumerInput]::OwnerChain($handle)
         if ($Ui.main_hwnd -notin $chain) { continue }
         $owner = [FileQuayQualification.ConsumerInput]::WindowProcess($handle)
-        if ($owner -ne $Ui.application.Id -and -not $AllowBroker) { continue }
-        if ($current.ProcessId -ne $owner -or $current.IsOffscreen) { continue }
+        if (-not $owner -or ($owner -ne $Ui.application.Id -and -not $AllowBroker)) { continue }
+        $root = [System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$handle)
+        $current = $root.Current
+        if ($current.NativeWindowHandle -ne $handle -or $current.ProcessId -ne $owner -or $current.IsOffscreen) { continue }
         $process = $Ui.application
         if ($owner -ne $Ui.application.Id) {
             if (-not $Ui.brokers.ContainsKey([string]$owner)) {
@@ -33,7 +49,7 @@ function Get-FileQuayWorkflowScopes($Ui, [switch]$AllowBroker) {
                 $candidate = Get-Process -Id $owner
                 try {
                     $retained = $candidate.SafeHandle
-                    if ($retained.IsInvalid -or $retained.IsClosed -or $candidate.HasExited -or
+                    if ($candidate.Id -ne $owner -or $retained.IsInvalid -or $retained.IsClosed -or $candidate.HasExited -or
                         [FileQuayQualification.ConsumerInput]::WindowProcess($handle) -ne $owner -or
                         $Ui.main_hwnd -notin [FileQuayQualification.ConsumerInput]::OwnerChain($handle)) { throw 'Picker ownership changed while retaining its process handle.' }
                     $Ui.brokers[[string]$owner] = $candidate
@@ -41,9 +57,18 @@ function Get-FileQuayWorkflowScopes($Ui, [switch]$AllowBroker) {
             }
             $process = $Ui.brokers[[string]$owner]
         }
+        $state = [FileQuayQualification.ConsumerInput]::Observe($Ui.application,$Ui.main_hwnd,$process,$handle)
+        if ($process.Id -ne $owner -or $process.HasExited -or $process.SafeHandle.IsInvalid -or $process.SafeHandle.IsClosed -or
+            -not $state.app_live -or -not $state.main_live -or $state.main_pid -ne $Ui.application.Id -or
+            -not $state.target_process_live -or -not $state.target_live -or -not $state.target_visible -or
+            $state.target_pid -ne $owner -or $state.target_hwnd -ne $handle -or $Ui.main_hwnd -notin $state.owner_chain -or
+            ($handle -eq $foreground -and $state.foreground_hwnd -ne $foreground) -or
+            $root.Current.NativeWindowHandle -ne $handle -or $root.Current.ProcessId -ne $owner -or $root.Current.IsOffscreen) {
+            throw 'Workflow window ownership changed during scope discovery.'
+        }
         @{
             app_pid=$Ui.application.Id;main_hwnd=$Ui.main_hwnd;target_pid=[int]$owner;target_hwnd=$handle
-            process=$process;root=[System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]$handle)
+            process=$process;root=$root
         }
     }
 }
@@ -280,11 +305,27 @@ function Read-FileQuayWorkflowVisibleReceipts($Ui, $List, [object[]]$Receipts) {
     $result
 }
 
+function Find-FileQuayWorkflowSaveFilename($Ui) {
+    $hostControl = Find-FileQuayWorkflowElement $Ui 'FileNameControlHost' -AllowBroker
+    if ($hostControl.scope.target_hwnd -eq $Ui.main_hwnd -or $hostControl.element.Current.ClassName -cne 'AppControlHost') {
+        throw 'Native filename host is not the observed distinct owned picker control.'
+    }
+    $filename = Find-FileQuayWorkflowElement $Ui '1001' -Within $hostControl
+    $pattern = $null
+    if ($filename.scope.target_hwnd -ne $hostControl.scope.target_hwnd -or $filename.scope.target_pid -ne $hostControl.scope.target_pid -or
+        $filename.element.Current.ClassName -cne 'Edit' -or
+        -not $filename.element.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$pattern) -or
+        $null -eq $pattern -or $pattern.Current.IsReadOnly) {
+        throw 'Native filename field is not the observed editable ValuePattern control.'
+    }
+    $filename
+}
+
 function Open-FileQuayWorkflowExportConfirmation($Ui, $Fixture) {
     Invoke-FileQuayWorkflowAction $Ui (Find-FileQuayWorkflowElement $Ui 'ReceiptExportButton') Invoke
     try {
         $filename = Wait-FileQuayWorkflow {
-            Find-FileQuayWorkflowElement $Ui '1001' -AllowBroker
+            Find-FileQuayWorkflowSaveFilename $Ui
         } 'native save picker with a proved owner chain'
     } catch {
         $primary=$_

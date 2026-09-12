@@ -18,7 +18,7 @@ for file in assets:
             'filesAnalyzed': False, 'licenseConcluded': 'NOASSERTION', 'licenseDeclared': 'NOASSERTION',
             'externalRefs': [{'referenceCategory': 'PACKAGE-MANAGER', 'referenceType': 'purl', 'referenceLocator': f'pkg:nuget/{name}@{version}'}]}
 spdx = {'spdxVersion': 'SPDX-2.3', 'dataLicense': 'CC0-1.0', 'SPDXID': 'SPDXRef-DOCUMENT',
-    'name': 'FileQuay resolved NuGet inventory', 'documentNamespace': f'https://filequay.trieflow.com/spdx/{uuid.uuid4()}',
+    'name': 'FolderSail resolved NuGet inventory', 'documentNamespace': f'https://foldersail.trieflow.com/spdx/{uuid.uuid4()}',
     'creationInfo': {'creators': ['Organization: Trieflow LLC'], 'created': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')},
     'documentComment': f'{len(assets)} application/source project asset files read. NOASSERTION licenses and missing assets require review before release.',
     'packages': sorted(packages.values(), key=lambda p: p['name'].lower())}

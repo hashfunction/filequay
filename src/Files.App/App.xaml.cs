@@ -239,7 +239,7 @@ namespace Files.App
 			// Continue running the app on the background
 			if (userSettingsService.GeneralSettingsService.LeaveAppRunning &&
 				!AppModel.ForceProcessTermination &&
-				!Process.GetProcessesByName("FileQuay").Any(x => x.Id != Environment.ProcessId))
+				!Process.GetProcessesByName("FolderSail").Any(x => x.Id != Environment.ProcessId))
 			{
 				// Close open content dialogs
 				UIHelpers.CloseAllDialogs();

@@ -31,7 +31,7 @@ function Write-TestArchive([string]$Path, [string]$Manifest) {
 $namespace = 'http://schemas.microsoft.com/appx/manifest/foundation/windows10'
 Write-TestArchive (Join-Path $temporary 'package/main.msix') "<Package xmlns='$namespace'><Identity Name='Trieflow.FileQuay.Qualification' ProcessorArchitecture='x64' /><Dependencies><PackageDependency Name='Microsoft.WindowsAppRuntime.2.4' Publisher='CN=Microsoft' MinVersion='2.4.0.0' /></Dependencies></Package>"
 Write-TestArchive (Join-Path $temporary 'package/Dependencies/x64/runtime.msix') "<Package xmlns='$namespace'><Identity Name='Microsoft.WindowsAppRuntime.2.4' Publisher='CN=Microsoft' Version='2.4.0.0' ProcessorArchitecture='x64' /><Properties><Framework>true</Framework></Properties></Package>"
-Add-Type -TypeDefinition 'namespace Files.App { public sealed class ConsumerFixture {} }' -OutputAssembly (Join-Path $temporary 'validated/FileQuay.dll')
+Add-Type -TypeDefinition 'namespace Files.App { public sealed class ConsumerFixture {} }' -OutputAssembly (Join-Path $temporary 'validated/FolderSail.dll')
 $fakeSignTool = Join-Path $temporary 'sign.ps1'
 Set-Content $fakeSignTool '$global:LASTEXITCODE = 0'
 $certificateAttempts = [System.Collections.Generic.List[string]]::new()
@@ -55,8 +55,8 @@ function Add-AppxPackage {
     $global:FileQuayMutationAttempts++
     if ($Scenario -eq 'FailedAddRace') {
         $global:FileQuayRaceRegistration = [pscustomobject]@{
-            Name='Trieflow.FileQuay.Qualification';Publisher='CN=FileQuay-CI-Qualification';Version='1.0.0.0';Architecture='X64';IsFramework=$false
-            PackageFullName='Trieflow.FileQuay.Qualification_1.0.0.0_x64__raced';PackageFamilyName='Trieflow.FileQuay.Qualification_raced'
+            Name='Trieflow.FileQuay.Qualification';Publisher='CN=FileQuay-CI-Qualification';Version='1.0.1.0';Architecture='X64';IsFramework=$false
+            PackageFullName='Trieflow.FileQuay.Qualification_1.0.1.0_x64__raced';PackageFamilyName='Trieflow.FileQuay.Qualification_raced'
         }
     }
     if ($Scenario -eq 'PackageChanged') {

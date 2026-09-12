@@ -312,7 +312,7 @@ namespace Files.App.Utils.Taskbar
 			}
 			catch (Exception ex)
 			{
-				App.Logger.LogError(ex, "Error closing FileQuay.");
+				App.Logger.LogError(ex, "Error closing FolderSail.");
 
 				// The user requested quit; force termination as a last resort
 				Environment.Exit(0);

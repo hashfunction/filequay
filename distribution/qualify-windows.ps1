@@ -38,6 +38,7 @@ Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-workflow.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-workflow-diagnostics.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-picker-diagnostics.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-picker-scope.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-toolbar.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-adapter.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-qualification-record-publication.ps1')
@@ -63,7 +64,7 @@ $mainPackages = @(Get-ChildItem -LiteralPath $buildOutput -Recurse -File | Where
 if ($mainPackages.Count -ne 1) { throw "Expected one main package; found $($mainPackages.Count)." }
 $validatedPackage = $buildConfiguration.validation_output
 ./distribution/verify-package.ps1 -PackagePath $mainPackages[0].FullName -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' -OutputDirectory $validatedPackage
-$managedBuild = Get-FileQuayManagedBuildKindEvidence (Join-Path $validatedPackage 'FileQuay.dll') $BuildKind
+$managedBuild = Get-FileQuayManagedBuildKindEvidence (Join-Path $validatedPackage 'FolderSail.dll') $BuildKind
 $managedBuild | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $qualificationEvidence 'managed-build-kind.json') -Encoding utf8NoBOM
 $sqliteAssets = Get-Content src/Files.App/obj/project.assets.json -Raw | ConvertFrom-Json
 Invoke-Checked python @('distribution/verify-sqlite-assets.py','--assets','src/Files.App/obj/project.assets.json','--package-cache',$sqliteAssets.project.restore.packagesPath,'--package-root',$validatedPackage,'--output',(Join-Path $qualificationEvidence 'sqlite-package-assets.json'))

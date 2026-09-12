@@ -16,10 +16,10 @@
     <Identity
         Name="FileQuay.Identity.Required"
         Publisher="CN=FILEQUAY_PUBLISHER_REQUIRED"
-        Version="1.0.0.0" />
+        Version="1.0.1.0" />
 
     <Properties>
-        <DisplayName>FileQuay</DisplayName>
+        <DisplayName>FolderSail</DisplayName>
         <PublisherDisplayName>Trieflow LLC</PublisherDisplayName>
         <Logo>Assets\FileQuay\StoreLogo.png</Logo>
         <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
@@ -89,7 +89,7 @@
             desktop4:SupportsMultipleInstances="true">
 
             <uap:VisualElements
-                DisplayName="FileQuay"
+                DisplayName="FolderSail"
                 Description="Browse files in tabs and panes, review operations and keep local operation receipts."
                 Square150x150Logo="Assets\FileQuay\Square150x150Logo.png"
                 Square44x44Logo="Assets\FileQuay\Square44x44Logo.png"
@@ -99,7 +99,7 @@
                     Wide310x150Logo="Assets\FileQuay\Wide310x150Logo.png"
                     Square71x71Logo="Assets\FileQuay\Square71x71Logo.png"
                     Square310x310Logo="Assets\FileQuay\Square310x310Logo.png"
-                    ShortName="FileQuay">
+                    ShortName="FolderSail">
                     <uap:ShowNameOnTiles>
                         <uap:ShowOn Tile="square150x150Logo" />
                         <uap:ShowOn Tile="wide310x150Logo" />

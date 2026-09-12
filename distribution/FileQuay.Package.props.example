@@ -3,8 +3,8 @@
   <PropertyGroup>
     <FileQuayPackageIdentity></FileQuayPackageIdentity>
     <FileQuayPublisher></FileQuayPublisher>
-    <FileQuayVersion>1.0.0.0</FileQuayVersion>
-    <FileQuayDisplayName>FileQuay</FileQuayDisplayName>
+    <FileQuayVersion>1.0.1.0</FileQuayVersion>
+    <FileQuayDisplayName>FolderSail</FileQuayDisplayName>
     <FileQuayPublisherDisplayName>Trieflow LLC</FileQuayPublisherDisplayName>
   </PropertyGroup>
 </Project>

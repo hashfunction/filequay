@@ -314,7 +314,7 @@
     <value>Afixar em Acesso rápido</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>Bem-vindo a FileQuay!</value>
+    <value>Bem-vindo a FolderSail!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>Conceder permissão</value>
@@ -610,7 +610,7 @@
     <value>{0} - atalho</value>
   </data>
   <data name="ExceptionNotificationBody" xml:space="preserve">
-    <value>O FileQuay encontrou um problema que os programadores não previram.</value>
+    <value>O FolderSail encontrou um problema que os programadores não previram.</value>
   </data>
   <data name="ExceptionNotificationHeader" xml:space="preserve">
     <value>Ocorreu um erro!</value>
@@ -1834,10 +1834,10 @@
     <value>Submeter relatório de erros</value>
   </data>
   <data name="SettingsSetAsDefaultFileManager" xml:space="preserve">
-    <value>Definir FileQuay como o gestor de ficheiros do sistema</value>
+    <value>Definir FolderSail como o gestor de ficheiros do sistema</value>
   </data>
   <data name="SettingsSetAsOpenDialog" xml:space="preserve">
-    <value>Utilizar FileQuay como diálogo para Abrir ficheiros</value>
+    <value>Utilizar FolderSail como diálogo para Abrir ficheiros</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>Etiqueta</value>
@@ -1876,7 +1876,7 @@
     <value>Restaurar predefinição</value>
   </data>
   <data name="OpenTabInExistingInstance" xml:space="preserve">
-    <value>Abrir separador na instância existente ao abrir FileQuay a partir de outra aplicação</value>
+    <value>Abrir separador na instância existente ao abrir FolderSail a partir de outra aplicação</value>
   </data>
   <data name="StartupSettings" xml:space="preserve">
     <value>Definições de arranque</value>
@@ -1975,7 +1975,7 @@
     <value>Ficheiros recentes</value>
   </data>
   <data name="SettingsOpenInLogin" xml:space="preserve">
-    <value>Abrir FileQuay ao iniciar o Windows</value>
+    <value>Abrir FolderSail ao iniciar o Windows</value>
   </data>
   <data name="Attributes" xml:space="preserve">
     <value>Atributos</value>
@@ -2050,7 +2050,7 @@
     <value>Imagens</value>
   </data>
   <data name="UpdateFiles" xml:space="preserve">
-    <value>Atualizar FileQuay</value>
+    <value>Atualizar FolderSail</value>
   </data>
   <data name="FileTags" xml:space="preserve">
     <value>Etiquetas</value>
@@ -2113,10 +2113,10 @@
     <value>Olá!</value>
   </data>
   <data name="ReviewFilesSubtitle" xml:space="preserve">
-    <value>Está a gostar do FileQuay? Considere deixar uma classificação na Microsoft Store.</value>
+    <value>Está a gostar do FolderSail? Considere deixar uma classificação na Microsoft Store.</value>
   </data>
   <data name="SponsorSubtitle" xml:space="preserve">
-    <value>Está a gostar do FileQuay? Considere apoiar o projeto no GitHub.</value>
+    <value>Está a gostar do FolderSail? Considere apoiar o projeto no GitHub.</value>
   </data>
   <data name="Sponsor" xml:space="preserve">
     <value>Patrocinador</value>
@@ -3405,7 +3405,7 @@
     <value>Introduza este código na ligação abaixo para começar a trabalhar com repositórios GitHub.</value>
   </data>
   <data name="CannotReachGitHubError" xml:space="preserve">
-    <value>De momento, FileQuay não se consegue ligar a GitHub.</value>
+    <value>De momento, FolderSail não se consegue ligar a GitHub.</value>
   </data>
   <data name="OpenInIDE" xml:space="preserve">
     <value>Abrir pasta em {0}</value>
@@ -3523,7 +3523,7 @@
     <value>A aplicação está a ser executada no modo de administrador</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
-    <value>Devido a uma limitação com o Windows e o WinAppSdk, a funcionalidade arrastar e largar não está disponível quando o FileQuay é executado como administrador. Se pretender utilizar o arrastar e largar, pode contornar esta limitação abrindo o UAC (Controlo de Conta do Utilizador) a partir do Menu Iniciar e selecionando o terceiro nível, e reiniciando o Windows. Caso contrário, pode continuar a utilizar o FileQuay sem a funcionalidade arrastar e soltar.</value>
+    <value>Devido a uma limitação com o Windows e o WinAppSdk, a funcionalidade arrastar e largar não está disponível quando o FolderSail é executado como administrador. Se pretender utilizar o arrastar e largar, pode contornar esta limitação abrindo o UAC (Controlo de Conta do Utilizador) a partir do Menu Iniciar e selecionando o terceiro nível, e reiniciando o Windows. Caso contrário, pode continuar a utilizar o FolderSail sem a funcionalidade arrastar e soltar.</value>
   </data>
   <data name="SettingsLeaveAppRunning" xml:space="preserve">
     <value>Manter aplicação em segundo plano ao fechar a janela</value>
@@ -3618,7 +3618,7 @@
     <value>itens</value>
   </data>
   <data name="CannotInitializeGitRepo" xml:space="preserve">
-    <value>FileQuay não conseguiu inicializar este diretório como repositório Git.</value>
+    <value>FolderSail não conseguiu inicializar este diretório como repositório Git.</value>
   </data>
   <data name="ContributingArtist" xml:space="preserve">
     <value>Artistas participantes</value>

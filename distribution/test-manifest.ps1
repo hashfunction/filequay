@@ -20,6 +20,10 @@ try {
     & $configurator -PackageManifestPath $fixture -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' -Protocol filequay | Out-Null
     [xml]$configured = Get-Content $fixture -Raw
     if ($configured.Package.Identity.Name -ne 'Trieflow.FileQuay.Qualification') { throw 'Explicit identity was not retained.' }
+    if ($configured.Package.Identity.Publisher -ne 'CN=FileQuay-CI-Qualification' -or $configured.Package.Applications.Application.Id -cne 'App') { throw 'Branding changed publisher or application compatibility identity.' }
+    if ($configured.Package.Identity.Version -cne '1.0.1.0' -or $configured.Package.Properties.DisplayName -cne 'FolderSail') { throw 'Current FolderSail package branding/version was not applied.' }
+    $visual = $configured.SelectSingleNode("//*[local-name()='VisualElements']")
+    if ($visual.DisplayName -cne 'FolderSail' -or $visual.SelectSingleNode("*[local-name()='DefaultTile']").ShortName -cne 'FolderSail') { throw 'Current FolderSail shell branding was not applied.' }
     if (@($configured.SelectNodes("//*[local-name()='Protocol' and @Name='filequay']")).Count -ne 1) { throw 'Owned activation protocol missing.' }
     if ($configured.OuterXml -match 'windows.startupTask|windows.appExecutionAlias|windows.fileTypeAssociation|packageManagement|49306atecsolution') { throw 'Undeclared upstream registration remains.' }
     & $configurator -PackageManifestPath $fixture -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' | Out-Null

@@ -108,7 +108,7 @@ namespace Files.App
 				}
 			}
 
-			var processes = Process.GetProcessesByName("FileQuay")
+			var processes = Process.GetProcessesByName("FolderSail")
 				.Where(ProcessPathPredicate)
 				.Where(p => p.Id != Environment.ProcessId);
 
@@ -277,8 +277,8 @@ namespace Files.App
 			var cmdLaunchArgs = activatedArgs.Data is ILaunchActivatedEventArgs launchArgs &&
 				launchArgs.Arguments is not null &&
 				CommandLineParser.SplitArguments(launchArgs.Arguments, true).FirstOrDefault() is string arg0 &&
-				(arg0.EndsWith($"FileQuay.exe", StringComparison.OrdinalIgnoreCase) ||
-				arg0.EndsWith($"filequay", StringComparison.OrdinalIgnoreCase)) ? launchArgs.Arguments : null;
+				(arg0.EndsWith($"FolderSail.exe", StringComparison.OrdinalIgnoreCase) ||
+				arg0.EndsWith($"foldersail", StringComparison.OrdinalIgnoreCase)) ? launchArgs.Arguments : null;
 			var cmdProtocolArgs = activatedArgs.Data is IProtocolActivatedEventArgs protocolArgs &&
 				protocolArgs.Uri.Query.TrimStart('?').Split('=') is string[] parsedArgs &&
 				parsedArgs.Length == 2 && parsedArgs[0] == "cmd" ? Uri.UnescapeDataString(parsedArgs[1]) : null;

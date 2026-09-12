@@ -313,7 +313,7 @@
     <value>Fixați la Bara Laterală</value>
   </data>
   <data name="WelcomeDialogTitle" xml:space="preserve">
-    <value>Bun venit la FileQuay!</value>
+    <value>Bun venit la FolderSail!</value>
   </data>
   <data name="WelcomeDialog.PrimaryButtonText" xml:space="preserve">
     <value>Acordați permisiunea</value>
@@ -609,7 +609,7 @@
     <value>{0} - comandă rapidă</value>
   </data>
   <data name="ExceptionNotificationBody" xml:space="preserve">
-    <value>FileQuay a întâmpinat o problemă pentru care dezvoltatorii nu s-au pregătit încă.</value>
+    <value>FolderSail a întâmpinat o problemă pentru care dezvoltatorii nu s-au pregătit încă.</value>
   </data>
   <data name="ExceptionNotificationHeader" xml:space="preserve">
     <value>Ceva nu a mers bine!</value>
@@ -1833,10 +1833,10 @@
     <value>Trimiteți un raport despre o problemă</value>
   </data>
   <data name="SettingsSetAsDefaultFileManager" xml:space="preserve">
-    <value>Setați FileQuay ca manager de fișiere implicit</value>
+    <value>Setați FolderSail ca manager de fișiere implicit</value>
   </data>
   <data name="SettingsSetAsOpenDialog" xml:space="preserve">
-    <value>Utilizați FileQuay ca dialog de deschidere fișiere</value>
+    <value>Utilizați FolderSail ca dialog de deschidere fișiere</value>
   </data>
   <data name="Tag" xml:space="preserve">
     <value>Etichetă</value>
@@ -1875,7 +1875,7 @@
     <value>Restabiliți valorile implicite</value>
   </data>
   <data name="OpenTabInExistingInstance" xml:space="preserve">
-    <value>Deschideți fila în instanța existentă la deschiderea FileQuay dintr-o altă aplicație</value>
+    <value>Deschideți fila în instanța existentă la deschiderea FolderSail dintr-o altă aplicație</value>
   </data>
   <data name="StartupSettings" xml:space="preserve">
     <value>Setări pornire</value>
@@ -1974,7 +1974,7 @@
     <value>Fișiere recente</value>
   </data>
   <data name="SettingsOpenInLogin" xml:space="preserve">
-    <value>Deschideți FileQuay la pornirea Windows</value>
+    <value>Deschideți FolderSail la pornirea Windows</value>
   </data>
   <data name="Attributes" xml:space="preserve">
     <value>Atribute</value>
@@ -2049,7 +2049,7 @@
     <value>Imagini</value>
   </data>
   <data name="UpdateFiles" xml:space="preserve">
-    <value>Actualizați FileQuay</value>
+    <value>Actualizați FolderSail</value>
   </data>
   <data name="FileTags" xml:space="preserve">
     <value>Etichete</value>
@@ -2112,10 +2112,10 @@
     <value>Salut!</value>
   </data>
   <data name="ReviewFilesSubtitle" xml:space="preserve">
-    <value>Vă place FileQuay? Vă rugăm să luați în considerare lăsarea unei recenzii în Microsoft Store.</value>
+    <value>Vă place FolderSail? Vă rugăm să luați în considerare lăsarea unei recenzii în Microsoft Store.</value>
   </data>
   <data name="SponsorSubtitle" xml:space="preserve">
-    <value>Vă place FileQuay? Vă rugăm să luați în considerare susținerea proiectului pe GitHub.</value>
+    <value>Vă place FolderSail? Vă rugăm să luați în considerare susținerea proiectului pe GitHub.</value>
   </data>
   <data name="Sponsor" xml:space="preserve">
     <value>Sponsorizare</value>
@@ -3404,7 +3404,7 @@
     <value>Introduceți următorul cod la link-ul de mai jos pentru a începe să lucrați cu repozitoriile GitHub.</value>
   </data>
   <data name="CannotReachGitHubError" xml:space="preserve">
-    <value>FileQuay nu poate accesa GitHub momentan.</value>
+    <value>FolderSail nu poate accesa GitHub momentan.</value>
   </data>
   <data name="OpenInIDE" xml:space="preserve">
     <value>Deschideți folderul în {0}</value>
@@ -3519,10 +3519,10 @@
     <value>Nu mai afișați</value>
   </data>
   <data name="FilesRunningAsAdmin" xml:space="preserve">
-    <value>FileQuay rulează ca administrator</value>
+    <value>FolderSail rulează ca administrator</value>
   </data>
   <data name="FilesRunningAsAdminContent" xml:space="preserve">
-    <value>Din cauza unei limitări a Windows și WinAppSdk, tragerea și fixarea nu sunt disponibile atunci când executați FileQuay ca administrator. Dacă doriți să folosiți caracteristica tragere și fixare puteți lucra în jurul acestei limitări deschizând CCU (Control Cont Utilizator) din Meniul Start și selectând al treilea nivel, și apoi reporniți Windows. Altfel, puteți continua să utilizați FileQuay fără caracteristica tragere și fixare.</value>
+    <value>Din cauza unei limitări a Windows și WinAppSdk, tragerea și fixarea nu sunt disponibile atunci când executați FolderSail ca administrator. Dacă doriți să folosiți caracteristica tragere și fixare puteți lucra în jurul acestei limitări deschizând CCU (Control Cont Utilizator) din Meniul Start și selectând al treilea nivel, și apoi reporniți Windows. Altfel, puteți continua să utilizați FolderSail fără caracteristica tragere și fixare.</value>
   </data>
   <data name="SettingsLeaveAppRunning" xml:space="preserve">
     <value>Lăsați aplicația să ruleze în fundal atunci când fereastra este închisă</value>
@@ -3617,7 +3617,7 @@
     <value>elemente</value>
   </data>
   <data name="CannotInitializeGitRepo" xml:space="preserve">
-    <value>FileQuay nu poate inițializa acest director ca un repozitoriu Git.</value>
+    <value>FolderSail nu poate inițializa acest director ca un repozitoriu Git.</value>
   </data>
   <data name="ContributingArtist" xml:space="preserve">
     <value>Artiști Contribuitori</value>
@@ -3885,7 +3885,7 @@
     <value>Fără operațiuni de fișiere în curs</value>
   </data>
   <data name="OpenOnStartupDisabled" xml:space="preserve">
-    <value>Opțiunea de a deschide FileQuay la pornirea Windows nu este disponibilă din cauza setărilor de sistem sau a politicii de grup. Pentru a reîncerca, deschideți pagina de pornire în Managerul de Activități.</value>
+    <value>Opțiunea de a deschide FolderSail la pornirea Windows nu este disponibilă din cauza setărilor de sistem sau a politicii de grup. Pentru a reîncerca, deschideți pagina de pornire în Managerul de Activități.</value>
   </data>
   <data name="FailedToRestore" xml:space="preserve">
     <value>Nu s-au putut restaura elementele din Coșul de Reciclare</value>
@@ -3981,10 +3981,10 @@
     <value>Editare permisiuni</value>
   </data>
   <data name="BackgroundRunningNotificationBody" xml:space="preserve">
-    <value>FileQuay încă rulează în fundal pentru a îmbunătăți performanța la pornire.</value>
+    <value>FolderSail încă rulează în fundal pentru a îmbunătăți performanța la pornire.</value>
   </data>
   <data name="BackgroundRunningNotificationHeader" xml:space="preserve">
-    <value>Unde s-a dus FileQuay?</value>
+    <value>Unde s-a dus FolderSail?</value>
   </data>
   <data name="QuestionsAndDiscussions" xml:space="preserve">
     <value>Întrebări și discuții</value>
@@ -4255,7 +4255,7 @@
     <value>Vertical</value>
   </data>
   <data name="ShowSystemTrayIcon" xml:space="preserve">
-    <value>Afișați pictograma FileQuay în System Tray</value>
+    <value>Afișați pictograma FolderSail în System Tray</value>
   </data>
   <data name="CPUThreads" xml:space="preserve">
     <value>Fire CPU</value>
