@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "package_id": "Microsoft.Windows.SDK.NET.Ref",
+  "recorded_utc": "2026-09-12",
+  "former_version": "10.0.26100.67-preview",
+  "selected_version": "10.0.26100.70",
+  "packages": [
+    {
+      "version": "10.0.26100.67-preview",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.windows.sdk.net.ref/10.0.26100.67-preview/microsoft.windows.sdk.net.ref.10.0.26100.67-preview.nupkg",
+      "bytes": 10593862,
+      "sha256": "2a6f7f97e34e7cf0bbf5160edcf57d08d55018d9ecdd31b97a193ea64279862f",
+      "assets": {
+        "lib/net8.0/Microsoft.Windows.SDK.NET.dll": {
+          "bytes": 26693664,
+          "sha256": "4964dd17fdffa3a13873e9b76d3ad4f6e4f01f55e187be443791693bae952c45"
+        },
+        "lib/net8.0/WinRT.Runtime.dll": {
+          "bytes": 528944,
+          "sha256": "bcf3a14e8712a90837fc5c0d8c8a24696af2bd7f74e9767597ec81ededfb23db"
+        },
+        "analyzers/dotnet/cs/WinRT.SourceGenerator.dll": {
+          "bytes": 478240,
+          "sha256": "a23601b11fbb36a2de48960aad942fbab26d2f0835f98086cc764f97ea81cbc8"
+        }
+      },
+      "license_url": "https://aka.ms/WinSDKPreviewLicenseURL"
+    },
+    {
+      "version": "10.0.26100.70",
+      "url": "https://api.nuget.org/v3-flatcontainer/microsoft.windows.sdk.net.ref/10.0.26100.70/microsoft.windows.sdk.net.ref.10.0.26100.70.nupkg",
+      "bytes": 10639646,
+      "sha256": "e15559b82ccbcda51c897be9da3aa190887dba3ecb0d1bd9525130aaa9132f0d",
+      "assets": {
+        "lib/net8.0/Microsoft.Windows.SDK.NET.dll": {
+          "bytes": 26808352,
+          "sha256": "c60caf86b6af084ffd2350173cfc5e2c50b142b712acc36265a6f8b70e57532a"
+        },
+        "lib/net8.0/WinRT.Runtime.dll": {
+          "bytes": 528944,
+          "sha256": "bcf3a14e8712a90837fc5c0d8c8a24696af2bd7f74e9767597ec81ededfb23db"
+        },
+        "analyzers/dotnet/cs/WinRT.SourceGenerator.dll": {
+          "bytes": 478240,
+          "sha256": "a23601b11fbb36a2de48960aad942fbab26d2f0835f98086cc764f97ea81cbc8"
+        }
+      },
+      "license_url": "https://aka.ms/WinSDKLicenseURL"
+    }
+  ],
+  "primary_terms": [
+    {
+      "url": "https://aka.ms/WinSDKPreviewLicenseURL",
+      "retrieved_original_filename": "windows-sdk-preview-license.html",
+      "bytes": 113241,
+      "sha256": "df1482ca45c404c30bec3e167d547de7485554fbefa5116d67f703047ee1a007",
+      "role": "Former package nuspec link; pre-release restrictions are not release redistribution permission."
+    },
+    {
+      "url": "https://aka.ms/WinSDKLicenseURL",
+      "retrieved_original_filename": "windows-sdk-license.rtf",
+      "bytes": 246945,
+      "sha256": "dd07eb178e00c6bba4148457fc00ff77cd4887eb521d504186fe59c9ec8bbe62",
+      "role": "Selected release package nuspec license; Distributable Code section references the SDK redist list."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/legal/windows-sdk/redist",
+      "retrieved_original_filename": "windows-sdk-redist.html",
+      "bytes": 38264,
+      "sha256": "48fbfc4e8fc4f42a341d8930dc5dcc9b9694f43e4c870e299dc89b919f79012a",
+      "role": "Microsoft.Windows.SDK.NET.Ref section lists the net8.0 projection and WinRT runtime for redistribution as part of a program, subject to the SDK terms."
+    }
+  ],
+  "compatibility": {
+    "before_public_signatures": 121216,
+    "after_public_signatures": 121738,
+    "removed": [],
+    "added_count": 522,
+    "added_sample": [
+      "F Windows.UI.Input.Preview.Text.KeyEventDeviceType.Gamepad Windows.UI.Input.Preview.Text.KeyEventDeviceType",
+      "F Windows.UI.Input.Preview.Text.KeyEventDeviceType.HardwareKeyboard Windows.UI.Input.Preview.Text.KeyEventDeviceType",
+      "F Windows.UI.Input.Preview.Text.KeyEventDeviceType.Injection Windows.UI.Input.Preview.Text.KeyEventDeviceType",
+      "F Windows.UI.Input.Preview.Text.KeyEventDeviceType.SoftwareKeyboard Windows.UI.Input.Preview.Text.KeyEventDeviceType",
+      "F Windows.UI.Input.Preview.Text.KeyEventDeviceType.Undefined Windows.UI.Input.Preview.Text.KeyEventDeviceType",
+      "F Windows.UI.Input.Preview.Text.KeyEventDeviceType.value__ Int32",
+      "F Windows.UI.Input.Preview.Text.PayloadResult.Canceled Windows.UI.Input.Preview.Text.PayloadResult",
+      "F Windows.UI.Input.Preview.Text.PayloadResult.Completed Windows.UI.Input.Preview.Text.PayloadResult",
+      "F Windows.UI.Input.Preview.Text.PayloadResult.InEditing Windows.UI.Input.Preview.Text.PayloadResult",
+      "F Windows.UI.Input.Preview.Text.PayloadResult.Outrun Windows.UI.Input.Preview.Text.PayloadResult",
+      "F Windows.UI.Input.Preview.Text.PayloadResult.Overridden Windows.UI.Input.Preview.Text.PayloadResult",
+      "F Windows.UI.Input.Preview.Text.PayloadResult.Pending Windows.UI.Input.Preview.Text.PayloadResult"
+    ]
+  },
+  "limitations": [
+    "Metadata comparison is limited to public/protected type, method and field signatures; it is not full ABI or execution qualification.",
+    "The original NuGet DLL hashes are not assertions about build-transformed packaged DLL bytes.",
+    "A fresh Windows build and both installed build-kind lifecycles are required. Store export additionally requires its assigned-identity lifecycle and final evidence validation."
+  ]
+}

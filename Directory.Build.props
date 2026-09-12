@@ -6,7 +6,7 @@
     <TargetFrameworkVersion>net10.0</TargetFrameworkVersion>
     <TargetWindowsVersion>10.0.26100.0</TargetWindowsVersion>
     <MinimalWindowsVersion>10.0.19041.0</MinimalWindowsVersion>
-    <WindowsSdkPackageVersion>10.0.26100.67-preview</WindowsSdkPackageVersion>
+    <WindowsSdkPackageVersion>10.0.26100.70</WindowsSdkPackageVersion>
     <WindowsTargetFramework>$(TargetFrameworkVersion)-windows$(TargetWindowsVersion)</WindowsTargetFramework>
     <LangVersion>preview</LangVersion>
     <WarningsAsErrors>nullable</WarningsAsErrors>

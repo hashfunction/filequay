@@ -77,6 +77,7 @@ $validatedPackage = $buildConfiguration.validation_output
 $managedBuild = Get-FileQuayManagedBuildKindEvidence (Join-Path $validatedPackage 'FolderSail.dll') $BuildKind
 $managedBuild | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $qualificationEvidence 'managed-build-kind.json') -Encoding utf8NoBOM
 $sqliteAssets = Get-Content src/Files.App/obj/project.assets.json -Raw | ConvertFrom-Json
+Invoke-Checked python @('distribution/windows_sdk_policy.py','--props','Directory.Build.props','--deps',(Join-Path $validatedPackage 'FolderSail.deps.json'),'--package-cache',$sqliteAssets.project.restore.packagesPath,'--output',(Join-Path $qualificationEvidence 'windows-sdk-package.json'))
 Invoke-Checked python @('distribution/verify-sqlite-assets.py','--assets','src/Files.App/obj/project.assets.json','--package-cache',$sqliteAssets.project.restore.packagesPath,'--package-root',$validatedPackage,'--output',(Join-Path $qualificationEvidence 'sqlite-package-assets.json'))
 Copy-Item ($validatedPackage + '.files.json'),($validatedPackage + '.validation.json') $qualificationEvidence
 Get-ChildItem $validatedPackage -Recurse -File | Where-Object { $_.Name -like '*.runtimeconfig.json' -or $_.Name -like '*.deps.json' } | ForEach-Object {
