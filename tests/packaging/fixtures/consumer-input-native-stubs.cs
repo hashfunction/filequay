@@ -13,8 +13,8 @@ namespace Windows.Win32.UI.WindowsAndMessaging {
  public struct GUITHREADINFO {public uint cbSize;public uint flags;public HWND hwndActive,hwndFocus,hwndCapture,hwndMenuOwner,hwndMoveSize,hwndCaret;}
 }
 namespace Windows.Win32.UI.Input.KeyboardAndMouse {
- public enum INPUT_TYPE {INPUT_KEYBOARD} public enum VIRTUAL_KEY {} public enum KEYBD_EVENT_FLAGS {KEYEVENTF_KEYUP=2}
- public struct KEYBDINPUT {public VIRTUAL_KEY wVk;public KEYBD_EVENT_FLAGS dwFlags;}
+ public enum INPUT_TYPE {INPUT_KEYBOARD} public enum VIRTUAL_KEY {} public enum KEYBD_EVENT_FLAGS {KEYEVENTF_KEYUP=2,KEYEVENTF_UNICODE=4}
+ public struct KEYBDINPUT {public VIRTUAL_KEY wVk;public ushort wScan;public KEYBD_EVENT_FLAGS dwFlags;}
  public struct InputUnion {public KEYBDINPUT ki;}
  public struct INPUT {public INPUT_TYPE type;public InputUnion Anonymous;}
 }

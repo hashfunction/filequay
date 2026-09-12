@@ -19,7 +19,7 @@ try {
     $adapter=[FileQuayQualification.ConsumerInput].Assembly
     if ($adapter.GetName().Name -cne 'FileQuay.Qualification.Native') { throw 'Loaded a customer assembly.' };$checks++
     if (@($adapter.GetReferencedAssemblies() | Where-Object Name -Like 'Files.*').Count) { throw 'Customer runtime reference.' };$checks++
-    foreach ($name in @('Observe','RootWindow','WindowProcess','OwnerChain','Foreground','Chord','FocusedSpace','ObserveClipboard')) {
+    foreach ($name in @('Observe','RootWindow','WindowProcess','OwnerChain','Foreground','Chord','FocusedSpace','FocusedText','ObserveClipboard')) {
         if (-not [FileQuayQualification.ConsumerInput].GetMethod($name)) { throw "Missing adapter $name." };$checks++
     }
     foreach ($name in @('GetAncestor','GetWindowThreadProcessId','GetWindow','IsWindow','IsWindowVisible','IsWindowEnabled','GetForegroundWindow','SetForegroundWindow','SendInput','GetGUIThreadInfo','GetClipboardOwner','GetClipboardSequenceNumber','IsClipboardFormatAvailable')) {

@@ -475,16 +475,66 @@ function Invoke-FileQuayWorkflowPickerButton($Ui, $Binding, [string]$Id, [string
     [FileQuayQualification.ConsumerInput]::FocusedSpace($Ui.application,$Ui.main_hwnd,$scope.process,$scope.target_hwnd,$handle)
 }
 
-function Confirm-FileQuayWorkflowPickerFilename($Ui, $Filename, [string]$Expected) {
-    Assert-FileQuayWorkflowTarget $Filename.scope (Get-FileQuayWorkflowTargetState $Ui $Filename)
+function Assert-FileQuayWorkflowFilenameControl($Ui, $Filename, [long]$ExpectedHandle=0, [switch]$Focused) {
     $current=$Filename.element.Current
-    if ($current.AutomationId -cne '1001' -or $current.ClassName -cne 'Edit') { throw 'Native filename identity changed before readback.' }
+    if ($Filename.scope.target_hwnd -eq $Ui.main_hwnd -or $current.ProcessId -ne $Filename.scope.target_pid -or
+        $current.AutomationId -cne '1001' -or $current.ClassName -cne 'Edit' -or
+        $current.ControlType -ne [System.Windows.Automation.ControlType]::Edit -or
+        -not $current.NativeWindowHandle -or ($ExpectedHandle -and $current.NativeWindowHandle -ne $ExpectedHandle) -or
+        $current.IsOffscreen -or -not $current.IsEnabled -or -not $current.IsKeyboardFocusable -or
+        ($Focused -and -not $current.HasKeyboardFocus)) {
+        throw 'The exact owned native filename control identity or focus changed.'
+    }
+    [long]$current.NativeWindowHandle
+}
+
+function Set-FileQuayWorkflowPickerFilename($Ui, $Filename, [string]$Text) {
+    $handle=Assert-FileQuayWorkflowFilenameControl $Ui $Filename
+    $scope=$Filename.scope
+    Assert-FileQuayWorkflowTarget $scope (Get-FileQuayWorkflowTargetState $Ui $Filename)
     $pattern=[System.Windows.Automation.ValuePattern]$Filename.element.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
-    $value=$pattern.Current
-    $text=[string]$value.Value;$readOnly=[bool]$value.IsReadOnly
-    $Ui.record.picker_filename=@{expected=$Expected;value=(Limit-FileQuayWorkflowDiagnosticText $text);read_only=$readOnly;value_truncated=($text.Length -gt 1024);
-        verified=$false;picker_hwnd=$Filename.scope.target_hwnd;picker_pid=$Filename.scope.target_pid}
-    if ($readOnly -or $text -cne $Expected) { throw 'Native filename does not retain the exact selected CSV path.' }
+    if ($pattern.Current.IsReadOnly) {throw 'Native filename is read-only before input.'}
+    [FileQuayQualification.ConsumerInput]::Foreground($Ui.application,$Ui.main_hwnd,$scope.process,$scope.target_hwnd)
+    $Filename.element.SetFocus()
+    $observations=[Collections.Generic.List[object]]::new()
+    for($attempt=0;$attempt -lt 20;$attempt++) {
+        $state=Get-FileQuayWorkflowTargetState $Ui $Filename
+        $null=Assert-FileQuayWorkflowFilenameControl $Ui $Filename $handle
+        Assert-FileQuayWorkflowTarget $scope $state
+        $focused=[bool]$Filename.element.Current.HasKeyboardFocus
+        $observations.Add(@{at_utc=[DateTimeOffset]::UtcNow.ToString('O');focused=$focused})
+        if($focused){break}
+        if($attempt -lt 19){Start-Sleep -Milliseconds 50}
+    }
+    Add-FileQuayWorkflowTrace $Ui 'NativeFilenameFocusObservation' @{edit_hwnd=$handle;observations=$observations.ToArray()}
+    $null=Assert-FileQuayWorkflowFilenameControl $Ui $Filename $handle -Focused
+    Assert-FileQuayWorkflowTarget $scope (Get-FileQuayWorkflowTargetState $Ui $Filename)
+    Add-FileQuayWorkflowTrace $Ui 'NativeFilenameText' @{edit_hwnd=$handle;characters=$Text.Length;state=$state}
+    # Actual run34703681708 retained correct WM_SETTEXT readback but the picker
+    # returned its default path. Deliver one focused keyboard replacement; keep
+    # both exact text readback and the app's returned-path confirmation checks.
+    [FileQuayQualification.ConsumerInput]::FocusedText($Ui.application,$Ui.main_hwnd,$scope.process,$scope.target_hwnd,$handle,$Text)
+}
+
+function Confirm-FileQuayWorkflowPickerFilename($Ui, $Filename, [string]$Expected) {
+    $handle=Assert-FileQuayWorkflowFilenameControl $Ui $Filename
+    $observations=[Collections.Generic.List[object]]::new()
+    $Ui.record.picker_filename=@{expected=$Expected;value='';read_only=$false;value_truncated=$false;verified=$false;
+        picker_hwnd=$Filename.scope.target_hwnd;picker_pid=$Filename.scope.target_pid;observations=$observations}
+    for($attempt=0;$attempt -lt 20;$attempt++) {
+        Assert-FileQuayWorkflowTarget $Filename.scope (Get-FileQuayWorkflowTargetState $Ui $Filename)
+        $null=Assert-FileQuayWorkflowFilenameControl $Ui $Filename $handle
+        $pattern=[System.Windows.Automation.ValuePattern]$Filename.element.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+        $value=$pattern.Current
+        $text=[string]$value.Value;$readOnly=[bool]$value.IsReadOnly
+        $Ui.record.picker_filename.value=Limit-FileQuayWorkflowDiagnosticText $text
+        $Ui.record.picker_filename.read_only=$readOnly;$Ui.record.picker_filename.value_truncated=($text.Length -gt 1024)
+        $observations.Add(@{at_utc=[DateTimeOffset]::UtcNow.ToString('O');value=$Ui.record.picker_filename.value;read_only=$readOnly;value_truncated=($text.Length -gt 1024)})
+        if($readOnly){throw 'Native filename became read-only after input.'}
+        if($text -ceq $Expected){break}
+        if($attempt -lt 19){Start-Sleep -Milliseconds 50}
+    }
+    if ($text -cne $Expected) { throw 'Native filename does not retain the exact selected CSV path.' }
     Assert-FileQuayWorkflowTarget $Filename.scope (Get-FileQuayWorkflowTargetState $Ui $Filename)
     $Ui.record.picker_filename.verified=$true
 }
@@ -504,7 +554,7 @@ function Open-FileQuayWorkflowExportConfirmation($Ui, $Fixture) {
     $picker = @{scope=$filename.scope;element=$filename.scope.root}
     $Ui.record.picker_ownership = @{app_pid=$Ui.application.Id;main_hwnd=$Ui.main_hwnd;picker_pid=$picker.scope.target_pid;picker_hwnd=$picker.scope.target_hwnd;
         owner_chain=[FileQuayQualification.ConsumerInput]::OwnerChain($picker.scope.target_hwnd);process_path=$picker.scope.process.Path}
-    Invoke-FileQuayWorkflowAction $Ui $filename Value $Fixture.csv
+    Set-FileQuayWorkflowPickerFilename $Ui $filename $Fixture.csv
     Confirm-FileQuayWorkflowPickerFilename $Ui $filename $Fixture.csv
     $save = Find-FileQuayWorkflowElement $Ui '1' -Within $picker
     Invoke-FileQuayWorkflowPickerButton $Ui $save '1' 'Save'

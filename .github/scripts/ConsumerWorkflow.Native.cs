@@ -118,6 +118,46 @@ public static class ConsumerInput
 		SendChord(app, main, target, window, new[] { 0x20 }, control);
 	}
 
+	public static unsafe void FocusedText(Process app, long main, Process target, long window, long control, string text)
+	{
+		if (control == 0 || String.IsNullOrEmpty(text) || text.Length > 1024)
+			throw new ArgumentException("Missing focused control or unbounded filename text.");
+		for (int i = 0; i < text.Length; i++)
+		{
+			if (Char.IsControl(text[i])) throw new ArgumentException("Control character in filename text.");
+			if (Char.IsHighSurrogate(text[i]))
+			{
+				if (i + 1 >= text.Length || !Char.IsLowSurrogate(text[++i])) throw new ArgumentException("Invalid Unicode filename text.");
+			}
+			else if (Char.IsLowSurrogate(text[i])) throw new ArgumentException("Invalid Unicode filename text.");
+		}
+		// One ordinary Ctrl+A followed by Unicode key pairs. No clipboard access
+		// or synchronous WM_SETTEXT; the picker processes its normal input path.
+		var inputs = new INPUT[4 + text.Length * 2];
+		int[] selection = { 0x11, 0x41, 0x41, 0x11 };
+		for (int i = 0; i < 4; i++)
+		{
+			inputs[i].type = INPUT_TYPE.INPUT_KEYBOARD;
+			inputs[i].Anonymous.ki.wVk = (VIRTUAL_KEY)selection[i];
+			if (i >= 2) inputs[i].Anonymous.ki.dwFlags = KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP;
+		}
+		for (int i = 0; i < text.Length; i++)
+		{
+			for (int up = 0; up < 2; up++)
+			{
+				int n = 4 + i * 2 + up;
+				inputs[n].type = INPUT_TYPE.INPUT_KEYBOARD;
+				inputs[n].Anonymous.ki.wScan = text[i];
+				inputs[n].Anonymous.ki.dwFlags = KEYBD_EVENT_FLAGS.KEYEVENTF_UNICODE |
+					(up == 1 ? KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP : 0);
+			}
+		}
+		RequireTarget(app, main, target, window, true);
+		RequireFocusedControl(target, window, control);
+		if (PInvoke.SendInput(inputs, sizeof(INPUT)) != inputs.Length)
+			throw new InvalidOperationException("Native workflow filename input was only partially delivered.");
+	}
+
 	public static void Chord(Process app, long main, Process target, long window, int[] keys)
 		=> SendChord(app, main, target, window, keys, 0);
 
