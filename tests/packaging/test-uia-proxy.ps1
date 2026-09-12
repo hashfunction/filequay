@@ -1,6 +1,7 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot '../../.github/scripts/ConsumerWorkflow.Helpers.ps1')
 . (Join-Path $PSScriptRoot '../../.github/scripts/UiaProxy.Helpers.ps1')
 function Require([bool]$Condition,[string]$Message) {if (-not $Condition) {throw $Message}}
 function Reject([scriptblock]$Action,[string]$Label) {$failed=$false;try {& $Action} catch {$failed=$true};Require $failed "Accepted $Label"}
@@ -57,31 +58,51 @@ foreach ($mode in @('wrong-nonce','wrong-value','no-invoke','duplicate-invoke','
 # Reuse an already loaded read-only host assembly solely for the load boundary;
 # the identity-policy test above remains responsible for rejecting foreign DLLs.
 $assemblyPath=[System.Management.Automation.PSObject].Assembly.Location
-Add-Type -TypeDefinition @'
+$work=Join-Path ([IO.Path]::GetTempPath()) ('foldersail-typed-uia-'+[Guid]::NewGuid().ToString('N'))
+$null=New-Item -ItemType Directory $work -ErrorAction Stop
+$clientPath=Join-Path $work 'ClientApiDouble.dll'
+try {
+Add-Type -OutputAssembly $clientPath -TypeDefinition @'
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 namespace System.Windows.Automation {
  public sealed class FixtureDiagnosticException : Exception {
   public FixtureDiagnosticException() : base("original-registration-failure") {}
   public override string ToString() { throw new InvalidOperationException("diagnostic-format-failure"); }
  }
  public static class ClientSettings {
-  public static int Calls; public static bool BreakDiagnostic;
+  public static int Calls; public static bool BreakDiagnostic,WalkStack; public static string CallingType; public static bool MissingReflectedType;
   [MethodImpl(MethodImplOptions.NoInlining)]
   public static void RegisterClientSideProviderAssembly(AssemblyName name) {
    Calls++;
    if(name.Name!="UIAutomationClientsideProviders")throw new ArgumentException("Unexpected provider name");
+   if(WalkStack){CheckOriginalCallerWalk();return;}
    if(BreakDiagnostic)throw new FixtureDiagnosticException();
    FailInTypedFrame();
   }
   [MethodImpl(MethodImplOptions.NoInlining)]
   static void FailInTypedFrame() { throw new NullReferenceException("fixture-null-reference"); }
+  // Exact relevant WPF v10.0.11 algorithm, including its unguarded dereference.
+  // This is a public-API test double; no private framework state is touched.
+  [MethodImpl(MethodImplOptions.NoInlining)]
+  static void CheckOriginalCallerWalk() {
+   Assembly current=Assembly.GetExecutingAssembly();StackTrace stack=new StackTrace();
+   for(int i=0;i<stack.FrameCount;i++) {
+    MethodBase method=stack.GetFrame(i).GetMethod();Type type=method.ReflectedType;
+    MissingReflectedType=type==null;Assembly assembly=type.Assembly;
+    if(assembly.GetName().Name!=current.GetName().Name){CallingType=type.FullName;return;}
+   }
+   throw new InvalidOperationException("No external caller");
+  }
  }
 }
 '@
+ $stream=[IO.MemoryStream]::new([IO.File]::ReadAllBytes($clientPath),$false)
+ try{$null=[Runtime.Loader.AssemblyLoadContext]::Default.LoadFromStream($stream)}finally{$stream.Dispose()}
  function Get-FileQuayUiaProxyEvidence($Record) {
-  $Record.client=@{path=$assemblyPath};$Record.proxy=@{path=$assemblyPath};$Record.registered=$false
+  $Record.client=@{path=$clientPath};$Record.proxy=@{path=$assemblyPath};$Record.registered=$false
  }
  $r=@{registered=$false}
  $caught=$null;try{Register-FileQuayUiaProxy $r}catch{$caught=$_}
@@ -92,7 +113,7 @@ namespace System.Windows.Automation {
   $trace.script_stack_trace.text -like '*Register-FileQuayUiaProxy*') 'Real exception ToString/inner/script stack did not survive JSON.'
  Require (@($trace.chain|Where-Object {$_.type -ceq 'System.NullReferenceException' -and $_.stack_trace.text -like '*FailInTypedFrame*'}).Count -eq 1 -and
   $saved.registration_call.api -ceq 'System.Windows.Automation.ClientSettings.RegisterClientSideProviderAssembly' -and
-  $saved.registration_call.route -ceq 'direct PowerShell public API') 'Exact native exception chain/unchanged call route missing.'
+  $saved.registration_call.route -ceq 'source-owned typed public API (NoInlining)') 'Exact native exception chain/unchanged call route missing.'
  # Bounded metadata retains explicit truncation, including an over-depth chain.
  $deep=[Exception]::new(('x'*70000))
  foreach($i in 1..10){$deep=[Exception]::new("wrapper-$i",$deep)}
@@ -105,3 +126,35 @@ namespace System.Windows.Automation {
  Require ($caught.Exception.Message -like '*original-registration-failure*' -and -not $r.registered -and
   $r.registration_exception_error -like '*diagnostic-format-failure*' -and [System.Windows.Automation.ClientSettings]::Calls -eq 2) 'Diagnostic formatting failure masked primary registration refusal or caused replay.'
  'PASS actual registration-boundary C# exception/JSON retention, bounded chain/text and original-error preservation (no native UI claim).'
+
+ [System.Windows.Automation.ClientSettings]::BreakDiagnostic=$false
+ [System.Windows.Automation.ClientSettings]::WalkStack=$true
+ $directFailure=$null
+ try{[System.Windows.Automation.ClientSettings]::RegisterClientSideProviderAssembly([Reflection.AssemblyName]::new('UIAutomationClientsideProviders'))}catch{$directFailure=$_}
+ Require ($null -ne $directFailure -and [System.Windows.Automation.ClientSettings]::MissingReflectedType) 'Direct PowerShell call did not reproduce the actual WPF caller-frame defect.'
+ $r=@{client=@{path=$clientPath}}
+ Initialize-FileQuayUiaRegistration $r
+ [FileQuayQualification.UiaProxyRegistration]::Register([Reflection.AssemblyName]::new('UIAutomationClientsideProviders'))
+ Require (-not [System.Windows.Automation.ClientSettings]::MissingReflectedType -and
+  [System.Windows.Automation.ClientSettings]::CallingType -ceq 'FileQuayQualification.UiaProxyRegistration' -and
+  $r.registration_shim.no_inlining -and $r.registration_shim.source_file.bytes -gt 0) 'Compiled production shim did not stop the exact stack walk before the dynamic frame.'
+ $method=[FileQuayQualification.UiaProxyRegistration].GetMethod('Register')
+ Require (($method.GetMethodImplementationFlags() -band [Reflection.MethodImplAttributes]::NoInlining) -ne 0) 'Production typed caller can be inlined away.'
+ $firstHash=$r.registration_shim.source_file.sha256
+ Initialize-FileQuayUiaRegistration $r
+ Require ($r.registration_shim.source_file.sha256 -ceq $firstHash) 'Owned compiled caller lost its exact source binding.'
+ $originalBinding=$script:FileQuayUiaRegistrationIdentity
+ foreach($drift in @('source','type','client')) {
+  $script:FileQuayUiaRegistrationIdentity=@{}+$originalBinding
+  switch($drift) {
+   'source'{$script:FileQuayUiaRegistrationIdentity.source=@{}+$originalBinding.source;$script:FileQuayUiaRegistrationIdentity.source.sha256='0'*64}
+   'type'{$script:FileQuayUiaRegistrationIdentity.type=[object]}
+   'client'{$script:FileQuayUiaRegistrationIdentity.client_reference='Foreign, Version=1.0.0.0'}
+  }
+  $callsBefore=[System.Windows.Automation.ClientSettings]::Calls;$r=@{registered=$false}
+  Reject {Register-FileQuayUiaProxy $r} "typed caller $drift binding drift"
+  Require (-not $r.registered -and -not $r.registration_call.entered -and [System.Windows.Automation.ClientSettings]::Calls -eq $callsBefore) 'Unbound typed caller reached the public API or changed registration acceptance.'
+ }
+ $script:FileQuayUiaRegistrationIdentity=$originalBinding
+ 'PASS real PowerShell dynamic-frame failure and compiled production non-inlined typed-caller recovery through the public-API double; three caller-binding refusals before registration.'
+} finally {Remove-Item -LiteralPath $work -Recurse -Force}

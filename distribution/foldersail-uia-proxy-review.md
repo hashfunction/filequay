@@ -119,3 +119,74 @@ checks: 23 real-pattern policy cases, absent-host refusal, production locked
 Win32 fixture build/hash-tamper refusal using `.tools/dotnet-10.0.401/dotnet`, and
 the actual installer `ProxyFailure` scenario. No native registration/UI success
 is claimed from local macOS verification.
+
+## Confirmed caller-frame failure and typed public caller
+
+The next short run, [34691084543](https://github.com/hashfunction/filequay/actions/runs/34691084543),
+public source `9f902f9869e5dec1d3dac3fbeb2a9684e563fa3d`, confirms the original
+NullReference in the framework default-proxy loader. Its complete inner stack is:
+
+```text
+at MS.Internal.Automation.ProxyManager.LoadDefaultProxies()
+at MS.Internal.Automation.ProxyManager.RegisterWindowHandlers(ClientSideProviderDescription[] proxyInfo)
+at CallSite.Target(Closure, CallSite, Type, Object)
+```
+
+The inner exception is `System.NullReferenceException`, HResult `-2147467261`.
+Both stack and full Exception.ToString are untruncated. The exact argument was
+`UIAutomationClientsideProviders, Version=10.0.0.0, Culture=neutral,
+PublicKeyToken=b77a5c561934e089`; Microsoft file identities/hashes remain as
+recorded above. The actual external frame is PowerShell's dynamic CallSite,
+which lacks the ReflectedType required by the exact WPF stack-walk source.
+This evidence identifies the source-backed failure before any native fixture
+child or provider action. Registered/passed/consumer_acceptance are false and
+cleanup errors are empty.
+
+Artifact `10296834113` contains only 2,579 compressed bytes. The retained
+`/private/tmp/foldersail-34691084543-review/uia-proxy-preflight.json` is 8,040 bytes,
+SHA-256 `b9e332d7f8460df9a25edc8205ed5d702e9cc20bf5c9bc9b10cf24342eadefd1`.
+The failed log is `/private/tmp/foldersail-34691084543-failed.log`.
+
+The correction adds `.github/scripts/UiaProxy.Register.cs`: a typed static
+`Register(AssemblyName)` method with `MethodImplOptions.NoInlining` that directly
+calls the same public ClientSettings API. Its typed frame is the first caller
+outside UIAutomationClient, before the dynamic PowerShell frame. There is no
+private framework reflection/mutation, different API, alternate provider,
+exception suppression, callback indirection or retry.
+
+The current host compiles this bounded source against its already verified
+UIAutomationClient file. Source hashes are checked around compilation. The
+resulting public method signature, NoInlining flag, and exact client assembly
+reference are verified; metadata records source hash/size, assembly identity,
+MVID and references. A previously compiled type is reused only when its retained
+object identity, exact source hash/size and client reference all match. This is
+caller-code reuse, not registration acceptance: every preflight still runs its
+one public registration call and the unchanged real owned Win32 fixture.
+Foreign or unbound preloaded caller types fail before the API is entered.
+Original bounded exception diagnostics and all assembly identity/post-call
+checks remain. No product, native fixture, lifecycle or qualification gate
+changed.
+
+Local regression executes the actual production compiled shim against a public
+API double containing the relevant original WPF stack-walk algorithm. Direct
+PowerShell invocation actually throws at the missing ReflectedType; invoking the
+same double through the production shim reports
+`FileQuayQualification.UiaProxyRegistration` as the first external typed caller
+and succeeds. The test verifies the real method's NoInlining flag, repeated
+source-bound caller reuse, and three source/type/client binding drifts that stop
+before any API call. Existing exception-stack/JSON/bounds/formatting-error tests
+continue to pass. The test double is deliberately not a real Windows proxy, so
+this result does not claim successful Microsoft provider registration.
+
+Focused commands (all passed locally):
+
+```sh
+TMPDIR=/private/tmp .tools/powershell-7.6.6/pwsh -NoProfile -File tests/packaging/test-uia-proxy.ps1
+FILEQUAY_DOTNET="$PWD/.tools/dotnet-10.0.401/dotnet" TMPDIR=/private/tmp .tools/powershell-7.6.6/pwsh -NoProfile -File tests/packaging/test-uia-proxy-fixture.ps1
+TMPDIR=/private/tmp .tools/powershell-7.6.6/pwsh -NoProfile -File tests/packaging/test-installation-failures.ps1 -Scenario ProxyFailure
+```
+
+PowerShell parsing and `git diff --check` also passed. The current exact signed
+Microsoft API/proxy, standard Win32 Value/Invoke actions, normal child exit and
+cleanup must pass in a fresh Windows process before full FolderSail qualification.
+No push or dispatch was performed from this source task.

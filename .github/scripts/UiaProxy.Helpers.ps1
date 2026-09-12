@@ -59,6 +59,38 @@ function Get-FileQuayUiaExceptionEvidence([Management.Automation.ErrorRecord]$Fa
       chain=@($chain);chain_truncated=($null -ne $exception);observed_utc=[DateTime]::UtcNow.ToString('o')}
 }
 
+function Initialize-FileQuayUiaRegistration($Record) {
+    $path=Join-Path $PSScriptRoot 'UiaProxy.Register.cs'
+    $source=Get-FileQuayWorkflowFile $path 16384
+    $clientName=[Reflection.AssemblyName]::GetAssemblyName($Record.client.path)
+    $type='FileQuayQualification.UiaProxyRegistration' -as [type]
+    if ($type) {
+        $owned=Get-Variable FileQuayUiaRegistrationIdentity -Scope Script -ErrorAction SilentlyContinue
+        if (-not $owned -or -not [object]::ReferenceEquals($owned.Value.type,$type) -or
+            $owned.Value.source.sha256 -cne $source.sha256 -or $owned.Value.source.bytes -ne $source.bytes -or
+            $owned.Value.client_reference -cne $clientName.FullName) {throw 'Typed UIA caller is not bound to this exact source and verified client.'}
+    } else {
+        # Compile only this source against the already identity-checked host client.
+        # No customer/R2R assembly or alternate framework/provider is referenced.
+        $code=[IO.File]::ReadAllText($path)
+        Assert-FileQuayWorkflowFile $path $source
+        $types=@(Add-Type -TypeDefinition $code -ReferencedAssemblies $Record.client.path -PassThru)
+        Assert-FileQuayWorkflowFile $path $source
+        if ($types.Count -ne 1 -or $types[0].FullName -cne 'FileQuayQualification.UiaProxyRegistration') {throw 'Unexpected compiled UIA caller type.'}
+        $type=$types[0]
+        $script:FileQuayUiaRegistrationIdentity=@{type=$type;source=$source;client_reference=$clientName.FullName}
+    }
+    $method=$type.GetMethod('Register')
+    $references=@($type.Assembly.GetReferencedAssemblies())
+    if ($null -eq $method -or -not $method.IsStatic -or $method.ReturnType -ne [void] -or
+        $method.GetParameters().Count -ne 1 -or $method.GetParameters()[0].ParameterType -ne [Reflection.AssemblyName] -or
+        ($method.GetMethodImplementationFlags() -band [Reflection.MethodImplAttributes]::NoInlining) -eq 0 -or
+        @($references | Where-Object FullName -CEQ $clientName.FullName).Count -ne 1) {throw 'Typed UIA caller lost its non-inlined direct client boundary.'}
+    $Record.registration_shim=@{source_path='.github/scripts/UiaProxy.Register.cs';source_file=$source;
+        assembly_identity=$type.Assembly.FullName;mvid=$type.Assembly.ManifestModule.ModuleVersionId.ToString();
+        client_reference=$clientName.FullName;no_inlining=$true;assembly_references=@($references.FullName)}
+}
+
 function Register-FileQuayUiaProxy($Record) {
     Get-FileQuayUiaProxyEvidence $Record
     $path=$Record.proxy.path
@@ -69,9 +101,11 @@ function Register-FileQuayUiaProxy($Record) {
     $name=[Reflection.AssemblyName]::new($assembly.FullName)
     $name.Name='UIAutomationClientsideProviders'
     $Record.registration_call=@{api='System.Windows.Automation.ClientSettings.RegisterClientSideProviderAssembly';
-        route='direct PowerShell public API';assembly_name=$name.FullName}
+        route='source-owned typed public API (NoInlining)';assembly_name=$name.FullName;entered=$false}
     try {
-        [System.Windows.Automation.ClientSettings]::RegisterClientSideProviderAssembly($name)
+        Initialize-FileQuayUiaRegistration $Record
+        $Record.registration_call.entered=$true
+        [FileQuayQualification.UiaProxyRegistration]::Register($name)
     } catch {
         $primary=$_
         # Capture here, before outer cleanup replaces the ErrorRecord with its
