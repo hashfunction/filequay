@@ -76,3 +76,5 @@ tests/packaging/fixtures/foldersail-runtime-deps-34694585269.json -text
 distribution/corresponding-source/source-derivation.json -text
 
 distribution/store-license-terms.txt -text
+
+tests/packaging/fixtures/clear-confirmation-34710948563.json -text

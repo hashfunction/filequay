@@ -853,7 +853,9 @@ function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [str
         Assert-FileQuayWorkflowFiles $fixture Moved
         Invoke-FileQuayWorkflowAction $ui (Find-FileQuayWorkflowElement $ui 'ReceiptClearButton') Invoke
         $clear=Wait-FileQuayWorkflow {
-            $matches=@(Find-FileQuayWorkflowElements $ui -Name $strings.ReceiptClear | Where-Object { $_.element.Current.ClassName -ceq 'ContentDialog' })
+            # WinUI exposes this ContentDialog as the observed Popup Window peer.
+            $matches=@(Find-FileQuayWorkflowElements $ui -Name $strings.ReceiptClear | Where-Object {
+                $_.element.Current.ClassName -ceq 'Popup' -and $_.element.Current.ControlType -eq [System.Windows.Automation.ControlType]::Window })
             if ($matches.Count -ne 1) { throw 'Exact Clear receipts confirmation is absent or ambiguous.' }
             $matches[0]
         } 'clear-metadata confirmation'
