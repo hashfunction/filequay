@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "source_artifact": {
+    "workflow_run_id": "34705590423",
+    "source_commit": "29a524deecbab5a319aed76db775244682b6c7c2",
+    "path": "FolderSail-Windows-Consumer-qualification/Consumer/installation-result.json",
+    "bytes": 160403,
+    "sha256": "65128eb40241c7a68579b97226bafba60d2795c62458648264f8de03b0512d58"
+  },
+  "scope_hwnd_is_not_control_native_hwnd": true,
+  "control_native_hwnd_observed": false,
+  "picker_ownership": {
+    "owner_chain": [
+      131628,
+      1638700
+    ],
+    "picker_hwnd": 131628,
+    "process_path": "C:\\Windows\\System32\\PickerHost.exe",
+    "picker_pid": 1732,
+    "main_hwnd": 1638700,
+    "app_pid": 6220
+  },
+  "nodes": [
+    {
+      "hwnd": 66288,
+      "process_id": 1732,
+      "depth": 0,
+      "property_errors": {},
+      "automation_id": "",
+      "name": "Confirm Save As",
+      "class_name": "#32770",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.Window",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": true
+    },
+    {
+      "hwnd": 66288,
+      "process_id": 1732,
+      "depth": 1,
+      "property_errors": {},
+      "automation_id": "MainIcon",
+      "name": "MainInstructionIcon",
+      "class_name": "Element",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.Image",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": false
+    },
+    {
+      "hwnd": 66288,
+      "process_id": 1732,
+      "depth": 1,
+      "property_errors": {},
+      "automation_id": "ContentText",
+      "name": "receipts.csv already exists.\r\nDo you want to replace it?",
+      "class_name": "Element",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.Text",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": false
+    },
+    {
+      "hwnd": 66288,
+      "process_id": 1732,
+      "depth": 1,
+      "property_errors": {},
+      "automation_id": "CommandButton_6",
+      "name": "Yes",
+      "class_name": "CCPushButton",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.Button",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": true
+    },
+    {
+      "hwnd": 66288,
+      "process_id": 1732,
+      "depth": 1,
+      "property_errors": {},
+      "automation_id": "CommandButton_7",
+      "name": "No",
+      "class_name": "CCPushButton",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.Button",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": true,
+      "keyboard_focusable": true
+    },
+    {
+      "hwnd": 66288,
+      "process_id": 1732,
+      "depth": 1,
+      "property_errors": {},
+      "automation_id": "TitleBar",
+      "name": "Confirm Save As",
+      "class_name": "",
+      "control_type_raw": "System.Windows.Automation.ControlType",
+      "control_type": "ControlType.TitleBar",
+      "offscreen": false,
+      "enabled": true,
+      "keyboard_focus": false,
+      "keyboard_focusable": false
+    }
+  ]
+}

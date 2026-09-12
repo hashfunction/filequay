@@ -421,14 +421,79 @@ function Find-FileQuayWorkflowSaveFilename($Ui) {
     $filename
 }
 
+function Assert-FileQuayWorkflowTaskReplacement($Ui, $Binding) {
+    if (-not $Binding.ContainsKey('task_replacement')) { throw 'Task replacement has no retained picker context.' }
+    $context=$Binding.task_replacement;$scope=$Binding.scope;$root=$scope.root.Current
+    if ($scope.target_pid -ne $context.picker.scope.target_pid -or $scope.process.Id -ne $context.picker.scope.process.Id -or
+        $scope.target_hwnd -in @($Ui.main_hwnd,$context.picker.scope.target_hwnd) -or
+        $root.NativeWindowHandle -ne $scope.target_hwnd -or $root.ProcessId -ne $scope.target_pid -or
+        $root.Name -cne 'Confirm Save As' -or $root.ClassName -cne '#32770' -or
+        $root.ControlType -ne [System.Windows.Automation.ControlType]::Window -or $root.IsOffscreen -or -not $root.IsEnabled -or
+        -not $Ui.record.picker_filename.verified -or $Ui.record.picker_filename.expected -cne $context.path -or
+        $Ui.record.picker_filename.value -cne $context.path) { throw 'Task replacement dialog or exact selected filename changed.' }
+    Assert-FileQuayWorkflowTarget $scope (Get-FileQuayWorkflowTargetState $Ui $Binding)
+    $dialog=@{scope=$scope;element=$scope.root}
+    $yes=@(Find-FileQuayWorkflowElements $Ui 'CommandButton_6' -Within $dialog)
+    if ($yes.Count -ne 1) { throw 'Task replacement Yes identity is absent or ambiguous.' }
+    $expectedRuntime=@($Binding.element.GetRuntimeId());$observedRuntime=@($yes[0].element.GetRuntimeId())
+    if ($expectedRuntime.Count -lt 1 -or $expectedRuntime.Count -gt 64 -or $observedRuntime.Count -lt 1 -or
+        $observedRuntime.Count -gt 64 -or [string]::Join(',',[int[]]$observedRuntime) -cne
+        [string]::Join(',',[int[]]$expectedRuntime)) { throw 'Task replacement Yes identity is absent or ambiguous.' }
+    foreach($part in @(@('ContentText','Element',[System.Windows.Automation.ControlType]::Text,
+                        ([IO.Path]::GetFileName($context.path)+" already exists.`r`nDo you want to replace it?")),
+                      @('CommandButton_7','CCPushButton',[System.Windows.Automation.ControlType]::Button,'No'))){
+        $found=@(Find-FileQuayWorkflowElements $Ui $part[0] -Within $dialog)
+        if($found.Count -ne 1){throw 'Task replacement content or No sibling is absent or ambiguous.'}
+        $node=$found[0].element.Current
+        if($node.AutomationId -cne $part[0] -or $node.ClassName -cne $part[1] -or $node.ControlType -ne $part[2] -or
+           $node.Name -cne $part[3] -or $node.ProcessId -ne $scope.target_pid -or $node.IsOffscreen -or -not $node.IsEnabled -or
+           ($part[0] -ceq 'CommandButton_7' -and -not $node.IsKeyboardFocusable)){
+            throw 'Task replacement content or No sibling differs from the observed dialog.'
+        }
+        Assert-FileQuayWorkflowTarget $scope (Get-FileQuayWorkflowTargetState $Ui $found[0])
+    }
+}
+
+function Find-FileQuayWorkflowReplacement($Ui, $Picker, [string]$Path) {
+    $classic=@(Find-FileQuayWorkflowElements $Ui '6' -AllowBroker)
+    $task=@(Find-FileQuayWorkflowElements $Ui 'CommandButton_6' -AllowBroker)
+    if($classic.Count+$task.Count -gt 1){throw 'Native replacement confirmation is ambiguous.'}
+    if($classic.Count -eq 1){
+        $button=$classic[0]
+        if($button.element.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or
+           $button.scope.target_hwnd -eq $Ui.main_hwnd){throw 'Native replacement confirmation is not a distinct owned dialog button.'}
+        $dialog=@{scope=$button.scope;element=$button.scope.root}
+        $texts=@(Find-FileQuayWorkflowElements $Ui -Within $dialog -IncludeHidden|ForEach-Object {$_.element.Current.Name})
+        if(-not (($texts -join "`n").Contains([IO.Path]::GetFileName($Path)))){throw 'Native replacement dialog does not name the selected CSV.'}
+        return @{kind='native';binding=$button;id='6'}
+    }
+    if($task.Count -eq 1){
+        $button=$task[0];$button.task_replacement=@{picker=$Picker;path=$Path}
+        Assert-FileQuayWorkflowTaskReplacement $Ui $button
+        $Ui.record.native_replacement=@{route='observed-task-dialog';picker_pid=$Picker.scope.target_pid;
+            picker_hwnd=$Picker.scope.target_hwnd;dialog_pid=$button.scope.target_pid;dialog_hwnd=$button.scope.target_hwnd;
+            owner_chain=[FileQuayQualification.ConsumerInput]::OwnerChain($button.scope.target_hwnd);
+            selected_path=$Path;dialog_title='Confirm Save As';dialog_class='#32770';
+            scope_hwnd_is_not_control_native_hwnd=$true;button=(Get-FileQuayWorkflowObservedNode $button.element $button.scope 0);
+            provider=$null;provider_error=$null}
+        try{$Ui.record.native_replacement.provider=Get-FileQuayPickerProviderObservation $button.element $button.scope}
+        catch{$Ui.record.native_replacement.provider_error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
+        return @{kind='native';binding=$button;id='CommandButton_6'}
+    }
+}
+
 function Assert-FileQuayWorkflowPickerButton($Ui, $Binding, [string]$Id, [string]$Name, [long]$ExpectedHandle=0, [switch]$Focused) {
+    $task=$Id -ceq 'CommandButton_6' -and $Name -ceq 'Yes'
+    if($task){Assert-FileQuayWorkflowTaskReplacement $Ui $Binding}
+    $class=if($task){'CCPushButton'}else{'Button'}
     $current=$Binding.element.Current
-    if ((($Id -cne '1' -or $Name -cne 'Save') -and ($Id -cne '6' -or $Name -cne 'Yes')) -or
+    if ((($Id -cne '1' -or $Name -cne 'Save') -and ($Id -cne '6' -or $Name -cne 'Yes') -and -not $task) -or
         $Binding.scope.target_hwnd -eq $Ui.main_hwnd -or $current.ProcessId -ne $Binding.scope.target_pid -or
-        $current.AutomationId -cne $Id -or $current.Name -cne $Name -or $current.ClassName -cne 'Button' -or
+        $current.AutomationId -cne $Id -or $current.Name -cne $Name -or $current.ClassName -cne $class -or
         $current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or
         $current.IsOffscreen -or -not $current.IsEnabled -or -not $current.IsKeyboardFocusable -or
-        -not $current.NativeWindowHandle -or ($ExpectedHandle -and $current.NativeWindowHandle -ne $ExpectedHandle) -or
+        -not $current.NativeWindowHandle -or ($task -and $current.NativeWindowHandle -eq $Binding.scope.target_hwnd) -or
+        ($ExpectedHandle -and $current.NativeWindowHandle -ne $ExpectedHandle) -or
         ($Focused -and -not $current.HasKeyboardFocus)) {
         # Retain which original provider property failed; the old generic error
         # concealed whether the native HWND, identity, or focus was unavailable.
@@ -562,20 +627,12 @@ function Open-FileQuayWorkflowExportConfirmation($Ui, $Fixture) {
     $next = Wait-FileQuayWorkflow {
         $custom = @(Find-FileQuayWorkflowElements $Ui 'ReceiptExportConfirmationDialog')
         if ($custom.Count -eq 1) { return @{kind='custom';binding=$custom[0]} }
-        $overwrite = @(Find-FileQuayWorkflowElements $Ui '6' -AllowBroker)
-        if ($overwrite.Count -eq 1) {
-            if ($overwrite[0].element.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or
-                $overwrite[0].scope.target_hwnd -eq $Ui.main_hwnd) { throw 'Native replacement confirmation is not a distinct owned dialog button.' }
-            $dialog = @{scope=$overwrite[0].scope;element=$overwrite[0].scope.root}
-            $texts = @(Find-FileQuayWorkflowElements $Ui -Within $dialog -IncludeHidden | ForEach-Object { $_.element.Current.Name })
-            if (-not (($texts -join "`n").Contains([IO.Path]::GetFileName($Fixture.csv)))) { throw 'Native replacement dialog does not name the selected CSV.' }
-            return @{kind='native';binding=$overwrite[0]}
-        }
-        $null
+        Find-FileQuayWorkflowReplacement $Ui $picker $Fixture.csv
     } 'selected-file snapshot and explicit export confirmation'
     $confirmation=$next.binding
     if ($next.kind -eq 'native') {
-        Invoke-FileQuayWorkflowPickerButton $Ui $next.binding '6' 'Yes'
+        Assert-FileQuayWorkflowFile $Fixture.csv $Fixture.previous_csv
+        Invoke-FileQuayWorkflowPickerButton $Ui $next.binding $next.id 'Yes'
         $confirmation=Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $Ui 'ReceiptExportConfirmationDialog' } 'app export confirmation after the native decision'
     }
     $null = Wait-FileQuayWorkflow {

@@ -1,0 +1,59 @@
+name: FolderSail original Windows marketing capture
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  capture:
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
+        with:
+          dotnet-version: '10.0.401'
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12.10'
+      - name: Exercise capture-only file, source, ownership and cleanup checks
+        shell: pwsh
+        run: |
+          python -m unittest discover -s distribution/marketing -p 'test_*.py' -v
+          if ($LASTEXITCODE -ne 0) { throw 'Capture file/source checks failed' }
+          foreach ($name in @('frame','display','lifecycle','complete','native','integration')) {
+            & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -File "distribution/marketing/test_capture_$name.ps1"
+            if ($LASTEXITCODE -ne 0) { throw "Capture $name checks failed" }
+          }
+      - name: Require an explicitly reviewed original Store export
+        id: binding
+        shell: pwsh
+        run: |
+          python distribution/marketing/capture_checks.py --binding-output $env:GITHUB_OUTPUT
+          if ($LASTEXITCODE -ne 0) { throw 'Capture is unbound or source is not the exact clean commit' }
+      - name: Check out the original qualified app helpers without changing them
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ steps.binding.outputs.qualified_source }}
+          path: artifacts/marketing-qualified-source
+      - name: Verify original artifact bytes and all three retained native lifecycles
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python distribution/marketing/prepare_capture.py --qualified-source artifacts/marketing-qualified-source --output "$env:RUNNER_TEMP/foldersail-capture-inputs"
+          if ($LASTEXITCODE -ne 0) { throw 'Exact original capture input preparation failed' }
+      - name: Capture real app scenes and verify actual CSV and owned cleanup
+        shell: pwsh
+        run: |
+          ./distribution/marketing/capture.ps1 -Inputs "$env:RUNNER_TEMP/foldersail-capture-inputs" -QualifiedSource artifacts/marketing-qualified-source
+      - name: Retain original pixels and metadata only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: FolderSail-real-product-screenshots
+          path: |
+            artifacts/marketing/*.png
+            artifacts/marketing/*.json
+          retention-days: 14
+          if-no-files-found: warn

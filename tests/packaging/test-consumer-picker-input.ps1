@@ -8,17 +8,17 @@ Initialize-FileQuayUiaReplayCollision @('ValuePattern','ControlType')
 Add-Type @'
 using System;using System.Collections.Generic;
 namespace FileQuayPickerInputReplay.Automation {
- public class ControlType {public static string Button="Button";public static string Edit="Edit";}
+ public class ControlType {public static string Button="Button";public static string Edit="Edit";public static string Window="Window";public static string Text="Text";}
  public class ValuePattern {public static object Pattern=new();public ValueInfo Current=new();}
  public class ValueInfo {public bool IsReadOnly;public string Value="";}
 }
 namespace FileQuayQualification {
  public class ConsumerInput {
-  public static int Spaces,Texts;public static string LastText;public static bool FailText;public static bool FailSend;public static List<long> Buttons=new();
+  public static int Spaces,Texts;public static string LastText;public static bool FailText;public static bool FailSend;public static long FailOnButton;public static List<long> Buttons=new();
   public static void Foreground(object app,long main,object target,long window){}
   public static void FocusedText(object app,long main,object target,long window,long edit,string text){Texts++;LastText=text;if(FailText)throw new InvalidOperationException("native filename focus changed");}
   public static long[] OwnerChain(long window)=>new long[]{window,3473742};
-  public static void FocusedSpace(object app,long main,object target,long window,long button){Spaces++;Buttons.Add(button);if(FailSend)throw new InvalidOperationException("native focus changed");}
+  public static void FocusedSpace(object app,long main,object target,long window,long button){Spaces++;Buttons.Add(button);if(FailSend||button==FailOnButton)throw new InvalidOperationException("native focus changed");}
  }
 }
 '@
@@ -30,9 +30,12 @@ function New-Element($Id,$Name,$Class,$Type,$Handle,$Owner) {
   $script:focusRequests++;$this.Current.HasKeyboardFocus=($script:focusDelay -eq 0);$script:events.Add('focus-'+$this.Current.AutomationId)
   if($script:drift){$this.Current.($script:drift.key)=$script:drift.value}
  }
+ $e|Add-Member ScriptMethod GetRuntimeId { @([int]$this.Current.NativeWindowHandle,[string]$this.Current.AutomationId.GetHashCode()) }
  $e
 }
 function Reset {
+ $script:taskDialog=$false;$script:taskDuplicate=$false;$script:badOwner=$false
+ [FileQuayQualification.ConsumerInput]::FailOnButton=0
  $script:valueDelay=0;$script:wrongConfirmation=$false;$script:focusRequests=0;$script:focusDelay=0;$script:focusReads=0;$script:lateDrift=$null;$script:nativeError=$false;$script:events=[Collections.Generic.List[string]]::new();$script:drift=$null;$script:badState=$false;$script:wrongValue=$false;$script:needsOverwrite=$false;$script:reads=0
  [FileQuayQualification.ConsumerInput]::Texts=0;[FileQuayQualification.ConsumerInput]::LastText=$null;[FileQuayQualification.ConsumerInput]::FailText=$false;[FileQuayQualification.ConsumerInput]::Spaces=0;[FileQuayQualification.ConsumerInput]::FailSend=$false;[FileQuayQualification.ConsumerInput]::Buttons.Clear()
  $process=[pscustomobject]@{Id=1752;Path='C:\Windows\System32\PickerHost.exe'}
@@ -52,18 +55,25 @@ function Find-FileQuayWorkflowElement($Ui,[string]$Id='',[string]$Name='',$Withi
  switch($Id){'ReceiptExportButton'{@{element=(New-Element $Id 'Export receipts…' '' 'Button' 3473742 9136)}} '1'{$script:save} 'ReceiptExportConfirmationDialog'{$script:custom} 'PrimaryButton'{@{element=(New-Element $Id 'Export' '' 'Button' 3473742 9136)}} default{throw "Unexpected selector $Id"}}
 }
 function Find-FileQuayWorkflowElements($Ui,[string]$Id='',[string]$Name='',$Within=$null,[switch]$AllowBroker,[switch]$IncludeHidden){
+ if($script:taskDialog){
+  if($Id -ceq '6'){return}
+  if($Id -ceq 'CommandButton_6'){$script:yes;if($script:taskDuplicate){$script:yes};return}
+  if($Id -ceq 'CommandButton_7'){$script:no;return}
+  if($Id -ceq 'ContentText'){$script:content;return}
+ }
  if($nativeError -and $Id -in @('ReceiptExportConfirmationDialog','6')){
   foreach($node in $errorFixture.native_error_nodes | Where-Object automation_id -CEQ $Id){throw 'Unexpected accepted selector on retained actual error dialog.'};return
  }
  if($Id -ceq 'ReceiptExportConfirmationDialog'){if(-not $needsOverwrite){$custom};return}
  if($Id -ceq '6'){$yes;return}
+ if($Id -ceq 'CommandButton_6'){return}
  if($Within){@{element=[pscustomobject]@{Current=[pscustomobject]@{Name=$(if($script:wrongConfirmation){'C:\Users\runneradmin\Documents\FolderSail-receipts.csv'}else{$fixture.csv})}}};return}
  throw "Unexpected plural selector $Id"
 }
 function Get-FileQuayWorkflowTargetState($Ui,$Binding){
  if($script:focusRequests -gt 0 -and $script:focusDelay -gt 0){$script:focusReads++;if($script:lateDrift -and $script:focusReads -eq 2){$Binding.element.Current.($script:lateDrift.key)=$script:lateDrift.value};if($script:focusReads -ge $script:focusDelay){$Binding.element.Current.HasKeyboardFocus=$true}}
  @{app_live=$true;main_live=$true;main_pid=9136;target_process_live=$true;target_live=$true;target_pid=$Binding.scope.target_pid;target_hwnd=$Binding.scope.target_hwnd;
-  target_visible=$true;target_enabled=(-not $badState);foreground_hwnd=$Binding.scope.target_hwnd;owner_chain=@($Binding.scope.target_hwnd,3473742);
+  target_visible=$true;target_enabled=(-not $badState);foreground_hwnd=$Binding.scope.target_hwnd;owner_chain=$(if($script:badOwner){@($Binding.scope.target_hwnd,999)}else{@($Binding.scope.target_hwnd,3473742)});
   element_pid=$Binding.element.Current.ProcessId;element_hwnd=$Binding.scope.target_hwnd;element_within_target=$true;element_visible=(-not $Binding.element.Current.IsOffscreen);element_enabled=$Binding.element.Current.IsEnabled}
 }
 function Invoke-FileQuayWorkflowAction($Ui,$Binding,$Action,$Value=$null){
@@ -149,4 +159,89 @@ Require ($focusRequests -eq 1 -and $focusReads -eq 2 -and [FileQuayQualification
 Reset;[FileQuayQualification.ConsumerInput]::FailText=$true
 Reject {Open-FileQuayWorkflowExportConfirmation $ui $fixture} 'native filename focus changed'
 Require ([FileQuayQualification.ConsumerInput]::Texts -eq 1 -and [FileQuayQualification.ConsumerInput]::Spaces -eq 0) 'Native filename failure must never replay text or invoke Save.';$checks++
+
+# Actual run34705590423 retained scope HWND, not the task-dialog controls' HWNDs.
+# Keep that absence explicit; nonzero test handles below are scalar input seams.
+$taskFixture=Get-Content (Join-Path $PSScriptRoot 'fixtures/picker-task-dialog-34705590423.json') -Raw|ConvertFrom-Json
+Require ((Get-FileHash (Join-Path $PSScriptRoot 'fixtures/picker-task-dialog-34705590423.json')).Hash -ieq '05c367981cde514a0284414dbbdd923745db06011f1e14c813bfd95c1dc06ac0') 'Retained task-dialog observation bytes changed.'
+Require ($taskFixture.source_artifact.sha256 -ceq '65128eb40241c7a68579b97226bafba60d2795c62458648264f8de03b0512d58' -and
+    $taskFixture.scope_hwnd_is_not_control_native_hwnd -and -not $taskFixture.control_native_hwnd_observed) 'Original scope/native control distinction changed.'
+function New-TaskDialogReplay([long]$ButtonHandle=0){
+ Reset;$script:taskDialog=$true;$script:needsOverwrite=$true
+ $script:fixture.csv=[IO.Path]::Combine([IO.Path]::GetTempPath(),'receipts.csv')
+ $root=New-Element '' 'Confirm Save As' '#32770' 'Window' 606 1752
+ $script:yes.scope.root=$root
+ $yesNode=@($taskFixture.nodes|Where-Object automation_id -CEQ 'CommandButton_6')[0]
+ $script:yes.element=New-Element $yesNode.automation_id $yesNode.name $yesNode.class_name 'Button' $ButtonHandle 1752
+ $script:no=@{scope=$yes.scope;element=(New-Element 'CommandButton_7' 'No' 'CCPushButton' 'Button' 0 1752)}
+ $script:content=@{scope=$yes.scope;element=(New-Element 'ContentText' "receipts.csv already exists.`r`nDo you want to replace it?" 'Element' 'Text' 0 1752)}
+}
+function Get-FileQuayPickerProviderObservation($Element,$Scope){@{observation_only=$true;native_hwnd=[string]$Element.Current.NativeWindowHandle;fixture_only=$true}}
+New-TaskDialogReplay
+Reject {Open-FileQuayWorkflowExportConfirmation $ui $fixture} 'button'
+Require ([FileQuayQualification.ConsumerInput]::Spaces -eq 1 -and $focusRequests -eq 2 -and
+    $ui.record.native_replacement.provider.native_hwnd -ceq '0') 'Unknown task control HWND must be recorded and refused before focus/Yes input.';$checks++
+New-TaskDialogReplay 606
+Reject {Open-FileQuayWorkflowExportConfirmation $ui $fixture} 'button'
+Require ([FileQuayQualification.ConsumerInput]::Spaces -eq 1 -and $focusRequests -eq 2) 'Task dialog scope HWND was adopted as the Yes control HWND.';$checks++
+New-TaskDialogReplay 555
+$result=Open-FileQuayWorkflowExportConfirmation $ui $fixture
+Require ([object]::ReferenceEquals($result,$custom) -and [FileQuayQualification.ConsumerInput]::Texts -eq 1 -and
+    ([FileQuayQualification.ConsumerInput]::Buttons -join ',') -ceq '404,555' -and $focusRequests -eq 3 -and
+    ($events -join ',').EndsWith('original-file-proof,focus-CommandButton_6,original-file-proof')) 'Exact task-dialog scalar input must prove original CSV before Yes and app confirmation after one input.';$checks++
+
+function Prepare-TaskPredicate {
+ New-TaskDialogReplay 555
+ $ui.record.picker_filename=@{verified=$true;expected=$fixture.csv;value=$fixture.csv}
+ $script:replacement=Find-FileQuayWorkflowReplacement $ui @{scope=$filename.scope;element=$filename.scope.root} $fixture.csv
+}
+foreach($change in @('title','dialog-class','dialog-type','dialog-hwnd','dialog-pid','picker-pid','retained-process','owner','content','content-class','content-pid',
+                    'content-missing','no-name','no-class','no-id','no-pid','no-focusable','no-missing','duplicate','full-path')){
+ Prepare-TaskPredicate
+ switch($change){
+  'title'{$yes.scope.root.Current.Name='Other dialog'};'dialog-class'{$yes.scope.root.Current.ClassName='Other'}
+  'dialog-type'{$yes.scope.root.Current.ControlType='Pane'}
+  'dialog-hwnd'{$yes.scope.root.Current.NativeWindowHandle=607};'dialog-pid'{$yes.scope.root.Current.ProcessId=999}
+  'picker-pid'{$yes.scope.target_pid=999};'retained-process'{$yes.scope.process=[pscustomobject]@{Id=999}};'owner'{$script:badOwner=$true}
+  'content'{$content.element.Current.Name="other.csv already exists.`r`nDo you want to replace it?"}
+  'content-class'{$content.element.Current.ClassName='Other'};'content-pid'{$content.element.Current.ProcessId=999}
+  'content-missing'{$script:content=$null};'no-name'{$no.element.Current.Name='Cancel'}
+  'no-class'{$no.element.Current.ClassName='Button'};'no-id'{$no.element.Current.AutomationId='CommandButton_8'}
+  'no-pid'{$no.element.Current.ProcessId=999};'no-focusable'{$no.element.Current.IsKeyboardFocusable=$false}
+  'no-missing'{$script:no=$null};'duplicate'{$script:taskDuplicate=$true}
+  'full-path'{$ui.record.picker_filename.value='C:\foreign\receipts.csv'}
+ }
+ $failure='';try{Invoke-FileQuayWorkflowPickerButton $ui $replacement.binding 'CommandButton_6' 'Yes'}catch{$failure=$_.Exception.Message}
+ Require ($failure -and [FileQuayQualification.ConsumerInput]::Spaces -eq 0 -and $focusRequests -eq 0) "Task context mutation accepted: $change";$checks++
+}
+foreach($change in @(@('AutomationId','CommandButton_7'),@('Name','No'),@('ClassName','Button'),@('ControlType','Pane'),
+                    @('ProcessId',999),@('IsOffscreen',$true),@('IsEnabled',$false),@('IsKeyboardFocusable',$false))){
+ Prepare-TaskPredicate;$yes.element.Current.($change[0])=$change[1]
+ $failure='';try{Invoke-FileQuayWorkflowPickerButton $ui $replacement.binding 'CommandButton_6' 'Yes'}catch{$failure=$_.Exception.Message}
+ Require ($failure -and [FileQuayQualification.ConsumerInput]::Spaces -eq 0 -and $focusRequests -eq 0) "Task button mutation accepted: $($change[0])";$checks++
+}
+Prepare-TaskPredicate;$focusDelay=3
+Invoke-FileQuayWorkflowPickerButton $ui $replacement.binding 'CommandButton_6' 'Yes'
+Require ($focusRequests -eq 1 -and [FileQuayQualification.ConsumerInput]::Spaces -eq 1 -and $focusReads -ge 3) 'Task Yes focus did not converge after one request.';$checks++
+Prepare-TaskPredicate;$focusDelay=100
+Reject {Invoke-FileQuayWorkflowPickerButton $ui $replacement.binding 'CommandButton_6' 'Yes'} 'button'
+Require ($focusRequests -eq 1 -and [FileQuayQualification.ConsumerInput]::Spaces -eq 0) 'Unfocused task Yes received input.';$checks++
+Prepare-TaskPredicate;$drift=@{key='NativeWindowHandle';value=556}
+Reject {Invoke-FileQuayWorkflowPickerButton $ui $replacement.binding 'CommandButton_6' 'Yes'} 'button'
+Require ($focusRequests -eq 1 -and [FileQuayQualification.ConsumerInput]::Spaces -eq 0) 'Changed task control HWND received input.';$checks++
+Prepare-TaskPredicate;$replacement.binding.Remove('task_replacement')
+Reject {Invoke-FileQuayWorkflowPickerButton $ui $replacement.binding 'CommandButton_6' 'Yes'} 'retained picker context'
+Require ($focusRequests -eq 0 -and [FileQuayQualification.ConsumerInput]::Spaces -eq 0) 'Task class was accepted outside the validated replacement context.';$checks++
+Prepare-TaskPredicate;$script:yes=@{scope=$replacement.binding.scope;element=(New-Element 'CommandButton_6' 'Yes' 'CCPushButton' 'Button' 557 1752)}
+Reject {Invoke-FileQuayWorkflowPickerButton $ui $replacement.binding 'CommandButton_6' 'Yes'} 'identity'
+Require ($focusRequests -eq 0 -and [FileQuayQualification.ConsumerInput]::Spaces -eq 0) 'Replaced task UIA runtime identity received input.';$checks++
+Prepare-TaskPredicate;$replacement.binding.element|Add-Member ScriptMethod GetRuntimeId {@()} -Force
+Reject {Invoke-FileQuayWorkflowPickerButton $ui $replacement.binding 'CommandButton_6' 'Yes'} 'identity'
+Require ($focusRequests -eq 0 -and [FileQuayQualification.ConsumerInput]::Spaces -eq 0) 'Empty task UIA runtime identity received input.';$checks++
+New-TaskDialogReplay 555;[FileQuayQualification.ConsumerInput]::FailOnButton=555
+Reject {Open-FileQuayWorkflowExportConfirmation $ui $fixture} 'native focus changed'
+Require ([FileQuayQualification.ConsumerInput]::Spaces -eq 2 -and [FileQuayQualification.ConsumerInput]::Texts -eq 1) 'Task native refusal caused replay or alternate input.';$checks++
+New-TaskDialogReplay 555;$wrongConfirmation=$true
+Reject {Open-FileQuayWorkflowExportConfirmation $ui $fixture} 'exact selected CSV path'
+Require ([FileQuayQualification.ConsumerInput]::Spaces -eq 2 -and [FileQuayQualification.ConsumerInput]::Texts -eq 1) 'Task dialog route accepted a wrong full app confirmation path.';$checks++
 "PASS production picker filename/Space/confirmation sequence and refusal: $checks checks."
