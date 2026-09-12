@@ -235,6 +235,22 @@ function Find-FileQuayWorkflowReceiptElement($Ui, [string]$Name,
     Find-FileQuayWorkflowElement $Ui $Part -Within $card -IncludeHidden
 }
 
+function Get-FileQuayReceiptLayoutFields($Current, [switch]$Range) {
+    $result=[ordered]@{property_errors=[ordered]@{}}
+    $fields=if($Range){[ordered]@{vertical_scroll_percent='VerticalScrollPercent';vertical_view_size='VerticalViewSize';
+        horizontally_scrollable='HorizontallyScrollable';horizontal_scroll_percent='HorizontalScrollPercent';horizontal_view_size='HorizontalViewSize'}}
+    else {[ordered]@{process_id='ProcessId';automation_id='AutomationId';name='Name';class_name='ClassName';
+        control_native_hwnd='NativeWindowHandle';enabled='IsEnabled'}}
+    foreach($field in $fields.GetEnumerator()) {
+        try {
+            $value=$Current.($field.Value)
+            if($value -is [string]){$value=Limit-FileQuayWorkflowDiagnosticText $value}
+            $result[$field.Key]=$value
+        } catch {$result.property_errors[$field.Key]=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
+    }
+    $result
+}
+
 function Show-FileQuayWorkflowElement($Ui, [string]$Name,
     [ValidateSet('ReceiptDetailsExpander','ReceiptSourcePaths','ReceiptDestinationPaths')][string]$Part='ReceiptDetailsExpander',
     [ValidateRange(0.01,30)][double]$MaximumSeconds=30) {
@@ -251,7 +267,11 @@ function Show-FileQuayWorkflowElement($Ui, [string]$Name,
             # ListView templates can replace both cards and their scroll provider.
             # Reobserve the exact owned card/detail before every scrolling attempt.
             $binding=Find-FileQuayWorkflowReceiptElement $Ui $Name $Part
-            if (-not $binding.element.Current.IsOffscreen) {
+            $detailReadStarted=[DateTimeOffset]::UtcNow.ToString('O');$detailReadElapsed=$deadline.ElapsedMilliseconds
+            $detailCurrent=$binding.element.Current
+            $detailOffscreen=$detailCurrent.IsOffscreen
+            $detailReadEnded=[DateTimeOffset]::UtcNow.ToString('O')
+            if (-not $detailOffscreen) {
                 if ($failedScroll) {
                     $visibleState=Get-FileQuayWorkflowTargetState $Ui $binding
                     Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollTargetObservation' @{part=$Part;name=$Name;expected_hwnd=$failedScope.target_hwnd;expected_pid=$failedScope.target_pid;state=$visibleState}
@@ -266,16 +286,58 @@ function Show-FileQuayWorkflowElement($Ui, [string]$Name,
                 Start-Sleep -Milliseconds 100
                 continue
             }
-            $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($binding.element)
+            $layout=[ordered]@{name=$Name;automation_id=$Part;attempt=($attempt+1);
+                expected_hwnd=$binding.scope.target_hwnd;expected_pid=$binding.scope.target_pid;
+                read_started_utc=$detailReadStarted;elapsed_ms=$detailReadElapsed;
+                detail=(Get-FileQuayReceiptLayoutFields $detailCurrent);ancestors=[Collections.Generic.List[object]]::new();reason='read-error'}
+            $layout.detail.offscreen=$detailOffscreen
+            $layout.detail.predicate_read_ended_utc=$detailReadEnded
             $container=$null
-            for ($i=0; $ancestor -and $i -lt 24; $i++) {
-                if ((Get-FileQuayWorkflowElementWindow $ancestor) -ne $binding.scope.target_hwnd) { break }
-                $scroll=$null
-                if (-not $ancestor.Current.IsOffscreen -and
-                    $ancestor.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern,[ref]$scroll) -and $scroll.Current.VerticallyScrollable) {
-                    $container=@{scope=$binding.scope;element=$ancestor}; break
+            try {
+                $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($binding.element)
+                for ($i=0; $ancestor -and $i -lt 24; $i++) {
+                    $node=[ordered]@{index=$i;read_started_utc=[DateTimeOffset]::UtcNow.ToString('O');
+                        elapsed_ms=$deadline.ElapsedMilliseconds;reason='read-error'}
+                    $layout.ancestors.Add($node)
+                    try {
+                        $node.reason='read-native-window'
+                        $nativeWindow=Get-FileQuayWorkflowElementWindow $ancestor
+                        $node.native_window=$nativeWindow
+                        if ($nativeWindow -ne $binding.scope.target_hwnd) {
+                            $node.reason='native-window-mismatch';$layout.reason=$node.reason
+                            # No additional provider queries after this ownership refusal.
+                            break
+                        }
+                        $node.reason='read-current'
+                        $current=$ancestor.Current
+                        $offscreen=$current.IsOffscreen
+                        foreach($entry in (Get-FileQuayReceiptLayoutFields $current).GetEnumerator()){$node[$entry.Key]=$entry.Value}
+                        $node.offscreen=$offscreen;$scroll=$null;$node.reason='offscreen'
+                        if (-not $offscreen) {
+                            $node.reason='read-scroll-pattern'
+                            $hasPattern=$ancestor.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern,[ref]$scroll)
+                            $node.scroll_pattern=$hasPattern;$node.reason='no-scroll-pattern'
+                            if($hasPattern) {
+                                $node.reason='read-scroll-range'
+                                $range=$scroll.Current;$scrollable=$range.VerticallyScrollable
+                                $node.scroll=Get-FileQuayReceiptLayoutFields $range -Range
+                                $node.scroll.vertically_scrollable=$scrollable;$node.reason='not-scrollable'
+                                if($scrollable){$container=@{scope=$binding.scope;element=$ancestor};$node.reason='selected';break}
+                            }
+                        }
+                        $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($ancestor)
+                    } finally {$node.read_ended_utc=[DateTimeOffset]::UtcNow.ToString('O')}
                 }
-                $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($ancestor)
+                if($container){$layout.reason='selected'}
+                elseif($layout.reason -ne 'native-window-mismatch'){$layout.reason=if($ancestor){'ancestor-limit'}else{'ancestor-end'}}
+            } finally {
+                $layout.read_ended_utc=[DateTimeOffset]::UtcNow.ToString('O')
+                $layout.elapsed_end_ms=$deadline.ElapsedMilliseconds
+                if(-not $container) {
+                    # Preserve the original refusal/provider exception if the
+                    # bounded metadata sink itself is unavailable.
+                    try {Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollContainerRefusal' $layout} catch {}
+                }
             }
             if (-not $container) { throw 'Offscreen receipt detail has no visible owned scroll container.' }
             $direction=if ($binding.element.Current.BoundingRectangle.Top -lt $container.element.Current.BoundingRectangle.Top) {'ScrollUp'} else {'ScrollDown'}

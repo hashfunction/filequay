@@ -35,7 +35,7 @@ namespace FileQuayReceiptReplay.Automation {
  public enum ScrollAmount {NoAmount,SmallIncrement,SmallDecrement}
  public class ScrollInfo {public bool VerticallyScrollable=true,HorizontallyScrollable=false;public double VerticalScrollPercent=0,VerticalViewSize=45,HorizontalScrollPercent=-1,HorizontalViewSize=100;}
  public class ScrollPattern {
-  public static object Pattern=new object();public ScrollInfo Current {get {Fixture.RangeReads++;if(Fixture.Mode=="layout-range-error" && Fixture.InvalidOperationCalls>0)throw new Exception("range unavailable after original scroll failure");var v=new ScrollInfo();if(Fixture.InvalidOperationCalls>0){v.VerticallyScrollable=false;v.VerticalScrollPercent=-1;v.VerticalViewSize=100;}if(Fixture.Mode.StartsWith("range-before-") && Fixture.RangeReads>1){v.VerticallyScrollable=false;v.VerticalScrollPercent=Fixture.ObservedScrollPercent;v.VerticalViewSize=Fixture.ObservedViewSize;}return v;}}
+  public static object Pattern=new object();public ScrollInfo Current {get {Fixture.RangeReads++;if(Fixture.Mode=="discovery-range-error")throw new InvalidOperationException("Original discovery range failure");if(Fixture.Mode=="layout-range-error" && Fixture.InvalidOperationCalls>0)throw new Exception("range unavailable after original scroll failure");var v=new ScrollInfo();if(Fixture.Mode.StartsWith("discovery-")){v.VerticallyScrollable=false;v.VerticalScrollPercent=-1;v.VerticalViewSize=100;}if(Fixture.InvalidOperationCalls>0){v.VerticallyScrollable=false;v.VerticalScrollPercent=-1;v.VerticalViewSize=100;}if(Fixture.Mode.StartsWith("range-before-") && Fixture.RangeReads>1){v.VerticallyScrollable=false;v.VerticalScrollPercent=Fixture.ObservedScrollPercent;v.VerticalViewSize=Fixture.ObservedViewSize;}return v;}}
   public void Scroll(ScrollAmount x,ScrollAmount y) {Fixture.ScrollCalls++;Fixture.Epoch++;
    if(Fixture.Mode.StartsWith("range-before-") || Fixture.Mode.StartsWith("layout-")){Fixture.InvalidOperationCalls++;throw new InvalidOperationException("Operation is not valid due to the current state of the object.");}
    if(Fixture.Mode=="other-error")throw new InvalidOperationException("ElementNotAvailableException is only text, not its exception type");
@@ -103,7 +103,7 @@ function Find-FileQuayWorkflowElements($Ui,[string]$Id='',[string]$Name='',$With
         New-Binding (New-Element $Id $text $Within.element)
     } else {throw "Unexpected receipt selector $Id"}
 }
-function Get-FileQuayWorkflowElementWindow($Element) {$null=$Element.Current;$owned.target_hwnd}
+function Get-FileQuayWorkflowElementWindow($Element) {$null=$Element.Current;if([FileQuayReceiptReplay.Automation.Fixture]::Mode -ceq 'discovery-window-mismatch'){return 909};$owned.target_hwnd}
 function Get-FileQuayWorkflowText($Binding) {$Binding.element.Current.Name}
 function Get-FileQuayWorkflowTargetState($Ui,$Binding) {
     $current=$Binding.element.Current
@@ -182,4 +182,51 @@ foreach ($mode in @('range-before-never-visible','range-before-foreign')) {
     Require ($failure -and [FileQuayReceiptReplay.Automation.Fixture]::ScrollCalls -eq 0 -and $sleeps -le 16) "Skipped range accepted invisible/foreign data or sent input: $mode"
     $checks++
 }
+# Before any Scroll is sent, retain the inspected reason for refusing an
+# offscreen detail. These are explicit provider-state simulations, not claims
+# about which unrecorded predicate failed in native run 34709436446.
+foreach($mode in @('discovery-not-scrollable','discovery-window-mismatch','discovery-range-error')) {
+    Reset-Scenario $mode
+    [FileQuayReceiptReplay.Automation.Fixture]::Collapsed=$true
+    $expectedFailure='Offscreen receipt detail has no visible owned scroll container.'
+    if($mode -ceq 'discovery-range-error') {
+        # Execute the original chained range predicate to retain PowerShell's
+        # actual property-access exception, including getter failure semantics.
+        try {$pattern=[FileQuayReceiptReplay.Automation.ScrollPattern]::new();$null=$pattern.Current.VerticallyScrollable}
+        catch {$expectedFailure=$_.Exception.Message}
+        [FileQuayReceiptReplay.Automation.Fixture]::RangeReads=0
+    }
+    $failure=$null
+    try {Show-FileQuayWorkflowElement $ui 'Copy · Completed' | Out-Null} catch {$failure=$_}
+    Require ($failure.Exception.Message -ceq $expectedFailure) "Observation changed the original refusal: $($failure.Exception.Message)"
+    Require ([FileQuayReceiptReplay.Automation.Fixture]::ScrollCalls -eq 0 -and $sleeps -eq 0) 'A container refusal sent or retried input.'
+    $records=@($ui.record.trace | Where-Object step -CEQ 'ReceiptScrollContainerRefusal')
+    Require ($records.Count -eq 1) 'Original container refusal lost its inspected metadata.'
+    $record=$records[0].details
+    Require ($record.name -ceq 'Copy · Completed' -and $record.automation_id -ceq 'ReceiptDetailsExpander' -and $record.detail.offscreen) 'Refused detail identity/state was not retained.'
+    Require ($record.expected_hwnd -eq $owned.target_hwnd -and $record.expected_pid -eq $owned.target_pid -and $record.ancestors.Count -eq 1) 'Ancestor scope/budget differs.'
+    Require ($record.elapsed_ms -ge 0 -and [DateTimeOffset]::Parse($record.read_ended_utc) -ge [DateTimeOffset]::Parse($record.read_started_utc)) 'Read timestamps are absent or inverted.'
+    $roundtrip=@{consumer_workflow=$ui.record}|ConvertTo-Json -Depth 9 -WarningAction Stop|ConvertFrom-Json -AsHashtable
+    $retained=$roundtrip.consumer_workflow.trace[0].details
+    Require ($retained.ancestors.Count -eq 1 -and $retained.reason -ceq $record.reason) 'Original receipt serialization truncated the diagnostic.'
+    $ancestor=$record.ancestors[0]
+    if($mode -ceq 'discovery-not-scrollable') {
+        Require ($record.reason -ceq 'ancestor-end' -and $ancestor.reason -ceq 'not-scrollable' -and $ancestor.process_id -eq $owned.target_pid -and -not $ancestor.offscreen) 'Non-scrollable observed state changed.'
+        Require (-not $ancestor.scroll.vertically_scrollable -and $ancestor.scroll.vertical_view_size -eq 100 -and $ancestor.scroll.vertical_scroll_percent -eq -1) 'Inspected range was lost.'
+        Require ($ancestor.property_errors.Contains('class_name') -and $ancestor.property_errors.Contains('control_native_hwnd')) 'Unavailable optional metadata obscured the guard or lost errors.'
+        Require ([FileQuayReceiptReplay.Automation.Fixture]::RangeReads -eq 1) 'Logging requeried the actual ScrollPattern.Current range.'
+    } elseif($mode -ceq 'discovery-range-error') {
+        Require ($record.reason -ceq 'read-error' -and $ancestor.reason -ceq 'read-scroll-range' -and $ancestor.scroll_pattern) 'Original range-read failure stage was lost.'
+        Require ([FileQuayReceiptReplay.Automation.Fixture]::RangeReads -eq 1) 'Failed range was requeried.'
+    } else {
+        Require ($record.reason -ceq 'native-window-mismatch' -and $ancestor.native_window -eq 909 -and $ancestor.reason -ceq 'native-window-mismatch') 'Wrong native ancestor was not retained.'
+        Require ([FileQuayReceiptReplay.Automation.Fixture]::RangeReads -eq 0) 'Logging queried a refused foreign-window scroll range.'
+    }
+    $checks++
+}
+# Even an unavailable metadata sink cannot replace this original refusal.
+Reset-Scenario 'discovery-not-scrollable';[FileQuayReceiptReplay.Automation.Fixture]::Collapsed=$true
+$ui.record.trace=$null;$failure=$null
+try {Show-FileQuayWorkflowElement $ui 'Copy · Completed' | Out-Null} catch {$failure=$_}
+Require ($failure.Exception.Message -ceq 'Offscreen receipt detail has no visible owned scroll container.') 'Diagnostic sink failure masked the original refusal.';$checks++
 "PASS actual receipt scroll requery, wrapped unavailable provider, fresh scoped identity, exact paths/IDs, ownership refusal, action non-replay and 16-attempt budget: $checks scenarios"
