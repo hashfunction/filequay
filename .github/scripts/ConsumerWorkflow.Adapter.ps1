@@ -66,8 +66,10 @@ function Initialize-FileQuayConsumerAdapter([string]$Root,[string]$Work,[string]
     $production=@(Get-Content (Join-Path $Root 'src/Files.App.CsWin32/NativeMethods.txt'))
     $adapterSource=Get-Content (Join-Path $Root '.github/scripts/ConsumerWorkflow.Native.cs') -Raw
     $calls=@([regex]::Matches($adapterSource,'\bPInvoke\.(\w+)\(') | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Unique)
-    if (@(Compare-Object $subset $calls -CaseSensitive).Count -or @($subset | Where-Object {$_ -cnotin $production}).Count) {
-        throw 'Qualification API subset differs from the adapter calls or existing customer CsWin32 inputs.'
+    # Exact qualification-only focus observation; customer interop inputs stay unchanged.
+    $allowed=@($production)+@('GetGUIThreadInfo')
+    if (@(Compare-Object $subset $calls -CaseSensitive).Count -or @($subset | Where-Object {$_ -cnotin $allowed}).Count) {
+        throw 'Qualification API subset differs from the adapter calls or allowed source-owned CsWin32 inputs.'
     }
     [xml]$central=Get-Content (Join-Path $Root 'Directory.Packages.props') -Raw
     $pin=@($central.Project.ItemGroup.PackageVersion | Where-Object Include -CEQ 'Microsoft.Windows.CsWin32')

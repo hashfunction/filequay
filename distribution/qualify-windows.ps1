@@ -48,6 +48,8 @@ Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-picker-scope.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-toolbar.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-adapter.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-native-space.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-picker-input.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-qualification-record-publication.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-managed-build-kind.ps1')
 & $qualificationPowerShell -NoProfile -File tests/packaging/test-process-observation.ps1 | Set-Content artifacts/qualification/process-observation-tests.json -Encoding utf8NoBOM

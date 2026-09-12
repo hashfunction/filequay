@@ -99,7 +99,29 @@ public static class ConsumerInput
 		throw new InvalidOperationException("The owned workflow window did not become foreground.");
 	}
 
-	public static unsafe void Chord(Process app, long main, Process target, long window, int[] keys)
+	private static unsafe void RequireFocusedControl(Process target, long window, long control)
+	{
+		if (control == 0 || !PInvoke.IsWindow((HWND)(nint)control) || RootWindow(control) != window ||
+			WindowProcess(control) != target.Id || !PInvoke.IsWindowVisible((HWND)(nint)control) ||
+			!PInvoke.IsWindowEnabled((HWND)(nint)control))
+			throw new InvalidOperationException("Native focused button identity or ownership changed.");
+		uint thread = PInvoke.GetWindowThreadProcessId((HWND)(nint)window, out uint processId);
+		GUITHREADINFO info = new() { cbSize = (uint)sizeof(GUITHREADINFO) };
+		bool observed = thread != 0 && processId == target.Id && PInvoke.GetGUIThreadInfo(thread, ref info);
+		if (!observed || (long)(nint)info.hwndActive != window || (long)(nint)info.hwndFocus != control)
+			throw new InvalidOperationException($"Native workflow button focus changed before input: expected={control}, focus={(long)(nint)info.hwndFocus}, active={(long)(nint)info.hwndActive}, window={window}, observed={observed}.");
+	}
+
+	public static void FocusedSpace(Process app, long main, Process target, long window, long control)
+	{
+		if (control == 0) throw new InvalidOperationException("Native focused button HWND is missing.");
+		SendChord(app, main, target, window, new[] { 0x20 }, control);
+	}
+
+	public static void Chord(Process app, long main, Process target, long window, int[] keys)
+		=> SendChord(app, main, target, window, keys, 0);
+
+	private static unsafe void SendChord(Process app, long main, Process target, long window, int[] keys, long focusedControl)
 	{
 		if (keys.Length < 1 || keys.Length > 3) throw new ArgumentException("Unbounded native key chord.");
 		var inputs = new INPUT[keys.Length * 2];
@@ -114,6 +136,7 @@ public static class ConsumerInput
 			inputs[release].Anonymous.ki.dwFlags = KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP;
 		}
 		RequireTarget(app, main, target, window, true);
+		if (focusedControl != 0) RequireFocusedControl(target, window, focusedControl);
 		if (PInvoke.SendInput(inputs, sizeof(INPUT)) != inputs.Length)
 			throw new InvalidOperationException("Native workflow key input was only partially delivered.");
 	}

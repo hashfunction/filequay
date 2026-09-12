@@ -19,10 +19,10 @@ try {
     $adapter=[FileQuayQualification.ConsumerInput].Assembly
     if ($adapter.GetName().Name -cne 'FileQuay.Qualification.Native') { throw 'Loaded a customer assembly.' };$checks++
     if (@($adapter.GetReferencedAssemblies() | Where-Object Name -Like 'Files.*').Count) { throw 'Customer runtime reference.' };$checks++
-    foreach ($name in @('Observe','RootWindow','WindowProcess','OwnerChain','Foreground','Chord','ObserveClipboard')) {
+    foreach ($name in @('Observe','RootWindow','WindowProcess','OwnerChain','Foreground','Chord','FocusedSpace','ObserveClipboard')) {
         if (-not [FileQuayQualification.ConsumerInput].GetMethod($name)) { throw "Missing adapter $name." };$checks++
     }
-    foreach ($name in @('GetAncestor','GetWindowThreadProcessId','GetWindow','IsWindow','IsWindowVisible','IsWindowEnabled','GetForegroundWindow','SetForegroundWindow','SendInput','GetClipboardOwner','GetClipboardSequenceNumber','IsClipboardFormatAvailable')) {
+    foreach ($name in @('GetAncestor','GetWindowThreadProcessId','GetWindow','IsWindow','IsWindowVisible','IsWindowEnabled','GetForegroundWindow','SetForegroundWindow','SendInput','GetGUIThreadInfo','GetClipboardOwner','GetClipboardSequenceNumber','IsClipboardFormatAvailable')) {
         if (-not @($adapter.GetType('Windows.Win32.PInvoke').GetMethods() | Where-Object Name -CEQ $name).Count) { throw "Missing generated native API $name." };$checks++
     }
     foreach ($name in @('GetClipboardData','OpenClipboard','EmptyClipboard','SetClipboardData','OleGetClipboard')) {
@@ -32,6 +32,11 @@ try {
     $inputType=$adapter.GetType('Windows.Win32.UI.Input.KeyboardAndMouse.INPUT')
     $expectedSize=if ([IntPtr]::Size -eq 8) {40} else {28}
     if ([Runtime.InteropServices.Marshal].GetMethod('SizeOf',[type[]]@([Type])).Invoke($null,@($inputType)) -ne $expectedSize) { throw 'Generated INPUT ABI mismatch.' };$checks++
+    $guiType=$adapter.GetType('Windows.Win32.UI.WindowsAndMessaging.GUITHREADINFO')
+    $expectedGuiSize=if ([IntPtr]::Size -eq 8) {72} else {48}
+    $expectedFocusOffset=if ([IntPtr]::Size -eq 8) {16} else {12}
+    if ([Runtime.InteropServices.Marshal].GetMethod('SizeOf',[type[]]@([Type])).Invoke($null,@($guiType)) -ne $expectedGuiSize -or
+        [Runtime.InteropServices.Marshal]::OffsetOf($guiType,'hwndFocus').ToInt64() -ne $expectedFocusOffset) {throw 'Generated GUITHREADINFO focus ABI mismatch.'};$checks++
     $bytes=[IO.File]::ReadAllBytes($evidence.assembly_path)
     $stream=[IO.MemoryStream]::new($bytes,$false)
     $reader=[Reflection.PortableExecutable.PEReader]::new($stream)

@@ -10,3 +10,4 @@ SendInput
 GetClipboardOwner
 GetClipboardSequenceNumber
 IsClipboardFormatAvailable
+GetGUIThreadInfo

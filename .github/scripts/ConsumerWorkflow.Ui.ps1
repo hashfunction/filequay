@@ -359,6 +359,48 @@ function Find-FileQuayWorkflowSaveFilename($Ui) {
     $filename
 }
 
+function Assert-FileQuayWorkflowPickerButton($Ui, $Binding, [string]$Id, [string]$Name, [long]$ExpectedHandle=0, [switch]$Focused) {
+    $current=$Binding.element.Current
+    if ((($Id -cne '1' -or $Name -cne 'Save') -and ($Id -cne '6' -or $Name -cne 'Yes')) -or
+        $Binding.scope.target_hwnd -eq $Ui.main_hwnd -or $current.ProcessId -ne $Binding.scope.target_pid -or
+        $current.AutomationId -cne $Id -or $current.Name -cne $Name -or $current.ClassName -cne 'Button' -or
+        $current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or
+        $current.IsOffscreen -or -not $current.IsEnabled -or -not $current.IsKeyboardFocusable -or
+        -not $current.NativeWindowHandle -or ($ExpectedHandle -and $current.NativeWindowHandle -ne $ExpectedHandle) -or
+        ($Focused -and -not $current.HasKeyboardFocus)) { throw 'The exact owned native picker button identity or focus changed.' }
+    [long]$current.NativeWindowHandle
+}
+
+function Invoke-FileQuayWorkflowPickerButton($Ui, $Binding, [string]$Id, [string]$Name) {
+    $handle=Assert-FileQuayWorkflowPickerButton $Ui $Binding $Id $Name
+    $scope=$Binding.scope
+    [FileQuayQualification.ConsumerInput]::Foreground($Ui.application,$Ui.main_hwnd,$scope.process,$scope.target_hwnd)
+    Assert-FileQuayWorkflowTarget $scope (Get-FileQuayWorkflowTargetState $Ui $Binding)
+    $Binding.element.SetFocus()
+    $state=Get-FileQuayWorkflowTargetState $Ui $Binding
+    $null=Assert-FileQuayWorkflowPickerButton $Ui $Binding $Id $Name $handle -Focused
+    Assert-FileQuayWorkflowTarget $scope $state
+    Add-FileQuayWorkflowTrace $Ui 'NativeButtonSpace' @{automation_id=$Id;name=$Name;button_hwnd=$handle;state=$state}
+    # The Microsoft standard-button Invoke provider sends synchronous BM_CLICK.
+    # Send ordinary Space once; the compiled adapter rechecks this exact native
+    # control's focus/ownership immediately before its only SendInput boundary.
+    [FileQuayQualification.ConsumerInput]::FocusedSpace($Ui.application,$Ui.main_hwnd,$scope.process,$scope.target_hwnd,$handle)
+}
+
+function Confirm-FileQuayWorkflowPickerFilename($Ui, $Filename, [string]$Expected) {
+    Assert-FileQuayWorkflowTarget $Filename.scope (Get-FileQuayWorkflowTargetState $Ui $Filename)
+    $current=$Filename.element.Current
+    if ($current.AutomationId -cne '1001' -or $current.ClassName -cne 'Edit') { throw 'Native filename identity changed before readback.' }
+    $pattern=[System.Windows.Automation.ValuePattern]$Filename.element.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+    $value=$pattern.Current
+    $text=[string]$value.Value;$readOnly=[bool]$value.IsReadOnly
+    $Ui.record.picker_filename=@{expected=$Expected;value=(Limit-FileQuayWorkflowDiagnosticText $text);read_only=$readOnly;value_truncated=($text.Length -gt 1024);
+        verified=$false;picker_hwnd=$Filename.scope.target_hwnd;picker_pid=$Filename.scope.target_pid}
+    if ($readOnly -or $text -cne $Expected) { throw 'Native filename does not retain the exact selected CSV path.' }
+    Assert-FileQuayWorkflowTarget $Filename.scope (Get-FileQuayWorkflowTargetState $Ui $Filename)
+    $Ui.record.picker_filename.verified=$true
+}
+
 function Open-FileQuayWorkflowExportConfirmation($Ui, $Fixture) {
     Invoke-FileQuayWorkflowAction $Ui (Find-FileQuayWorkflowElement $Ui 'ReceiptExportButton') Invoke
     try {
@@ -375,8 +417,9 @@ function Open-FileQuayWorkflowExportConfirmation($Ui, $Fixture) {
     $Ui.record.picker_ownership = @{app_pid=$Ui.application.Id;main_hwnd=$Ui.main_hwnd;picker_pid=$picker.scope.target_pid;picker_hwnd=$picker.scope.target_hwnd;
         owner_chain=[FileQuayQualification.ConsumerInput]::OwnerChain($picker.scope.target_hwnd);process_path=$picker.scope.process.Path}
     Invoke-FileQuayWorkflowAction $Ui $filename Value $Fixture.csv
+    Confirm-FileQuayWorkflowPickerFilename $Ui $filename $Fixture.csv
     $save = Find-FileQuayWorkflowElement $Ui '1' -Within $picker
-    Invoke-FileQuayWorkflowAction $Ui $save Invoke
+    Invoke-FileQuayWorkflowPickerButton $Ui $save '1' 'Save'
     # The native picker may ask before returning the existing destination.
     $next = Wait-FileQuayWorkflow {
         $custom = @(Find-FileQuayWorkflowElements $Ui 'ReceiptExportConfirmationDialog')
@@ -394,7 +437,7 @@ function Open-FileQuayWorkflowExportConfirmation($Ui, $Fixture) {
     } 'selected-file snapshot and explicit export confirmation'
     $confirmation=$next.binding
     if ($next.kind -eq 'native') {
-        Invoke-FileQuayWorkflowAction $Ui $next.binding Invoke
+        Invoke-FileQuayWorkflowPickerButton $Ui $next.binding '6' 'Yes'
         $confirmation=Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $Ui 'ReceiptExportConfirmationDialog' } 'app export confirmation after the native decision'
     }
     $null = Wait-FileQuayWorkflow {
