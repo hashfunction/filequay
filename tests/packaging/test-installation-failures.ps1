@@ -1,7 +1,7 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 # Executes the real installer in an isolated fixture with failing AppX/certificate
 # APIs. No package, certificate store, activation API or user environment is touched.
-param([ValidateSet('InstallationAndCleanup','PreinstalledFramework','FailedAddRace','PackageChanged','ReportingFailure','AdapterFailure')][string]$Scenario='InstallationAndCleanup')
+param([ValidateSet('InstallationAndCleanup','PreinstalledFramework','FailedAddRace','PackageChanged','ReportingFailure','AdapterFailure','ProxyFailure')][string]$Scenario='InstallationAndCleanup')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $source = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -21,6 +21,16 @@ function Initialize-FileQuayConsumerAdapter($Root,$Work) {
     return @{loaded=$true;il_only=$true}
 }
 '@ | Set-Content (Join-Path $temporary '.github/scripts/ConsumerWorkflow.Adapter.ps1')
+# The separate native process/provider boundary is doubled here; its actual
+# implementation is exercised by the Windows preflight and focused fixture tests.
+'' | Set-Content (Join-Path $temporary '.github/scripts/UiaProxy.Helpers.ps1')
+@'
+function Invoke-FileQuayUiaProxyPreflight($Root,$Work,$Adapter,$Record) {
+    $global:FileQuayProxyAttempts++
+    if ($Scenario -eq 'ProxyFailure') {throw 'fixture proxy support rejected'}
+    $Record.passed=$true
+}
+'@ | Set-Content (Join-Path $temporary '.github/scripts/UiaProxy.Fixture.ps1')
 Copy-Item (Join-Path $source 'distribution/verify-package-payload.py') (Join-Path $temporary 'distribution/')
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 function Write-TestArchive([string]$Path, [string]$Manifest) {
@@ -36,7 +46,7 @@ $fakeSignTool = Join-Path $temporary 'sign.ps1'
 Set-Content $fakeSignTool '$global:LASTEXITCODE = 0'
 $certificateAttempts = [System.Collections.Generic.List[string]]::new()
 $packageRemovalAttempts = [System.Collections.Generic.List[string]]::new()
-$global:FileQuayAdapterAttempts=0; $global:FileQuayMutationAttempts=0
+$global:FileQuayAdapterAttempts=0; $global:FileQuayProxyAttempts=0; $global:FileQuayMutationAttempts=0
 $global:FileQuayRaceRegistration = $null
 function Get-AppxPackage {
     param($Name)
@@ -99,7 +109,13 @@ try {
     if ($Scenario -ne 'ReportingFailure' -and -not (Test-Path $resultPath)) { throw "Installer fixture produced no receipt; original failure: $failure" }
     $record = if ($Scenario -ne 'ReportingFailure') { Get-Content $resultPath -Raw | ConvertFrom-Json } else { $null }
     if ($global:FileQuayAdapterAttempts -ne 1) {throw 'Installer did not initialize the adapter exactly once.'}
-    if ($Scenario -eq 'AdapterFailure') {
+    if ($global:FileQuayProxyAttempts -ne $(if ($Scenario -eq 'AdapterFailure') {0} else {1})) {throw 'Installer proxy preflight invocation count differs.'}
+    if ($Scenario -eq 'ProxyFailure') {
+        if (-not $failure.Contains('fixture proxy support rejected') -or $global:FileQuayMutationAttempts -ne 0 -or
+            $certificateAttempts.Count -ne 0 -or $packageRemovalAttempts.Count -ne 0 -or $record.installed -or
+            $record.consumer_uia_proxy_verified -or $record.installation_qualification_passed -or -not $record.unsigned_package_unchanged) {throw 'Proxy preflight did not fail before trust/install mutation.'}
+        'Actual installer proxy-failure test passed: no trust/install mutations, original failure retained.'
+    } elseif ($Scenario -eq 'AdapterFailure') {
         if (-not $failure.Contains('fixture adapter load rejected') -or $global:FileQuayMutationAttempts -ne 0 -or
             $certificateAttempts.Count -ne 0 -or $packageRemovalAttempts.Count -ne 0 -or $record.installed -or
             $record.consumer_native_adapter_verified -or $record.installation_qualification_passed -or -not $record.unsigned_package_unchanged) {

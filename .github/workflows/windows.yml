@@ -2,6 +2,11 @@ name: FolderSail Windows qualification
 on:
   workflow_dispatch:
     inputs:
+      uia_proxy_diagnostic_only:
+        description: Run only the real Win32 UIA proxy fixture (no app qualification)
+        required: true
+        default: false
+        type: boolean
       dependency_mode:
         description: Framework qualification mode (AllowPreinstalled is diagnostic only)
         required: true
@@ -15,7 +20,29 @@ on:
 permissions:
   contents: read
 jobs:
+  uia-proxy-diagnostic:
+    if: github.event_name == 'workflow_dispatch' && inputs.uia_proxy_diagnostic_only
+    name: Native Win32 UIA proxy diagnostic
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
+        with:
+          dotnet-version: '10.0.401'
+      - name: Verify exact current-host proxy and owned Win32 Value/Invoke controls
+        shell: pwsh
+        run: ./.github/scripts/Test-UiaProxyPreflight.ps1
+      - name: Preserve diagnostic metadata only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: FolderSail-Win32-UIA-proxy-diagnostic
+          path: artifacts/qualification/uia-proxy-preflight/uia-proxy-preflight.json
+          retention-days: 14
+          if-no-files-found: error
   windows-x64:
+    if: github.event_name != 'workflow_dispatch' || !inputs.uia_proxy_diagnostic_only
     name: Windows x64 ${{ matrix.build_kind }} qualification
     strategy:
       fail-fast: false

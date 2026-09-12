@@ -12,6 +12,8 @@ if ($env:OS -ne 'Windows_NT' -or $env:CI -ne 'true') { throw 'Requires a disposa
 . (Join-Path $PSScriptRoot 'ConsumerWorkflow.Ui.ps1')
 . (Join-Path $PSScriptRoot 'ConsumerWorkflow.PickerDiagnostic.ps1')
 . (Join-Path $PSScriptRoot 'ConsumerWorkflow.Adapter.ps1')
+. (Join-Path $PSScriptRoot 'UiaProxy.Helpers.ps1')
+. (Join-Path $PSScriptRoot 'UiaProxy.Fixture.ps1')
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $identity = 'Trieflow.FileQuay.Qualification'
 $publisher = 'CN=FileQuay-CI-Qualification'
@@ -46,6 +48,7 @@ $record = [ordered]@{ source_commit=$env:GITHUB_SHA; unsigned_package_sha256=(Ge
     consumer_background_process_observed=$false; process_exit_acceptance_pending=$false;
     normal_process_exit_verified=$false; owned_process_cleanup_verified=$false; consumer_com_probe_invoked=$false;
     consumer_native_adapter_verified=$false; consumer_native_adapter=$null;
+    consumer_uia_proxy_verified=$false; consumer_uia_proxy=@{};
     consumer_workflow_verified=$false; consumer_fixture_cleanup_verified=$false; consumer_workflow=$null;
     com_activation_verified=$false; server_natural_exit_verified=$false;
     uninstall_verified=$false; trust_removed=$false; installation_qualification_passed=$false; submitted=$false;
@@ -65,6 +68,8 @@ try {
         # package mutation. Customer composite assemblies never enter PowerShell.
         $record.consumer_native_adapter=Initialize-FileQuayConsumerAdapter $root $work
         $record.consumer_native_adapter_verified=$true
+        Invoke-FileQuayUiaProxyPreflight $root $work $record.consumer_native_adapter $record.consumer_uia_proxy
+        $record.consumer_uia_proxy_verified=$true
     }
     $signTool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object { [version]$_.Directory.Parent.Name } -Descending | Select-Object -First 1
     if (-not $signTool) { throw 'Windows SDK SignTool is unavailable.' }

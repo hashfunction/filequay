@@ -19,6 +19,10 @@ foreach ($file in @(Get-ChildItem distribution -Filter '*.ps1') + @(Get-ChildIte
   if ($parseErrors.Count) { throw "PowerShell syntax errors in $($file.Name): $parseErrors" }
 }
 ./distribution/test-manifest.ps1
+if ($BuildKind -eq 'Consumer') {
+  & $qualificationPowerShell -NoProfile -File .github/scripts/Test-UiaProxyPreflight.ps1 -EvidenceDirectory (Join-Path $qualificationEvidence 'uia-proxy-preflight')
+  if ($LASTEXITCODE -ne 0) { throw 'Native UIA proxy preflight failed before application build.' }
+}
 ./distribution/restore-vendor-inputs.ps1
 # This identity is for disposable build qualification. It is not a Store reservation.
 ./.github/scripts/Configure-AppxManifest.ps1 -Identity 'Trieflow.FileQuay.Qualification' -Publisher 'CN=FileQuay-CI-Qualification' -Protocol filequay
@@ -36,6 +40,9 @@ Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-build-kind-acceptance.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-observation.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-workflow.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-receipt-scroll.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-uia-proxy.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-uia-proxy-fixture.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-workflow-diagnostics.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-picker-diagnostics.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-picker-scope.ps1')
@@ -51,6 +58,7 @@ Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','PackageChanged')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','ReportingFailure')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','AdapterFailure')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-failures.ps1','-Scenario','ProxyFailure')
 Invoke-Checked dotnet @('publish','tests/Files.SQLiteQualification/Files.SQLiteQualification.csproj','--framework','net10.0-windows10.0.26100.0','--configuration','Release','--runtime','win-x64','--self-contained','false','--output','artifacts/sqlite-qualification','-p:RestoreLockedMode=true')
 & ./artifacts/sqlite-qualification/Files.SQLiteQualification.exe --native-evidence-self-test | Set-Content artifacts/qualification/sqlite-native-evidence-tests.json -Encoding utf8NoBOM
 if ($LASTEXITCODE -ne 0) { throw "SQLite module evidence regression checks failed with $LASTEXITCODE" }

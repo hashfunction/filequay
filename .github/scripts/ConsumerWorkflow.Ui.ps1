@@ -195,26 +195,51 @@ function Invoke-FileQuayWorkflowPaste($Ui, [string]$Description) {
     Invoke-FileQuayWorkflowAction $Ui $command Invoke
 }
 
-function Show-FileQuayWorkflowElement($Ui, $Binding) {
+function Find-FileQuayWorkflowReceiptElement($Ui, [string]$Name,
+    [ValidateSet('ReceiptDetailsExpander','ReceiptSourcePaths','ReceiptDestinationPaths')][string]$Part='ReceiptDetailsExpander') {
+    if ([string]::IsNullOrWhiteSpace($Name)) { throw 'Receipt identity requires its exact observed title.' }
+    $list=Find-FileQuayWorkflowElement $Ui 'ReceiptHistoryList'
+    $card=Find-FileQuayWorkflowElement $Ui 'ReceiptDetailsExpander' $Name -Within $list -IncludeHidden
+    if ($Part -ceq 'ReceiptDetailsExpander') { return $card }
+    Find-FileQuayWorkflowElement $Ui $Part -Within $card -IncludeHidden
+}
+
+function Show-FileQuayWorkflowElement($Ui, [string]$Name,
+    [ValidateSet('ReceiptDetailsExpander','ReceiptSourcePaths','ReceiptDestinationPaths')][string]$Part='ReceiptDetailsExpander') {
+    $lastUnavailable=$null
     for ($attempt=0; $attempt -lt 16; $attempt++) {
-        if (-not $Binding.element.Current.IsOffscreen) { return $Binding }
-        $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($Binding.element)
-        $container=$null
-        for ($i=0; $ancestor -and $i -lt 24; $i++) {
-            if ((Get-FileQuayWorkflowElementWindow $ancestor) -ne $Binding.scope.target_hwnd) { break }
-            $scroll=$null
-            if (-not $ancestor.Current.IsOffscreen -and
-                $ancestor.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern,[ref]$scroll) -and $scroll.Current.VerticallyScrollable) {
-                $container=@{scope=$Binding.scope;element=$ancestor}; break
+        try {
+            # ListView templates can replace both cards and their scroll provider.
+            # Reobserve the exact owned card/detail before every scrolling attempt.
+            $binding=Find-FileQuayWorkflowReceiptElement $Ui $Name $Part
+            if (-not $binding.element.Current.IsOffscreen) { return $binding }
+            $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($binding.element)
+            $container=$null
+            for ($i=0; $ancestor -and $i -lt 24; $i++) {
+                if ((Get-FileQuayWorkflowElementWindow $ancestor) -ne $binding.scope.target_hwnd) { break }
+                $scroll=$null
+                if (-not $ancestor.Current.IsOffscreen -and
+                    $ancestor.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern,[ref]$scroll) -and $scroll.Current.VerticallyScrollable) {
+                    $container=@{scope=$binding.scope;element=$ancestor}; break
+                }
+                $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($ancestor)
             }
-            $ancestor=[System.Windows.Automation.TreeWalker]::RawViewWalker.GetParent($ancestor)
+            if (-not $container) { throw 'Offscreen receipt detail has no visible owned scroll container.' }
+            $direction=if ($binding.element.Current.BoundingRectangle.Top -lt $container.element.Current.BoundingRectangle.Top) {'ScrollUp'} else {'ScrollDown'}
+            Invoke-FileQuayWorkflowAction $Ui $container $direction
+        } catch {
+            $errorType=$_.Exception;$unavailable=$null
+            for ($depth=0; $errorType -and $depth -lt 8; $depth++) {
+                if ($errorType -is [System.Windows.Automation.ElementNotAvailableException]) { $unavailable=$errorType;break }
+                $errorType=$errorType.InnerException
+            }
+            if (-not $unavailable) { throw }
+            $lastUnavailable=$unavailable
+            Add-FileQuayWorkflowTrace $Ui 'ReceiptScrollRequery' @{name=$Name;automation_id=$Part;attempt=($attempt+1);error_type=$unavailable.GetType().FullName}
         }
-        if (-not $container) { throw 'Offscreen receipt detail has no visible owned scroll container.' }
-        $direction=if ($Binding.element.Current.BoundingRectangle.Top -lt $container.element.Current.BoundingRectangle.Top) {'ScrollUp'} else {'ScrollDown'}
-        Invoke-FileQuayWorkflowAction $Ui $container $direction
         Start-Sleep -Milliseconds 100
     }
-    throw 'The receipt detail did not become visible within the scroll budget.'
+    throw [InvalidOperationException]::new('The receipt detail did not become visible within the scroll budget.', $lastUnavailable)
 }
 
 function Get-FileQuayWorkflowText($Binding) {
@@ -278,26 +303,32 @@ function Open-FileQuayWorkflowHistory($Ui) {
 }
 
 function Read-FileQuayWorkflowVisibleReceipts($Ui, $List, [object[]]$Receipts) {
-    $cards = @(Wait-FileQuayWorkflow {
+    $names = @(Wait-FileQuayWorkflow {
+        $List=Find-FileQuayWorkflowElement $Ui 'ReceiptHistoryList'
         $found = @(Find-FileQuayWorkflowElements $Ui 'ReceiptDetailsExpander' -Within $List)
         if ($found.Count -ne 2) { throw "Expected two visible receipt cards, observed $($found.Count)." }
-        $found
+        $titles=@($found | ForEach-Object { $_.element.Current.Name })
+        if ([string]::IsNullOrWhiteSpace($titles[0]) -or [string]::IsNullOrWhiteSpace($titles[1]) -or $titles[0] -ceq $titles[1]) {
+            throw 'The two visible receipt card titles are absent or ambiguous.'
+        }
+        $titles
     } 'two receipt cards')
     $seen = [Collections.Generic.HashSet[string]]::new()
     $result = @()
-    foreach ($card in $cards) {
-        $card=Show-FileQuayWorkflowElement $Ui $card
+    foreach ($name in $names) {
+        $card=Show-FileQuayWorkflowElement $Ui $name
         Invoke-FileQuayWorkflowAction $Ui $card Expand
-        $source = Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $Ui 'ReceiptSourcePaths' -Within $card -IncludeHidden } 'expanded receipt source'
-        $source=Show-FileQuayWorkflowElement $Ui $source
+        $null=Wait-FileQuayWorkflow { Find-FileQuayWorkflowReceiptElement $Ui $name 'ReceiptSourcePaths' } 'expanded receipt source'
+        $source=Show-FileQuayWorkflowElement $Ui $name 'ReceiptSourcePaths'
         $sourceText=Get-FileQuayWorkflowText $source
-        $destination=Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $Ui 'ReceiptDestinationPaths' -Within $card -IncludeHidden } 'expanded receipt destination'
-        $destination=Show-FileQuayWorkflowElement $Ui $destination
+        $null=Wait-FileQuayWorkflow { Find-FileQuayWorkflowReceiptElement $Ui $name 'ReceiptDestinationPaths' } 'expanded receipt destination'
+        $destination=Show-FileQuayWorkflowElement $Ui $name 'ReceiptDestinationPaths'
         $detail=@{source=$sourceText;destination=(Get-FileQuayWorkflowText $destination)}
         $matches = @($Receipts | Where-Object { $_.sourcePaths[0] -ceq $detail.source -and $_.destinationPaths[0] -ceq $detail.destination })
         if ($matches.Count -ne 1 -or -not $seen.Add($matches[0].id)) { throw 'Visible receipt paths do not identify one distinct persisted operation.' }
         $operation = if ($matches[0].fileOperationType -eq 3) {'Copy'} else {'Move'}
         $expectedTitle = $Ui.strings["ReceiptOperation$operation"] + ' · ' + $Ui.strings.ReceiptResultSuccess
+        $card=Find-FileQuayWorkflowReceiptElement $Ui $name
         if ($card.element.Current.Name -cne $expectedTitle) { throw 'Visible receipt operation/result differs.' }
         $result += @{id=$matches[0].id;title=$card.element.Current.Name;source=$detail.source;destination=$detail.destination}
         Invoke-FileQuayWorkflowAction $Ui $card Collapse
