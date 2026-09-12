@@ -20,6 +20,23 @@ function Get-FileQuayWorkflowFile([string]$Path, [long]$MaximumBytes=1048576) {
     @{ bytes=$file.Length; sha256=(Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash }
 }
 
+function Read-FileQuayWorkflowLogTail([string]$Path) {
+    Assert-FileQuayWorkflowAncestors $Path
+    $entry=Get-Item -LiteralPath $Path -Force
+    if ($entry.PSIsContainer -or ($entry.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Diagnostic log is not a regular file.' }
+    $stream=[IO.File]::Open($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+    try {
+        $length=$stream.Length; $start=[Math]::Max(0,$length-32768)
+        $null=$stream.Seek($start,[IO.SeekOrigin]::Begin)
+        $bytes=[byte[]]::new([int]($length-$start));$read=0
+        while ($read -lt $bytes.Length) {
+            $count=$stream.Read($bytes,$read,$bytes.Length-$read)
+            if (-not $count) {break};$read+=$count
+        }
+        @{file_bytes=$length;start_byte=$start;bytes_read=$read;truncated=($start -gt 0);text=[Text.Encoding]::UTF8.GetString($bytes,0,$read)}
+    } finally {$stream.Dispose()}
+}
+
 function Assert-FileQuayWorkflowFile([string]$Path, $Expected) {
     $actual = Get-FileQuayWorkflowFile $Path
     if ($actual.bytes -ne $Expected.bytes -or $actual.sha256 -cne $Expected.sha256) { throw "Workflow file bytes differ: $Path" }

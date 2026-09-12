@@ -19,11 +19,14 @@ try {
     $adapter=[FileQuayQualification.ConsumerInput].Assembly
     if ($adapter.GetName().Name -cne 'FileQuay.Qualification.Native') { throw 'Loaded a customer assembly.' };$checks++
     if (@($adapter.GetReferencedAssemblies() | Where-Object Name -Like 'Files.*').Count) { throw 'Customer runtime reference.' };$checks++
-    foreach ($name in @('Observe','RootWindow','WindowProcess','OwnerChain','Foreground','Chord')) {
+    foreach ($name in @('Observe','RootWindow','WindowProcess','OwnerChain','Foreground','Chord','ObserveClipboard')) {
         if (-not [FileQuayQualification.ConsumerInput].GetMethod($name)) { throw "Missing adapter $name." };$checks++
     }
-    foreach ($name in @('GetAncestor','GetWindowThreadProcessId','GetWindow','IsWindow','IsWindowVisible','IsWindowEnabled','GetForegroundWindow','SetForegroundWindow','SendInput')) {
+    foreach ($name in @('GetAncestor','GetWindowThreadProcessId','GetWindow','IsWindow','IsWindowVisible','IsWindowEnabled','GetForegroundWindow','SetForegroundWindow','SendInput','GetClipboardOwner','GetClipboardSequenceNumber','IsClipboardFormatAvailable')) {
         if (-not @($adapter.GetType('Windows.Win32.PInvoke').GetMethods() | Where-Object Name -CEQ $name).Count) { throw "Missing generated native API $name." };$checks++
+    }
+    foreach ($name in @('GetClipboardData','OpenClipboard','EmptyClipboard','SetClipboardData','OleGetClipboard')) {
+        if (@($adapter.GetType('Windows.Win32.PInvoke').GetMethods() | Where-Object Name -CEQ $name).Count) { throw "Payload/mutation API entered the diagnostic adapter: $name." };$checks++
     }
     # Observe Windows ABI from the actual generated INPUT, without sending input.
     $inputType=$adapter.GetType('Windows.Win32.UI.Input.KeyboardAndMouse.INPUT')

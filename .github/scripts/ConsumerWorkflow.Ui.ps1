@@ -293,30 +293,79 @@ function Open-FileQuayWorkflowExportConfirmation($Ui, $Fixture) {
     $confirmation
 }
 
-function Get-FileQuayWorkflowFailureObservation($Ui) {
+function Limit-FileQuayWorkflowDiagnosticText([string]$Text) {
+    $Text.Substring(0,[Math]::Min(1024,$Text.Length))
+}
+
+function Get-FileQuayWorkflowObservedNode($Element, $Scope, [int]$Depth) {
+    $current=$Element.Current
+    if ($current.ProcessId -ne $Scope.target_pid) { return }
+    $node=[ordered]@{hwnd=$Scope.target_hwnd;process_id=$Scope.target_pid;depth=$Depth;property_errors=[ordered]@{}}
+    foreach ($property in ([ordered]@{automation_id='AutomationId';name='Name';class_name='ClassName';control_type='ControlType';
+        offscreen='IsOffscreen';enabled='IsEnabled';keyboard_focus='HasKeyboardFocus';keyboard_focusable='IsKeyboardFocusable'}).GetEnumerator()) {
+        try {
+            $value=$current.($property.Value)
+            if ($property.Key -ceq 'control_type') {
+                $node.control_type_raw=Limit-FileQuayWorkflowDiagnosticText ([string]$value)
+                $value=$value.ProgrammaticName
+            }
+            if ($value -is [string]) {$value=Limit-FileQuayWorkflowDiagnosticText $value}
+            $node[$property.Key]=$value
+        } catch {$node.property_errors[$property.Key]=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
+    }
+    $node
+}
+
+function Get-FileQuayWorkflowObservedTree($Scope, $Walker, [ValidateRange(1,160)][int]$MaximumNodes=160) {
     $nodes = [Collections.Generic.List[object]]::new()
+    $queue=[Collections.Generic.Queue[object]]::new();$queue.Enqueue(@{element=$Scope.root;depth=0})
+    while ($queue.Count -and $nodes.Count -lt $MaximumNodes) {
+        $next=$queue.Dequeue()
+        try {
+            $node=Get-FileQuayWorkflowObservedNode $next.element $Scope $next.depth
+            if (-not $node) {continue}
+            $nodes.Add($node)
+            if ($next.depth -lt 8) {
+                try {
+                    $child=$Walker.GetFirstChild($next.element)
+                    while ($child -and $nodes.Count+$queue.Count -lt $MaximumNodes) {
+                        $queue.Enqueue(@{element=$child;depth=$next.depth+1})
+                        $child=$Walker.GetNextSibling($child)
+                    }
+                } catch {$node.children_error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
+            }
+        } catch {$nodes.Add(@{depth=$next.depth;observation_error=(Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message)})}
+    }
+    $nodes.ToArray()
+}
+
+function Get-FileQuayWorkflowFailureObservation($Ui) {
+    $nodes=[Collections.Generic.List[object]]::new()
     try {
         foreach ($scope in @(Get-FileQuayWorkflowScopes $Ui -AllowBroker)) {
-            $queue = [Collections.Generic.Queue[object]]::new(); $queue.Enqueue(@{element=$scope.root;depth=0})
-            while ($queue.Count -and $nodes.Count -lt 160) {
-                $next=$queue.Dequeue()
-                try {
-                    $current=$next.element.Current
-                    if ($current.ProcessId -ne $scope.target_pid) { continue }
-                    $nodes.Add(@{hwnd=$scope.target_hwnd;process_id=$scope.target_pid;depth=$next.depth;name=$current.Name.Substring(0,[Math]::Min(1024,$current.Name.Length));
-                        automation_id=$current.AutomationId;control_type=$current.ControlType.ProgrammaticName;offscreen=$current.IsOffscreen;enabled=$current.IsEnabled})
-                    if ($next.depth -lt 8) {
-                        $child=[System.Windows.Automation.TreeWalker]::ControlViewWalker.GetFirstChild($next.element)
-                        while ($child -and $nodes.Count + $queue.Count -lt 160) {
-                            $queue.Enqueue(@{element=$child;depth=$next.depth+1})
-                            $child=[System.Windows.Automation.TreeWalker]::ControlViewWalker.GetNextSibling($child)
-                        }
-                    }
-                } catch { $nodes.Add(@{observation_error=$_.Exception.Message}) }
+            if ($nodes.Count -ge 160) {return $nodes.ToArray()}
+            foreach ($node in @(Get-FileQuayWorkflowObservedTree $scope ([System.Windows.Automation.TreeWalker]::ControlViewWalker) (160-$nodes.Count))) {
+                $nodes.Add($node)
             }
         }
-    } catch { $nodes.Add(@{observation_error=$_.Exception.Message}) }
+    } catch { $nodes.Add(@{observation_error=(Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message)}) }
     $nodes.ToArray()
+}
+
+function Add-FileQuayWorkflowClipboardObservation($Ui, [string]$Stage) {
+    $observation=[ordered]@{stage=$Stage;at_utc=[DateTimeOffset]::UtcNow.ToString('O');commands=[ordered]@{}}
+    try {$observation.clipboard=[FileQuayQualification.ConsumerInput]::ObserveClipboard($Ui.application,$Ui.main_hwnd)}
+    catch {$observation.clipboard_error=Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message}
+    foreach ($id in @('InnerNavigationToolbarCopyButton','InnerNavigationToolbarCutButton','InnerNavigationToolbarPasteButton','PART_TextBox')) {
+        try {
+            $bindings=@(Find-FileQuayWorkflowElements $Ui $id -IncludeHidden)
+            if ($bindings.Count -gt 8) {throw 'Command observation exceeds its duplicate budget.'}
+            $observation.commands[$id]=@(foreach ($binding in $bindings) {
+                Get-FileQuayWorkflowObservedNode $binding.element $binding.scope 0
+            })
+        } catch {$observation.commands[$id]=@{observation_error=(Limit-FileQuayWorkflowDiagnosticText $_.Exception.Message)}}
+    }
+    Add-FileQuayWorkflowTrace $Ui 'ClipboardObservation' $observation
 }
 
 function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [string]$Work, [System.Collections.IDictionary]$Record, $State) {
@@ -338,15 +387,21 @@ function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [str
         Assert-FileQuayWorkflowFiles $fixture Initial
         Set-FileQuayWorkflowFolder $ui ([IO.Path]::GetDirectoryName($fixture.source))
         Select-FileQuayWorkflowFile $ui $fixture.source
+        Add-FileQuayWorkflowClipboardObservation $ui 'before-copy'
         Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarCopyButton' } 'enabled Copy action') Invoke
+        Add-FileQuayWorkflowClipboardObservation $ui 'after-copy-invoke'
         Set-FileQuayWorkflowFolder $ui ([IO.Path]::GetDirectoryName($fixture.copied))
+        Add-FileQuayWorkflowClipboardObservation $ui 'copy-destination'
         Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarPasteButton' } 'enabled copy Paste action') Invoke
         $null=Wait-FileQuayWorkflow { Assert-FileQuayWorkflowFiles $fixture Copied; $true } 'exact copied bytes and protected originals'
         $null=Wait-FileQuayWorkflow { Read-FileQuayWorkflowReceipts $history $fixture 1 $started ([DateTimeOffset]::UtcNow) } 'one persisted successful copy receipt'
         $workflow.copy_files=(Get-FileQuayWorkflowTree $fixture).files
         Select-FileQuayWorkflowFile $ui $fixture.copied
+        Add-FileQuayWorkflowClipboardObservation $ui 'before-cut'
         Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarCutButton' } 'enabled Cut action') Invoke
+        Add-FileQuayWorkflowClipboardObservation $ui 'after-cut-invoke'
         Set-FileQuayWorkflowFolder $ui ([IO.Path]::GetDirectoryName($fixture.moved))
+        Add-FileQuayWorkflowClipboardObservation $ui 'move-destination'
         Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow { Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarPasteButton' } 'enabled move Paste action') Invoke
         $null=Wait-FileQuayWorkflow { Assert-FileQuayWorkflowFiles $fixture Moved; $true } 'exact moved bytes, removed copy, and protected originals'
         $receipts=@(Wait-FileQuayWorkflow { Read-FileQuayWorkflowReceipts $history $fixture 2 $started ([DateTimeOffset]::UtcNow) } 'two distinct successful persisted receipts')
@@ -399,7 +454,10 @@ function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [str
         $Record.consumer_workflow_verified=$true
     } catch {
         $workflow.error=$_.Exception.ToString()
+        Add-FileQuayWorkflowClipboardObservation $ui 'failure'
         $workflow.failure_observation=@(Get-FileQuayWorkflowFailureObservation $ui)
+        try {$workflow.failure_log_tail=Read-FileQuayWorkflowLogTail (Join-Path $env:LOCALAPPDATA ('Packages/'+$Installed.PackageFamilyName+'/LocalState/debug.log'))}
+        catch {$workflow.failure_log_error=$_.Exception.Message}
         throw
     } finally {
         foreach ($process in $ui.brokers.Values) { $process.Dispose() }

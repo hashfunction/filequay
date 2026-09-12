@@ -62,6 +62,27 @@ public static class ConsumerInput
 			throw new InvalidOperationException("Native workflow target ownership or foreground changed.");
 	}
 
+	public static Dictionary<string, object> ObserveClipboard(Process app, long main)
+	{
+		RequireTarget(app, main, app, main, true);
+		uint before = PInvoke.GetClipboardSequenceNumber();
+		long owner = (long)(nint)PInvoke.GetClipboardOwner();
+		uint ownerProcess = owner == 0 ? 0 : WindowProcess(owner);
+		bool fileDrop = PInvoke.IsClipboardFormatAvailable(15); // CF_HDROP, format availability only.
+		uint after = PInvoke.GetClipboardSequenceNumber();
+		RequireTarget(app, main, app, main, true);
+		return new Dictionary<string, object>
+		{
+			["owner_hwnd"] = owner,
+			["owner_pid"] = ownerProcess,
+			["owner_is_consumer"] = ownerProcess == app.Id,
+			["sequence_before"] = before,
+			["sequence_after"] = after,
+			["sequence_stable"] = before == after,
+			["file_drop_format_available"] = fileDrop,
+		};
+	}
+
 	public static void Foreground(Process app, long main, Process target, long window)
 	{
 		RequireTarget(app, main, target, window, false);

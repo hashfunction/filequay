@@ -36,6 +36,7 @@ Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-build-kind-acceptance.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-observation.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-workflow.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-workflow-diagnostics.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-adapter.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-qualification-record-publication.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-managed-build-kind.ps1')

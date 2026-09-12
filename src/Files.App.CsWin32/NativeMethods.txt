@@ -325,6 +325,9 @@ CFSTR_DSOP_DS_SELECTION_LIST
 GlobalLock
 GlobalUnlock
 RegisterClipboardFormat
+GetClipboardOwner
+GetClipboardSequenceNumber
+IsClipboardFormatAvailable
 ReleaseStgMedium
 SafeArrayAccessData
 SafeArrayUnaccessData

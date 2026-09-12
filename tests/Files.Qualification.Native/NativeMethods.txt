@@ -7,3 +7,6 @@ IsWindowEnabled
 GetForegroundWindow
 SetForegroundWindow
 SendInput
+GetClipboardOwner
+GetClipboardSequenceNumber
+IsClipboardFormatAvailable
