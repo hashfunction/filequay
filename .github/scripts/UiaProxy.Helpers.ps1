@@ -1,10 +1,10 @@
 # Copyright 2026 Trieflow LLC. Licensed under the MIT License.
 function Assert-FileQuayUiaProxyIdentity($Client,$Proxy,[string]$HostRoot) {
-    foreach ($entry in @(@{item=$Client;name='UIAutomationClient'},@{item=$Proxy;name='UIAutomationClientSideProviders'})) {
+    foreach ($entry in @(@{item=$Client;name='UIAutomationClient';token='31bf3856ad364e35'},@{item=$Proxy;name='UIAutomationClientSideProviders';token='b77a5c561934e089'})) {
         $item=$entry.item;$expected=Join-Path $HostRoot ($entry.name+'.dll')
         if ([IO.Path]::GetFullPath($item.path) -ine [IO.Path]::GetFullPath($expected) -or $item.name -ine $entry.name -or
             $item.version -cne $Client.version -or $item.version -notmatch '^10\.0\.0\.0$' -or
-            $item.public_key_token -cne '31bf3856ad364e35' -or $item.culture -cne '' -or
+            $item.public_key_token -cne $entry.token -or $item.culture -cne '' -or
             $item.sha256 -cnotmatch '^[a-f0-9]{64}$' -or $item.bytes -le 0 -or $item.bytes -gt 8388608 -or
             $item.signature_status -cne 'Valid' -or $item.signer_subject -notmatch '(^|,\s*)O=Microsoft Corporation(,|$)' -or
             $item.company -cne 'Microsoft Corporation') { throw 'UIA proxy must be the exact signed matching Microsoft assembly in the current PowerShell host.' }

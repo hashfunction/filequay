@@ -44,3 +44,27 @@ If the exact PSHOME provider is absent, the candidate records the path and fails
 Local tools: `.tools/powershell-7.6.6/pwsh` and `.tools/dotnet-10.0.401/dotnet` under this nested source repository. Logs: `/private/tmp/foldersail-uia-proxy-research/{python-tests,powershell-tests,fixture-final-tests,parse}.log`. An initial unconfigured Python run selected the system .NET 8 SDK and failed five SDK-resolution checks; rerunning with `FILEQUAY_DOTNET` set to the already-installed exact 10.0.401 SDK passed all 36. The native fixture builds locally, but Win32 execution/registration cannot be claimed from macOS.
 
 Root independent review and explicit Windows dispatch remain required. No push, workflow dispatch, Store action, site change or parent status edit was performed.
+
+## Exact Windows token correction
+
+Diagnostic run34689919450 reached identity inspection on Windows before any
+fixture registration or input. Both assemblies are present under the current
+PSHOME, Microsoft Authenticode signatures Valid, version10.0.0.0. The actual
+UIAutomationClient is signed with strong-name token31bf3856ad364e35; the actual
+UIAutomationClientSideProviders uses tokenb77a5c561934e089. The initial candidate
+incorrectly required the client token for both assemblies.
+
+The assertion now requires the exact observed token for each assembly role.
+Path, file/version/hash, neutral culture, company and Microsoft Authenticode
+requirements are unchanged. No alternate assembly is accepted. The production
+regression failed before this correction and now passes24 cases, including both
+swapped-token refusals. The previous22-case fixture had repeated the incorrect
+same-token assumption; it has been corrected to use the actual distinct values.
+A fresh short Windows diagnostic must still establish registration and actions.
+
+Retained actual files: UIAutomationClient407336 bytes, SHA-256
+be8e03688f1c1158b6a1a9b091ca864d9e7f338390537d71a1080f8a454bb2e4;
+UIAutomationClientSideProviders857896 bytes, SHA-256
+c60be0bba0652ff58fb38db1b0535e4bb9f6bd8bf035e56d89b7d87690963f19.
+The complete metadata receipt is retained under
+/private/tmp/foldersail-34689919450-review/FolderSail-Win32-UIA-proxy-diagnostic.
