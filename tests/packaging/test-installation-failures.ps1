@@ -11,7 +11,7 @@ $installerSource = Join-Path $source '.github/scripts/Test-CIInstallation.ps1'
 if ($env:FILEQUAY_INSTALLER_SOURCE) { $installerSource = $env:FILEQUAY_INSTALLER_SOURCE }
 Copy-Item $installerSource (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1')
 Copy-Item (Join-Path $source '.github/scripts/InstallationQualification.Helpers.ps1') (Join-Path $temporary '.github/scripts/')
-Copy-Item (Join-Path $source '.github/scripts/ConsumerWorkflow.Helpers.ps1'),(Join-Path $source '.github/scripts/ConsumerWorkflow.Ui.ps1') (Join-Path $temporary '.github/scripts/')
+Copy-Item (Join-Path $source '.github/scripts/ConsumerWorkflow.Helpers.ps1'),(Join-Path $source '.github/scripts/ConsumerWorkflow.Ui.ps1'),(Join-Path $source '.github/scripts/ConsumerWorkflow.PickerDiagnostic.ps1') (Join-Path $temporary '.github/scripts/')
 # Only the external SDK/build/CLR-loading boundary is doubled. The actual
 # installer must call it before any trust/package mutation, even on failure.
 @'
@@ -96,6 +96,7 @@ try {
     $failure = ''
     try { & (Join-Path $temporary '.github/scripts/Test-CIInstallation.ps1') -PackagePath (Join-Path $temporary 'package/main.msix') -ValidatedPackageDirectory (Join-Path $temporary 'validated') -BuildKind Consumer }
     catch { $failure = $_.Exception.Message }
+    if ($Scenario -ne 'ReportingFailure' -and -not (Test-Path $resultPath)) { throw "Installer fixture produced no receipt; original failure: $failure" }
     $record = if ($Scenario -ne 'ReportingFailure') { Get-Content $resultPath -Raw | ConvertFrom-Json } else { $null }
     if ($global:FileQuayAdapterAttempts -ne 1) {throw 'Installer did not initialize the adapter exactly once.'}
     if ($Scenario -eq 'AdapterFailure') {
