@@ -35,6 +35,15 @@ function Invoke-Checked([string]$Program, [string[]]$Arguments) {
   & $Program @Arguments
   if ($LASTEXITCODE -ne 0) { throw "$Program failed with $LASTEXITCODE" }
 }
+function Write-FolderSailSourceStatus([ValidateSet('after-build','after-installation')][string]$Phase) {
+  $originalExitCode=$global:LASTEXITCODE
+  try {
+    & python (Join-Path $PSScriptRoot 'observe_source_status.py') --phase $Phase
+    if ($LASTEXITCODE -ne 0) {throw 'Source observation process failed.'}
+  } catch {
+    try {Write-Warning ("FolderSail source observation unavailable at ${Phase}: "+$_.Exception.GetType().Name)} catch {}
+  } finally {$global:LASTEXITCODE=$originalExitCode}
+}
 Invoke-Checked dotnet @('test','--project','tests/Files.App.UnitTests/Files.App.UnitTests.csproj','-c','Release','--report-trx','--results-directory','artifacts/qualification/unit-tests')
 Invoke-Checked $msbuild @('Files.slnx','-t:Restore','-p:Platform=x64','-p:Configuration=Release','-p:PublishReadyToRun=true','-p:RestorePackagesWithLockFile=true','-v:minimal')
 Invoke-Checked python @('-m','unittest','discover','-s','tests/packaging','-v')
@@ -42,6 +51,8 @@ Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-build-kind-acceptance.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-store-identity.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-store-orchestration.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-source-status.ps1')
+Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-target-refusal.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-observation.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-workflow.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-consumer-export-result.ps1')
@@ -83,7 +94,10 @@ $originalManifest=[IO.File]::ReadAllBytes($sourceManifest)
 try {
   ./.github/scripts/Configure-AppxManifest.ps1 -Identity $packageIdentity.name -Publisher $packageIdentity.publisher -PublisherDisplayName $packageIdentity.publisher_display_name -Protocol filequay
   Invoke-Checked $msbuild @('src/Files.App/Files.App.csproj','-t:Build','-p:Configuration=Release','-p:Platform=x64','-p:AppxBundlePlatforms=x64','-p:AppxBundle=Never','-p:GenerateAppxPackageOnBuild=true',("-p:FileQuayCIQualification=$qualificationProperty"),'-p:UapAppxPackageBuildMode=SideloadOnly',("-p:AppxPackageDir=$buildOutput\"),'-p:AppxPackageSigningEnabled=false','-v:minimal')
-} finally { [IO.File]::WriteAllBytes($sourceManifest,$originalManifest) }
+} finally {
+  [IO.File]::WriteAllBytes($sourceManifest,$originalManifest)
+  Write-FolderSailSourceStatus 'after-build'
+}
 $mainPackages = @(Get-ChildItem -LiteralPath $buildOutput -Recurse -File | Where-Object { $_.Extension -in @('.msix','.appx') -and $_.FullName -notmatch '[\\/]Dependencies[\\/]' })
 if ($mainPackages.Count -ne 1) { throw "Expected one main package; found $($mainPackages.Count)." }
 $validatedPackage = $buildConfiguration.validation_output
@@ -110,5 +124,7 @@ Get-ChildItem -Recurse -Filter project.assets.json | ForEach-Object {
 Get-ChildItem -LiteralPath $buildOutput -Recurse -File | Where-Object { $_.Extension -in @('.msix','.appx','.msixbundle','.appxbundle') } | ForEach-Object {
   @{ path=[IO.Path]::GetRelativePath((Get-Location).Path, $_.FullName); bytes=$_.Length; sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash }
 } | ConvertTo-Json -Depth 3 | Set-Content (Join-Path $qualificationEvidence 'package-inventory.json') -Encoding utf8NoBOM
-Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','.github/scripts/Test-CIInstallation.ps1','-PackagePath',$mainPackages[0].FullName,'-ValidatedPackageDirectory',$validatedPackage,'-BuildKind',$BuildKind,'-DependencyMode',$DependencyMode,'-IdentityMode',$IdentityMode)
+try {
+  Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','.github/scripts/Test-CIInstallation.ps1','-PackagePath',$mainPackages[0].FullName,'-ValidatedPackageDirectory',$validatedPackage,'-BuildKind',$BuildKind,'-DependencyMode',$DependencyMode,'-IdentityMode',$IdentityMode)
+} finally {Write-FolderSailSourceStatus 'after-installation'}
 @{ source_commit=$env:GITHUB_SHA; workflow_run_id=$env:GITHUB_RUN_ID; workflow_run_attempt=$env:GITHUB_RUN_ATTEMPT; generated_at_utc=[DateTime]::UtcNow.ToString('o'); identity=$packageIdentity.name; publisher=$packageIdentity.publisher; identity_mode=$IdentityMode; package_path=[IO.Path]::GetRelativePath((Get-Location).Path,$mainPackages[0].FullName); package_sha256=(Get-FileHash $mainPackages[0].FullName -Algorithm SHA256).Hash; native_build=$true; store_identity=($IdentityMode -eq 'Store'); installation_qualification_passed=$true; requested_build_kind=$BuildKind; actual_build_kind=$managedBuild.actual_build_kind; managed_build_kind_verified=$true; instrumented_qualification_build=($BuildKind -eq 'Instrumented'); normal_store_binary_installation_tested=($BuildKind -eq 'Consumer'); dependency_mode=$DependencyMode; dependency_installation_from_artifacts_verified=($DependencyMode -eq 'RequireClean'); dependency_resolution_only=($DependencyMode -eq 'AllowPreinstalled'); clean_framework_installation_gate_passed=($DependencyMode -eq 'RequireClean'); store_clean_environment_gate_pending=($DependencyMode -eq 'AllowPreinstalled'); native_source_clearance=$false; submitted=$false } | ConvertTo-Json | Set-Content (Join-Path $qualificationEvidence 'build-result.json') -Encoding utf8NoBOM

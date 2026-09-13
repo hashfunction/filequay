@@ -16,14 +16,23 @@ from source_publication import git, verify_public_sources
 PACKAGE_NAME='FolderSail_1.0.1.0_x64.msix'
 
 
-def report_source_changes(source,status):
+def report_source_changes(source,status,phase=None,diagnostic_errors=()):
     def bounded(value):
         return dict(text=value[:4096].decode('utf-8',errors='replace'),truncated=len(value)>4096)
-    observation=dict(porcelain=bounded(status),diagnostic_errors=[])
+    observation=dict(porcelain=bounded(status),diagnostic_errors=list(diagnostic_errors))
+    if phase is not None:observation.update(phase=phase,generated_at_utc=datetime.now(timezone.utc).isoformat())
     try:observation['tracked_diff_names']=bounded(git(source,'diff','--no-ext-diff','--name-only','HEAD','--'))
     except Exception as error:observation['diagnostic_errors'].append(type(error).__name__[:128])
     try:print('FolderSail source diagnostic: '+json.dumps(observation,ensure_ascii=True),file=sys.stderr)
     except Exception:pass  # A secondary observation cannot replace the original refusal.
+
+
+def observe_source_status(source,phase):
+    require(phase in ('after-build','after-installation'),'Unexpected source observation phase')
+    errors=[]
+    try:status=git(source,'status','--porcelain=v1','--untracked-files=all')
+    except Exception as error:status=b'';errors.append(type(error).__name__[:128])
+    report_source_changes(source,status,phase,errors)
 
 
 def verify_current_source(source,context):

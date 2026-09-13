@@ -98,6 +98,22 @@ class StoreExportTests(unittest.TestCase):
                 x.verify_current_source(source,context)
             row=json.loads(observed.getvalue().split(': ',1)[1]);self.assertIn('?? foreign',row['porcelain']['text']);self.assertEqual(row['tracked_diff_names']['text'],'')
 
+    def test_early_source_observation_uses_bounded_reporter_without_acceptance(self):
+        observed=io.StringIO()
+        with patch.object(x,'git',side_effect=[b' M tracked\n?? generated\n',b'tracked\n']),contextlib.redirect_stderr(observed):
+            x.observe_source_status(Path('.'),'after-build')
+        row=json.loads(observed.getvalue().split(': ',1)[1])
+        self.assertEqual(row['phase'],'after-build')
+        self.assertIn('?? generated',row['porcelain']['text'])
+        self.assertEqual(row['tracked_diff_names']['text'],'tracked\n')
+        self.assertNotIn('qualified',row)
+        observed=io.StringIO()
+        with patch.object(x,'git',side_effect=RuntimeError('secondary')),contextlib.redirect_stderr(observed):
+            x.observe_source_status(Path('.'),'after-installation')
+        row=json.loads(observed.getvalue().split(': ',1)[1])
+        self.assertEqual(row['phase'],'after-installation')
+        self.assertEqual(row['diagnostic_errors'],['RuntimeError','RuntimeError'])
+
     def test_source_diagnostic_is_bounded_and_secondary(self):
         observed=io.StringIO()
         with patch.object(x,'git',side_effect=RuntimeError('secondary')),contextlib.redirect_stderr(observed):

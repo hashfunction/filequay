@@ -196,5 +196,22 @@ function Assert-FileQuayWorkflowTarget($Scope, $State) {
         -not $State.target_visible -or -not $State.target_enabled -or $State.foreground_hwnd -ne $Scope.target_hwnd -or
         $State.owner_chain.Count -lt 1 -or $State.owner_chain.Count -gt 8 -or $State.owner_chain[0] -ne $Scope.target_hwnd -or
         $Scope.main_hwnd -notin $State.owner_chain -or $State.element_pid -ne $Scope.target_pid -or $State.element_hwnd -ne $Scope.target_hwnd -or -not $State.element_within_target -or
-        -not $State.element_visible -or -not $State.element_enabled) { throw 'Workflow input target ownership, foreground, or UI state changed.' }
+        -not $State.element_visible -or -not $State.element_enabled) {
+        try {throw 'Workflow input target ownership, foreground, or UI state changed.'} catch {
+            # Only retain the state already rejected above: no new UI/process reads.
+            try {
+                $observed=@{};$expected=@{}
+                foreach($key in @('app_live','target_process_live','main_live','main_pid','target_live','target_pid','target_hwnd',
+                                 'target_visible','target_enabled','foreground_hwnd','element_pid','element_hwnd',
+                                 'element_within_target','element_visible','element_enabled')) {
+                    $value=$State[$key]
+                    if($value -is [bool] -or $value -is [int] -or $value -is [long]) {$observed[$key]=$value}
+                }
+                foreach($key in @('app_pid','main_hwnd','target_pid','target_hwnd')) {$expected[$key]=[long]$Scope[$key]}
+                $observed.owner_chain=@($State.owner_chain | Select-Object -First 8 | ForEach-Object {[long]$_})
+                $_.Exception.Data['FileQuayWorkflowTargetRefusal']=@{scope=$expected;state=$observed;owner_chain_count=$State.owner_chain.Count}
+            } catch {} # Secondary diagnostic failure cannot change the original refusal.
+            throw
+        }
+    }
 }

@@ -882,6 +882,7 @@ function Invoke-FileQuayConsumerWorkflow($Application, $Window, $Installed, [str
         $Record.consumer_workflow_verified=$true
     } catch {
         $workflow.error=$_.Exception.ToString()
+        if ($_.Exception.Data.Contains('FileQuayWorkflowTargetRefusal')) {$workflow.target_refusal=$_.Exception.Data['FileQuayWorkflowTargetRefusal']}
         Add-FileQuayWorkflowClipboardObservation $ui 'failure'
         $workflow.failure_observation=@(Get-FileQuayWorkflowFailureObservation $ui)
         try {$workflow.failure_log_tail=Read-FileQuayWorkflowLogTail (Join-Path $env:LOCALAPPDATA ('Packages/'+$Installed.PackageFamilyName+'/LocalState/debug.log'))}
