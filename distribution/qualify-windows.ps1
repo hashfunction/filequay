@@ -45,7 +45,7 @@ function Write-FolderSailSourceStatus([ValidateSet('after-build','after-installa
   } finally {$global:LASTEXITCODE=$originalExitCode}
 }
 Invoke-Checked dotnet @('test','--project','tests/Files.App.UnitTests/Files.App.UnitTests.csproj','-c','Release','--report-trx','--results-directory','artifacts/qualification/unit-tests')
-Invoke-Checked $msbuild @('Files.slnx','-t:Restore','-p:Platform=x64','-p:Configuration=Release','-p:PublishReadyToRun=true','-p:RestorePackagesWithLockFile=true','-v:minimal')
+Invoke-Checked $msbuild @('Files.slnx','-t:Restore','-p:Platform=x64','-p:Configuration=Release','-p:PublishReadyToRun=true','-v:minimal')
 Invoke-Checked python @('-m','unittest','discover','-s','tests/packaging','-v')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-installation-helpers.ps1')
 Invoke-Checked $qualificationPowerShell @('-NoProfile','-File','tests/packaging/test-build-kind-acceptance.ps1')

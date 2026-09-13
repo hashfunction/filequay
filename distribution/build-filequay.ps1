@@ -26,7 +26,7 @@ $msbuild = & $vswhere -latest -products '*' -requires Microsoft.Component.MSBuil
 if (-not $msbuild) { throw 'MSBuild is missing.' }
 $packageDirectory = Join-Path $runDirectory 'packages'
 Invoke-Checked dotnet @('test','--project','tests/Files.App.UnitTests/Files.App.UnitTests.csproj','-c','Release','--report-trx','--results-directory',(Join-Path $runDirectory 'unit-tests'))
-Invoke-Checked $msbuild @('Files.slnx','-t:Restore','-p:Platform=x64','-p:Configuration=Release','-p:PublishReadyToRun=true','-p:RestorePackagesWithLockFile=true','-v:quiet','-clp:ErrorsOnly')
+Invoke-Checked $msbuild @('Files.slnx','-t:Restore','-p:Platform=x64','-p:Configuration=Release','-p:PublishReadyToRun=true','-v:quiet','-clp:ErrorsOnly')
 Invoke-Checked $msbuild @('src/Files.App/Files.App.csproj','-t:Build','-p:Configuration=Release','-p:Platform=x64','-p:AppxBundlePlatforms=x64','-p:AppxBundle=Never','-p:GenerateAppxPackageOnBuild=true','-p:UapAppxPackageBuildMode=SideloadOnly',('-p:AppxPackageDir=' + $packageDirectory + '\'),'-p:AppxPackageSigningEnabled=false','-v:quiet','-clp:ErrorsOnly')
 $packages = @(Get-ChildItem -LiteralPath $packageDirectory -Recurse -File | Where-Object { $_.Extension -in @('.msix','.appx') -and $_.FullName -notmatch '[\\/]Dependencies[\\/]' })
 if ($packages.Count -ne 1) { throw "Expected exactly one main unsigned package, found $($packages.Count). Review package output before staging." }
