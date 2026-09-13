@@ -1,5 +1,7 @@
 # Copyright 2026 Trieflow LLC. MIT.
 import copy
+import contextlib
+import io
 import json
 from pathlib import Path
 import subprocess
@@ -86,8 +88,25 @@ class StoreExportTests(unittest.TestCase):
             x.verify_current_source(source,context)
             with self.assertRaises(ValueError):x.verify_current_source(source,fixtures.CONTEXT)
             (source/'file').write_bytes(b'changed')
-            with self.assertRaises(ValueError):x.verify_current_source(source,context)
+            observed=io.StringIO()
+            with contextlib.redirect_stderr(observed),self.assertRaisesRegex(ValueError,'^Source changed after the qualified build$'):
+                x.verify_current_source(source,context)
+            row=json.loads(observed.getvalue().split(': ',1)[1]);self.assertIn(' M file',row['porcelain']['text']);self.assertEqual(row['tracked_diff_names']['text'],'file\n')
             git('checkout','--','file');(source/'foreign').write_bytes(b'new')
-            with self.assertRaises(ValueError):x.verify_current_source(source,context)
+            observed=io.StringIO()
+            with contextlib.redirect_stderr(observed),self.assertRaisesRegex(ValueError,'^Source changed after the qualified build$'):
+                x.verify_current_source(source,context)
+            row=json.loads(observed.getvalue().split(': ',1)[1]);self.assertIn('?? foreign',row['porcelain']['text']);self.assertEqual(row['tracked_diff_names']['text'],'')
+
+    def test_source_diagnostic_is_bounded_and_secondary(self):
+        observed=io.StringIO()
+        with patch.object(x,'git',side_effect=RuntimeError('secondary')),contextlib.redirect_stderr(observed):
+            x.report_source_changes(Path('.'),b'?? '+b'x'*10000)
+        row=json.loads(observed.getvalue().split(': ',1)[1])
+        self.assertEqual(len(row['porcelain']['text']),4096);self.assertTrue(row['porcelain']['truncated'])
+        self.assertEqual(row['diagnostic_errors'],['RuntimeError'])
+        with patch.object(x,'git',side_effect=[fixtures.CONTEXT['source_commit'].encode(),b' M file\n',b'file\n']),patch.object(x.sys.stderr,'write',side_effect=OSError('secondary')):
+            with self.assertRaisesRegex(ValueError,'^Source changed after the qualified build$'):
+                x.verify_current_source(Path('.'),fixtures.CONTEXT)
 
 if __name__=='__main__':unittest.main()
