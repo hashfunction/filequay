@@ -3,7 +3,7 @@
 This separate capture pipeline is bound to the independently verified unsigned
 Store export from [Windows run 34730460036](https://github.com/hashfunction/filequay/actions/runs/34730460036),
 attempt 1, source `7d2eff788f9dc15e0e695606da2963a1fc8450d3`. It has not yet
-produced Windows screenshots and does not add consumer qualification evidence. The
+completed its three-scene Windows capture and does not add consumer qualification evidence. The
 application, its immutable assigned Store identity, and the existing native
 qualification workflow are unchanged.
 
@@ -51,14 +51,14 @@ teardown, matching qualification's existing policy.
 | Original PNG | Normal app scene | Caption |
 | --- | --- | --- |
 | `01-folder-workspace.png` | Maximized Inbox with a selected original Garden workshop brief and tidy agenda, budget and reference notes | Keep project files together in a clear folder workspace. |
-| `02-operation-receipts.png` | Completed Copy and Move headers, with Move source and destination details expanded | Review completed Copy and Move operations and their source and destination paths. |
+| `02-operation-receipts.png` | Completed Copy and Move headers in the normal receipt history | Review completed Copy and Move operations in local receipt history. |
 | `03-export-receipts.png` | Actual CSV export confirmation naming `C:\FolderSail Demo\Receipts\Workshop receipts.csv` | Confirm where to save receipt history as a CSV file. |
 
 All demo content is original and lives under exclusively marker-owned
 `C:\FolderSail Demo`. The app copies the brief from **Inbox** to **Working drafts**,
 then moves that copy to **Ready to share**. Both operations are verified by
 independent file bytes, original protected files, persisted app receipts and
-visible receipt fields. No operation history, setting or profile is injected.
+visible receipt operation/result headers. No operation history, setting or profile is injected.
 
 Scene 03 is a **confirmation**, not a completed export claim. Immediately after
 capture, the ordinary confirmation action must commit the CSV; all ten columns
@@ -73,7 +73,7 @@ DWM window frame. There is no compositing, mock UI, pixel editing or post-captur
 resizing. Each PNG has an original SHA256/size receipt with the exact package,
 source/run, process/window, foreground, bounds, display/DPI and required visible
 content before and after capture. The original input helpers retain every
-PID/window/focus/native picker guard. Required receipt details must fit the
+PID/window/focus/native picker guard. Required receipt headers must fit the
 actual list viewport. Native supported display modes may be tested/applied for
 readability; the retained original mode is restored and independently read back.
 

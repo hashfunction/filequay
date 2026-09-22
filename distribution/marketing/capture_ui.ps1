@@ -56,9 +56,30 @@ function Get-FolderSailMarketingFrame($State,[object[]]$Required){
     return $value
 }
 
+function Move-FolderSailMarketingPointer($State,[object[]]$Required){
+    $frame=Get-FolderSailMarketingFrame $State $Required
+    Assert-FolderSailMarketingFrame $frame $State.process.Id $State.ui.main_hwnd
+    # The observed frame center is one of the native ownership/hit-test points.
+    # Move once without a click; polling below only observes dismissal/readback.
+    $point=[Drawing.Point]::new($frame.bounds[0]+[int]($frame.bounds[2]/2),$frame.bounds[1]+[int]($frame.bounds[3]/2))
+    [Windows.Forms.Cursor]::Position=$point
+    $null=Wait-FileQuayWorkflow {
+        $actual=[Windows.Forms.Cursor]::Position
+        if($actual.X -ne $point.X -or $actual.Y -ne $point.Y){throw 'Owned neutral pointer readback differs'}
+        $tooltips=@(Find-FileQuayWorkflowElements $State.ui|Where-Object {$_.element.Current.ControlType.ProgrammaticName -ceq 'ControlType.ToolTip'})
+        if($tooltips.Count){throw 'Visible app tooltip remains before capture'}
+        $current=Get-FolderSailMarketingFrame $State $Required
+        Assert-FolderSailMarketingFrame $current $State.process.Id $State.ui.main_hwnd
+        $true
+    } 'owned neutral pointer and tooltip dismissal'
+    if(-not $State.record.Contains('pointer_observations')){$State.record.pointer_observations=@()}
+    $State.record.pointer_observations+=@(@{x=$point.X;y=$point.Y;move_count=1;tooltip_absence_verified=$true})
+}
+
 function Save-FolderSailMarketingFrame($State,[string]$Stem,[object[]]$Required,[string]$Caption){
     if($Stem -cnotin @('01-folder-workspace','02-operation-receipts','03-export-receipts')){throw 'Unknown marketing screenshot slot'}
     [FileQuayQualification.ConsumerInput]::Foreground($State.process,$State.ui.main_hwnd,$State.process,$State.ui.main_hwnd)
+    Move-FolderSailMarketingPointer $State $Required
     $before=Get-FolderSailMarketingFrame $State $Required
     Assert-FolderSailMarketingFrame $before $State.process.Id $State.ui.main_hwnd
     $b=$before.bounds;$bitmap=[Drawing.Bitmap]::new($b[2],$b[3]);$graphics=[Drawing.Graphics]::FromImage($bitmap);$stream=[IO.MemoryStream]::new()
@@ -103,6 +124,25 @@ function Invoke-FolderSailMarketingFiles($State,[string]$Mode,[string[]]$Extra=@
     return ($raw -join "`n")|ConvertFrom-Json -AsHashtable
 }
 
+function Read-FolderSailMarketingReceiptHeaders($Ui,$List,[object[]]$Receipts){
+    $cards=@(Find-FileQuayWorkflowElements $Ui 'ReceiptDetailsExpander' -Within $List)
+    if($cards.Count -ne 2 -or $Receipts.Count -ne 2){throw 'Exactly two visible completed operation headers are required'}
+    $ids=[Collections.Generic.HashSet[string]]::new();$operations=[Collections.Generic.HashSet[int]]::new()
+    $bindings=@();$rows=@()
+    foreach($receipt in $Receipts){
+        if($receipt.fileOperationType -notin @(3,4) -or $receipt.returnResult -ne 1 -or
+           [string]::IsNullOrWhiteSpace($receipt.id) -or -not $ids.Add($receipt.id) -or -not $operations.Add($receipt.fileOperationType)){
+            throw 'Receipt headers require distinct successful persisted Copy and Move operations'
+        }
+        $operation=if($receipt.fileOperationType -eq 3){'Copy'}else{'Move'}
+        $title=$Ui.strings["ReceiptOperation$operation"]+' · '+$Ui.strings.ReceiptResultSuccess
+        $match=@($cards|Where-Object {$_.element.Current.Name -ceq $title})
+        if($match.Count -ne 1){throw 'Visible receipt header differs from the completed persisted operation'}
+        $bindings+=@($match[0]);$rows+=@(@{id=$receipt.id;title=$title})
+    }
+    @{bindings=$bindings;rows=$rows}
+}
+
 function Invoke-FolderSailMarketingUi($State){
     $ui=$State.ui;$fixture=$State.fixture;$started=[DateTimeOffset]::UtcNow
     $history=Join-Path $State.profile 'LocalState/OperationReceipts/v1.json'
@@ -127,23 +167,12 @@ function Invoke-FolderSailMarketingUi($State){
     $null=Wait-FileQuayWorkflow {Invoke-FolderSailMarketingFiles $State verify @('--phase','Moved')} 'independent moved bytes and unchanged originals'
     $receipts=@(Wait-FileQuayWorkflow {Read-FileQuayWorkflowReceipts $history $fixture 2 $started ([DateTimeOffset]::UtcNow)} 'two actual Copy and Move receipts')
     $list=Open-FileQuayWorkflowHistory $ui
-    $State.record.visible_receipts=@(Read-FileQuayWorkflowVisibleReceipts $ui $list $receipts)
+    $scene=Wait-FileQuayWorkflow {Read-FolderSailMarketingReceiptHeaders $ui $list $receipts} 'two visible completed operation headers'
+    $State.record.visible_receipts=@($scene.rows)
     $State.record.receipts=$receipts
-    $moveTitle=$ui.strings.ReceiptOperationMove+' · '+$ui.strings.ReceiptResultSuccess
-    $card=Show-FileQuayWorkflowElement $ui $moveTitle
-    Invoke-FileQuayWorkflowAction $ui $card Expand
-    $list=Find-FileQuayWorkflowElement $ui 'ReceiptHistoryList'
-    for($scroll=0;$scroll -lt 24;$scroll++){
-        $range=Get-FileQuayScrollRange ([System.Windows.Automation.ScrollPattern]$list.element.GetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern))
-        if(-not $range.vertically_scrollable -or $range.vertical_scroll_percent -le 0){break}
-        Invoke-FileQuayWorkflowAction $ui $list ScrollUp
-    }
-    $visible=@()
-    foreach($row in $State.record.visible_receipts){$visible+=Find-FileQuayWorkflowReceiptElement $ui $row.title}
-    $visible+=Wait-FileQuayWorkflow {Find-FileQuayWorkflowReceiptElement $ui $moveTitle 'ReceiptSourcePaths'} 'visible source path'
-    $visible+=Wait-FileQuayWorkflow {Find-FileQuayWorkflowReceiptElement $ui $moveTitle 'ReceiptDestinationPaths'} 'visible destination path'
+    $visible=@($scene.bindings)
     foreach($binding in $visible){$binding.clip=$list}
-    Save-FolderSailMarketingFrame $State '02-operation-receipts' $visible 'Review completed Copy and Move operations and their source and destination paths.'
+    Save-FolderSailMarketingFrame $State '02-operation-receipts' $visible 'Review completed Copy and Move operations in local receipt history.'
     # The qualified helper owns all native filename delivery and picker input.
     $dialog=Open-FileQuayWorkflowExportConfirmation $ui $fixture
     Save-FolderSailMarketingFrame $State '03-export-receipts' @($dialog,(Find-FileQuayWorkflowElement $ui 'PrimaryButton' -Within $dialog)) 'Confirm where to save receipt history as a CSV file.'
