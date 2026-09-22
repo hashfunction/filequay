@@ -65,6 +65,31 @@ function Retain-FolderSailMarketingServers($State){
     }
 }
 
+function Write-FolderSailMarketingFrameworkObservation($State,$Packages,[string]$Expected){
+    # Read only the already returned candidates. Observation failures remain
+    # secondary; the original registration predicate below still decides.
+    $observation=[ordered]@{expected_full_name=$Expected;requirement=$State.verified.framework.requirement;
+        observed_count=$Packages.Count;candidates=@();truncated=($Packages.Count -gt 8);
+        powershell_version=$PSVersionTable.PSVersion.ToString();diagnostic_errors=@()}
+    $State.record.framework_registration_observation=$observation
+    try{
+        foreach($package in @($Packages|Select-Object -First 8)){
+            $row=@{fields=@{};requirement_matches=$null;type_names=@($package.PSObject.TypeNames|Select-Object -First 4)}
+            $observation.candidates+=@($row)
+            foreach($name in @('Name','Publisher','Version','Architecture','PackageFullName','PackageFamilyName','IsFramework','Status')){
+                try{
+                    $property=$package.PSObject.Properties[$name];$value=if($property){$property.Value}else{$null}
+                    $text=if($null -ne $value){[string]$value}else{$null}
+                    $row.fields[$name]=@{present=($null -ne $property);value=if($null -ne $text){$text.Substring(0,[Math]::Min(1024,$text.Length))}else{$null};
+                        type=if($null -ne $value){$value.GetType().FullName}else{$null};truncated=($null -ne $text -and $text.Length -gt 1024)}
+                }catch{if($observation.diagnostic_errors.Count -lt 8){$message=$_.Exception.Message;$observation.diagnostic_errors+=@($name+': '+$message.Substring(0,[Math]::Min(2048,$message.Length)))}}
+            }
+            try{$row.requirement_matches=Test-FileQuayFrameworkRegistration $package $State.verified.framework.requirement}
+            catch{if($observation.diagnostic_errors.Count -lt 8){$message=$_.Exception.Message;$observation.diagnostic_errors+=@('Matcher: '+$message.Substring(0,[Math]::Min(2048,$message.Length)))}}
+        }
+    }catch{if($observation.diagnostic_errors.Count -lt 8){$message=$_.Exception.Message;$observation.diagnostic_errors+=@('Observation: '+$message.Substring(0,[Math]::Min(2048,$message.Length)))}}
+}
+
 function New-FolderSailMarketingOperations {
     # Pass state explicitly. Avoid dynamic-module closures losing the imported
     # original helper functions under Windows PowerShell scope rules.
@@ -126,6 +151,7 @@ function New-FolderSailMarketingOperations {
             }
             $frameworks=@(Get-AppxPackage -Name $s.verified.framework.artifact_identity.Name -ErrorAction Stop)
             $expected='Microsoft.WindowsAppRuntime.2_2.4.0.0_x64__8wekyb3d8bbwe'
+            Write-FolderSailMarketingFrameworkObservation $s $frameworks $expected
             if($frameworks.Count -ne 1 -or $frameworks[0].PackageFullName -cne $expected -or
                -not (Test-FileQuayFrameworkRegistration $frameworks[0] $s.verified.framework.requirement)){throw 'Original framework registration differs'}
             $s.record.framework=@{full_name=$expected;installed_from_original_input=$true;cleanup_policy='Retain framework until disposable runner teardown'}

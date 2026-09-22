@@ -21,7 +21,7 @@ jobs:
         run: |
           python -m unittest discover -s distribution/marketing -p 'test_*.py' -v
           if ($LASTEXITCODE -ne 0) { throw 'Capture file/source checks failed' }
-          foreach ($name in @('frame','display','lifecycle','complete','native','integration')) {
+          foreach ($name in @('frame','display','lifecycle','complete','native','integration','registration')) {
             & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -File "distribution/marketing/test_capture_$name.ps1"
             if ($LASTEXITCODE -ne 0) { throw "Capture $name checks failed" }
           }
