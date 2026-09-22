@@ -145,6 +145,29 @@ function Read-FolderSailMarketingReceiptHeaders($Ui,$List,[object[]]$Receipts){
     @{bindings=$bindings;rows=$rows}
 }
 
+function Set-FolderSailMarketingMaximized($State){
+    Assert-FolderSailMarketingProcess $State
+    $ui=$State.ui;$main=Get-FileQuayWorkflowMain $ui
+    $before=[FolderSailMarketing.Native]::Frame($ui.main_hwnd)
+    if($before.pid -ne $State.process.Id -or $before.hwnd -ne $ui.main_hwnd){throw 'Capture placement window identity changed'}
+    $placement=@{before=$before;after=$null;action='already-maximized'};$State.record.window_placement=$placement
+    if(-not $before.maximized){
+        # The actual failed run exposes one visible native caption button;
+        # use its ordinary action rather than the ineffective WindowPattern call.
+        $button=Find-FileQuayWorkflowElement $ui 'Maximize' 'Maximize' -Within $main
+        if($button.scope.target_hwnd -ne $ui.main_hwnd -or $button.element.Current.ProcessId -ne $State.process.Id -or
+           $button.element.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button){throw 'Visible Maximize button is outside the owned main window'}
+        $placement.action='invoke-visible-maximize'
+        Invoke-FileQuayWorkflowAction $ui $button Invoke
+    }
+    $null=Wait-FileQuayWorkflow {
+        Assert-FolderSailMarketingProcess $State
+        $placement.after=[FolderSailMarketing.Native]::Frame($ui.main_hwnd)
+        if($placement.after.pid -ne $State.process.Id -or $placement.after.hwnd -ne $ui.main_hwnd){throw 'Capture placement window identity changed'}
+        if($placement.after.maximized){$true}
+    } 'actual maximized FolderSail window'
+}
+
 function Invoke-FolderSailMarketingUi($State){
     $ui=$State.ui;$fixture=$State.fixture;$started=[DateTimeOffset]::UtcNow
     $history=Join-Path $State.profile 'LocalState/OperationReceipts/v1.json'
@@ -152,11 +175,7 @@ function Invoke-FolderSailMarketingUi($State){
     $null=Invoke-FolderSailMarketingFiles $State verify @('--phase','Initial')
     Set-FileQuayWorkflowFolder $ui ([IO.Path]::GetDirectoryName($fixture.source))
     Select-FileQuayWorkflowFile $ui $fixture.source
-    $main=Get-FileQuayWorkflowMain $ui
-    [FileQuayQualification.ConsumerInput]::Foreground($ui.application,$ui.main_hwnd,$ui.application,$ui.main_hwnd)
-    Assert-FileQuayWorkflowTarget $main.scope (Get-FileQuayWorkflowTargetState $ui $main)
-    ([System.Windows.Automation.WindowPattern]$main.element.GetCurrentPattern([System.Windows.Automation.WindowPattern]::Pattern)).SetWindowVisualState([System.Windows.Automation.WindowVisualState]::Maximized)
-    $null=Wait-FileQuayWorkflow {if(([FolderSailMarketing.Native]::Frame($ui.main_hwnd)).maximized){$true}} 'actual maximized FolderSail window'
+    Set-FolderSailMarketingMaximized $State
     $item=Find-FolderSailMarketingSelectedFile $ui $fixture.source
     Save-FolderSailMarketingFrame $State '01-folder-workspace' @($item) 'Keep project files together in a clear folder workspace.'
     Invoke-FileQuayWorkflowAction $ui (Wait-FileQuayWorkflow {Find-FileQuayWorkflowElement $ui 'InnerNavigationToolbarCopyButton'} 'enabled Copy action') Invoke
