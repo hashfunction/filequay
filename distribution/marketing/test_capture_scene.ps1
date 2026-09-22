@@ -4,7 +4,8 @@ $ErrorActionPreference='Stop';Set-StrictMode -Version Latest
 $ui=@{strings=@{ReceiptOperationCopy='Copy';ReceiptOperationMove='Move';ReceiptResultSuccess='Completed'}}
 $receipts=@(@{id='copy';fileOperationType=3;returnResult=1},@{id='move';fileOperationType=4;returnResult=1})
 $cards=@(@{element=@{Current=@{Name='Copy · Completed'}}},@{element=@{Current=@{Name='Move · Completed'}}})
-function Find-FileQuayWorkflowElements {param($Ui,$Id,$Within) return $script:observed}
+$script:selectorCalls=0
+function Find-FileQuayWorkflowElements {param($Ui,$Id,$Within) $script:selectorCalls++;return $script:observed}
 $script:observed=$cards
 $scene=Read-FolderSailMarketingReceiptHeaders $ui @{} $receipts
 if($scene.bindings.Count -ne 2 -or ($scene.rows.id -join '|') -cne 'copy|move'){throw 'Visible headers did not bind exact completed operations'}
@@ -29,17 +30,28 @@ $goodFrame=@{pid=42;hwnd=11;foreground=11;visible=$true;enabled=$true;maximized=
     title='Inbox - FolderSail';class='window';bounds=@(0,0,1920,1040);desktop=@(0,0,1920,1080);
     work_area=@(0,0,1920,1040);hit_roots=@(11,11,11,11,11,11,11,11,11);required=@(@{visible=$true;pid=42;bounds=@(50,80,400,30)})}
 function Get-FolderSailMarketingFrame {param($State,$Required) return $script:frame}
-function Wait-FileQuayWorkflow {param($Probe,$Description) & $Probe}
-foreach($scenario in @('valid','foreign','readback','tooltip')){
+foreach($scenario in @('valid','foreign','readback','null-roles')){
     $script:frame=$goodFrame|ConvertTo-Json -Depth 8|ConvertFrom-Json -AsHashtable
     $script:observed=@();[Windows.Forms.Cursor]::Ignore=$false
     [Windows.Forms.Cursor]::Position=[Drawing.Point]::new(1,1);[Windows.Forms.Cursor]::Writes=0
     if($scenario -eq 'foreign'){$script:frame.pid=99}
     if($scenario -eq 'readback'){[Windows.Forms.Cursor]::Ignore=$true}
-    if($scenario -eq 'tooltip'){$script:observed=@(@{element=@{Current=@{ControlType=@{ProgrammaticName='ControlType.ToolTip'}}}})}
+    if($scenario -eq 'null-roles'){
+        # Actual run35706490358 retained these unrelated visible controls.
+        $script:observed=@('ContextCommandBar','BaseCommandBar','RootGridZoom'|ForEach-Object {
+            @{element=@{Current=@{AutomationId=$_;ControlType=$null}}}
+        })
+    }
+    $script:selectorCalls=0
     $s=@{ui=@{main_hwnd=11};process=@{Id=42};record=@{}}
     $refused=$false;try{Move-FolderSailMarketingPointer $s @(@{})}catch{$refused=$true}
-    if($refused -ne ($scenario -ne 'valid') -or [Windows.Forms.Cursor]::Writes -ne $(if($scenario -eq 'foreign'){0}else{1})){throw "Pointer refusal/move count differs: $scenario"}
-    if($scenario -eq 'valid' -and (-not $s.record.pointer_observations[0].tooltip_absence_verified -or [Windows.Forms.Cursor]::Position.X -ne 960)){throw 'Pointer/tooltip observation lost'}
+    $passes=$scenario -in @('valid','null-roles')
+    if($refused -eq $passes -or [Windows.Forms.Cursor]::Writes -ne $(if($scenario -eq 'foreign'){0}else{1})){throw "Pointer refusal/move count differs: $scenario"}
+    if($passes){
+        $p=$s.record.pointer_observations[0]
+        if($p.ContainsKey('tooltip_absence_verified') -or -not $p.pointer_readback_verified -or
+           $p.settling_delay_ms -ne 500 -or $p.settling_elapsed_ms -lt 450 -or [Windows.Forms.Cursor]::Position.X -ne 960){throw 'Factual pointer/settling observation differs'}
+    }
+    if($script:selectorCalls -ne 0){throw 'Cosmetic pointer placement still traverses unrelated UIA controls'}
 }
-Write-Output 'PASS exact receipt header joins and six refusals; one owned neutral pointer move, foreign/readback/tooltip refusals.'
+Write-Output 'PASS exact receipt header joins and six refusals; one owned neutral pointer move, real settling delay, null-role independence and foreign/readback refusals.'

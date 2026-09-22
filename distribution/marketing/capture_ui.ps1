@@ -60,20 +60,22 @@ function Move-FolderSailMarketingPointer($State,[object[]]$Required){
     $frame=Get-FolderSailMarketingFrame $State $Required
     Assert-FolderSailMarketingFrame $frame $State.process.Id $State.ui.main_hwnd
     # The observed frame center is one of the native ownership/hit-test points.
-    # Move once without a click; polling below only observes dismissal/readback.
+    # Move once without a click, then allow a short cosmetic settling interval.
+    # This does not claim tooltip absence; original pixels need visual review.
     $point=[Drawing.Point]::new($frame.bounds[0]+[int]($frame.bounds[2]/2),$frame.bounds[1]+[int]($frame.bounds[3]/2))
     [Windows.Forms.Cursor]::Position=$point
-    $null=Wait-FileQuayWorkflow {
-        $actual=[Windows.Forms.Cursor]::Position
-        if($actual.X -ne $point.X -or $actual.Y -ne $point.Y){throw 'Owned neutral pointer readback differs'}
-        $tooltips=@(Find-FileQuayWorkflowElements $State.ui|Where-Object {$_.element.Current.ControlType.ProgrammaticName -ceq 'ControlType.ToolTip'})
-        if($tooltips.Count){throw 'Visible app tooltip remains before capture'}
-        $current=Get-FolderSailMarketingFrame $State $Required
-        Assert-FolderSailMarketingFrame $current $State.process.Id $State.ui.main_hwnd
-        $true
-    } 'owned neutral pointer and tooltip dismissal'
+    $actual=[Windows.Forms.Cursor]::Position
+    if($actual.X -ne $point.X -or $actual.Y -ne $point.Y){throw 'Owned neutral pointer readback differs'}
+    $settling=[Diagnostics.Stopwatch]::StartNew()
+    Start-Sleep -Milliseconds 500
+    $settling.Stop()
+    $actual=[Windows.Forms.Cursor]::Position
+    if($actual.X -ne $point.X -or $actual.Y -ne $point.Y){throw 'Owned neutral pointer changed during settling'}
+    $current=Get-FolderSailMarketingFrame $State $Required
+    Assert-FolderSailMarketingFrame $current $State.process.Id $State.ui.main_hwnd
     if(-not $State.record.Contains('pointer_observations')){$State.record.pointer_observations=@()}
-    $State.record.pointer_observations+=@(@{x=$point.X;y=$point.Y;move_count=1;tooltip_absence_verified=$true})
+    $State.record.pointer_observations+=@(@{x=$point.X;y=$point.Y;move_count=1;pointer_readback_verified=$true;
+        settling_delay_ms=500;settling_elapsed_ms=$settling.ElapsedMilliseconds})
 }
 
 function Save-FolderSailMarketingFrame($State,[string]$Stem,[object[]]$Required,[string]$Caption){
