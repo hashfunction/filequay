@@ -1,13 +1,15 @@
 # FolderSail original Windows marketing capture
 
-This is a separate, currently **unbound** capture pipeline. It has not produced
-Windows screenshots and does not add consumer qualification evidence. The
+This separate capture pipeline is bound to the independently verified unsigned
+Store export from [Windows run 34730460036](https://github.com/hashfunction/filequay/actions/runs/34730460036),
+attempt 1, source `7d2eff788f9dc15e0e695606da2963a1fc8450d3`. It has not yet
+produced Windows screenshots and does not add consumer qualification evidence. The
 application, its immutable assigned Store identity, and the existing native
 qualification workflow are unchanged.
 
 The manual `marketing-screenshots.yml` job refuses while `binding.json` contains
-`qualified: null`. After independent review of a successful original Store
-export, bind its public source commit, workflow run and attempt, exact unsigned
+`qualified: null`. The current reviewed binding records the public source commit,
+workflow run and attempt, exact unsigned
 `FolderSail_1.0.1.0_x64.msix` and `release-ready.json` sizes/SHA256, and four
 distinct GitHub artifact IDs:
 

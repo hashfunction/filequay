@@ -1,5 +1,23 @@
 {
   "schema_version": 1,
   "product": "FolderSail",
-  "qualified": null
+  "qualified": {
+    "source_commit": "7d2eff788f9dc15e0e695606da2963a1fc8450d3",
+    "workflow_run_id": "34730460036",
+    "workflow_run_attempt": "1",
+    "artifacts": {
+      "store": 10309826198,
+      "Consumer": 10309660508,
+      "Instrumented": 10309585137,
+      "Store": 10309274982
+    },
+    "package": {
+      "bytes": 188141651,
+      "sha256": "512276cde0684d45155707db561837b5b3cc7ef47ec320ee41dac639ffcaf5d1"
+    },
+    "readiness_receipt": {
+      "bytes": 55329,
+      "sha256": "45d9902666bbea50f4bd7206505526663f348206d43c085f5ffb6921c1f2c283"
+    }
+  }
 }
