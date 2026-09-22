@@ -37,8 +37,9 @@ at their exact commits. Only the original independent IL input adapter and
 native UIA proxy fixture are compiled; no app binary is rebuilt.
 
 The clean disposable runner receives the exact original framework MSIX from
-the pinned Runtime NuGet archive, matching both its SHA512 lock and the original
-installed qualification's member SHA256. A temporary copy of the original Store
+the reviewed Runtime NuGet archive. Its whole-file size/SHA256/SHA512 pin is
+bound to the qualified lock's distinct NuGet content hash; the extracted member
+must match the original installed qualification's SHA256 and framework identity. A temporary copy of the original Store
 package is signed with an exclusively created certificate. The original
 unsigned bytes are preserved and all installed payload files are compared.
 An existing Store registration, profile, demo folder, output folder, or compatible

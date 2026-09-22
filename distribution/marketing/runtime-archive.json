@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "package_id": "Microsoft.WindowsAppSDK.Runtime",
+  "version": "2.4.0",
+  "url": "https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.runtime/2.4.0/microsoft.windowsappsdk.runtime.2.4.0.nupkg",
+  "nuget_content_hash": "ioljT2/zivSWb6Hc375VPrRrauE5O49OccruHQFI23NdwGERCFBgCr1qCYhFciTxAX9hOMkJeAx0/Wo6Z5y6eg==",
+  "archive": {
+    "bytes": 164053946,
+    "sha256": "93f48b096416ab7b908ea30690bba47de8264cd2f22dd7b0ad97187a86d00120"
+  },
+  "archive_sha512": "esr1+QzXU0mA0yCUO8rnQ7ok4dUpTFiFTaRbZgDic/UMFrhrNd09CBiUYaO/M0z7FDon7wqa1CFoMBsPn9QHJQ==",
+  "content_hash_observation": {
+    "sdk": "10.0.401",
+    "reader_assembly": "NuGet.Packaging, Version=7.9.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+    "reader_sha256": "dcb6ba84774b747e1b5d29d0720dcee41001473f91d8cdc5ae08a3aa63d4edee"
+  },
+  "public_readback": {
+    "verified_at_utc": "2026-09-22T07:55:52.790311+00:00",
+    "authenticated": false,
+    "tls_verified": true,
+    "redirects_allowed": false
+  }
+}

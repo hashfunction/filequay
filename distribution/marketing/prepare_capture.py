@@ -14,6 +14,8 @@ import urllib.request
 import zipfile
 import capture_checks as c
 
+RUNTIME_ARCHIVE = Path(__file__).with_name('runtime-archive.json')
+
 
 def gh_json(endpoint):
     result = subprocess.run(['gh', 'api', endpoint], check=True, capture_output=True, timeout=30)
@@ -88,6 +90,12 @@ def prepare_framework(output, source, verified):
     c.require(candidates and all(v == candidates[0] for v in candidates) and candidates[0]['resolved'] == '2.4.0',
               'Qualified Runtime NuGet source lock differs')
     row = candidates[0]; url = 'https://api.nuget.org/v3-flatcontainer/microsoft.windowsappsdk.runtime/2.4.0/microsoft.windowsappsdk.runtime.2.4.0.nupkg'
+    # NuGet's signed-package contentHash excludes signing data. The reviewed
+    # signed ZIP has a separate exact byte/hash pin bound to that content hash.
+    pin = c.read_json(RUNTIME_ARCHIVE)
+    c.require(pin.get('schema_version') == 1 and pin.get('package_id') == 'Microsoft.WindowsAppSDK.Runtime' and
+              pin.get('version') == row['resolved'] and pin.get('url') == url and
+              pin.get('nuget_content_hash') == row['contentHash'], 'Reviewed Runtime archive differs from qualified source lock')
     archive = output / 'windows-app-runtime.nupkg'
     with urllib.request.urlopen(url, timeout=60) as response, archive.open('xb') as stream:
         target = urllib.parse.urlsplit(response.url)
@@ -95,10 +103,12 @@ def prepare_framework(output, source, verified):
         count = 0
         while block := response.read(1048576):
             count += len(block); c.require(count <= 400000000, 'Runtime NuGet download exceeds bound'); stream.write(block)
+    c.require(c.digest(archive) == pin['archive'], 'Reviewed signed Runtime archive bytes differ')
     folder = output / 'framework'; folder.mkdir()
-    result = extract_framework(archive, folder / 'Microsoft.WindowsAppRuntime.2.msix', row['contentHash'],
+    result = extract_framework(archive, folder / 'Microsoft.WindowsAppRuntime.2.msix', pin['archive_sha512'],
                                verified['framework']['artifact_sha256'].lower())
-    result.update(url=url, archive=c.digest(archive))
+    result.update(url=url, archive=c.digest(archive), qualified_nuget_content_hash=row['contentHash'])
+    c.require(result['archive'] == pin['archive'], 'Reviewed Runtime archive changed during extraction')
     spec = importlib.util.spec_from_file_location('capture_original_payload', source / 'distribution/verify-package-payload.py')
     api = importlib.util.module_from_spec(spec); spec.loader.exec_module(api)
     matching = api.match_framework_archives(api.archive_manifest(output/'store'/c.PACKAGE_NAME), folder)
