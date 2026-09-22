@@ -84,7 +84,7 @@ function Write-FolderSailMarketingFrameworkObservation($State,$Packages,[string]
                         type=if($null -ne $value){$value.GetType().FullName}else{$null};truncated=($null -ne $text -and $text.Length -gt 1024)}
                 }catch{if($observation.diagnostic_errors.Count -lt 8){$message=$_.Exception.Message;$observation.diagnostic_errors+=@($name+': '+$message.Substring(0,[Math]::Min(2048,$message.Length)))}}
             }
-            try{$row.requirement_matches=Test-FileQuayFrameworkRegistration $package $State.verified.framework.requirement}
+            try{$row.requirement_matches=Test-FileQuayFrameworkRegistration $package ([pscustomobject]$State.verified.framework.requirement)}
             catch{if($observation.diagnostic_errors.Count -lt 8){$message=$_.Exception.Message;$observation.diagnostic_errors+=@('Matcher: '+$message.Substring(0,[Math]::Min(2048,$message.Length)))}}
         }
     }catch{if($observation.diagnostic_errors.Count -lt 8){$message=$_.Exception.Message;$observation.diagnostic_errors+=@('Observation: '+$message.Substring(0,[Math]::Min(2048,$message.Length)))}}
@@ -152,8 +152,11 @@ function New-FolderSailMarketingOperations {
             $frameworks=@(Get-AppxPackage -Name $s.verified.framework.artifact_identity.Name -ErrorAction Stop)
             $expected='Microsoft.WindowsAppRuntime.2_2.4.0.0_x64__8wekyb3d8bbwe'
             Write-FolderSailMarketingFrameworkObservation $s $frameworks $expected
-            if($frameworks.Count -ne 1 -or $frameworks[0].PackageFullName -cne $expected -or
-               -not (Test-FileQuayFrameworkRegistration $frameworks[0] $s.verified.framework.requirement)){throw 'Original framework registration differs'}
+            # As in the original qualifier, exclude incompatible architectures
+            # before requiring the one exact supplied framework registration.
+            $required=[pscustomobject]$s.verified.framework.requirement
+            $resolved=@($frameworks|Where-Object {Test-FileQuayFrameworkRegistration $_ $required})
+            if($resolved.Count -ne 1 -or $resolved[0].PackageFullName -cne $expected){throw 'Original framework registration differs'}
             $s.record.framework=@{full_name=$expected;installed_from_original_input=$true;cleanup_policy='Retain framework until disposable runner teardown'}
         }
         Activate={param($s)

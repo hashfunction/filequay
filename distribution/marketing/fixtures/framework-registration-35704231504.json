@@ -1,0 +1,134 @@
+{
+  "workflow_run_id": "35704231504",
+  "source_commit": "cf0a37af546da190b69521b50a268a73b4b3a53f",
+  "observation": {
+    "expected_full_name": "Microsoft.WindowsAppRuntime.2_2.4.0.0_x64__8wekyb3d8bbwe",
+    "requirement": {
+      "Name": "Microsoft.WindowsAppRuntime.2",
+      "MinVersion": "2.4.0.0",
+      "Publisher": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+    },
+    "observed_count": 2,
+    "candidates": [
+      {
+        "fields": {
+          "Publisher": {
+            "truncated": false,
+            "present": true,
+            "value": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+            "type": "System.String"
+          },
+          "Name": {
+            "truncated": false,
+            "present": true,
+            "value": "Microsoft.WindowsAppRuntime.2",
+            "type": "System.String"
+          },
+          "PackageFamilyName": {
+            "truncated": false,
+            "present": true,
+            "value": "Microsoft.WindowsAppRuntime.2_8wekyb3d8bbwe",
+            "type": "System.String"
+          },
+          "PackageFullName": {
+            "truncated": false,
+            "present": true,
+            "value": "Microsoft.WindowsAppRuntime.2_2.4.0.0_x64__8wekyb3d8bbwe",
+            "type": "System.String"
+          },
+          "IsFramework": {
+            "truncated": false,
+            "present": true,
+            "value": "True",
+            "type": "System.Boolean"
+          },
+          "Architecture": {
+            "truncated": false,
+            "present": true,
+            "value": "X64",
+            "type": "System.String"
+          },
+          "Version": {
+            "truncated": false,
+            "present": true,
+            "value": "2.4.0.0",
+            "type": "System.String"
+          },
+          "Status": {
+            "truncated": false,
+            "present": true,
+            "value": "Ok",
+            "type": "System.String"
+          }
+        },
+        "type_names": [
+          "Selected.System.Management.Automation.PSCustomObject",
+          "Deserialized.Microsoft.Windows.Appx.PackageManager.Commands.AppxPackage",
+          "Deserialized.System.Object"
+        ],
+        "requirement_matches": true
+      },
+      {
+        "fields": {
+          "Publisher": {
+            "truncated": false,
+            "present": true,
+            "value": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+            "type": "System.String"
+          },
+          "Name": {
+            "truncated": false,
+            "present": true,
+            "value": "Microsoft.WindowsAppRuntime.2",
+            "type": "System.String"
+          },
+          "PackageFamilyName": {
+            "truncated": false,
+            "present": true,
+            "value": "Microsoft.WindowsAppRuntime.2_8wekyb3d8bbwe",
+            "type": "System.String"
+          },
+          "PackageFullName": {
+            "truncated": false,
+            "present": true,
+            "value": "Microsoft.WindowsAppRuntime.2_2.4.0.0_x86__8wekyb3d8bbwe",
+            "type": "System.String"
+          },
+          "IsFramework": {
+            "truncated": false,
+            "present": true,
+            "value": "True",
+            "type": "System.Boolean"
+          },
+          "Architecture": {
+            "truncated": false,
+            "present": true,
+            "value": "X86",
+            "type": "System.String"
+          },
+          "Version": {
+            "truncated": false,
+            "present": true,
+            "value": "2.4.0.0",
+            "type": "System.String"
+          },
+          "Status": {
+            "truncated": false,
+            "present": true,
+            "value": "Ok",
+            "type": "System.String"
+          }
+        },
+        "type_names": [
+          "Selected.System.Management.Automation.PSCustomObject",
+          "Deserialized.Microsoft.Windows.Appx.PackageManager.Commands.AppxPackage",
+          "Deserialized.System.Object"
+        ],
+        "requirement_matches": false
+      }
+    ],
+    "truncated": false,
+    "powershell_version": "7.6.5",
+    "diagnostic_errors": []
+  }
+}
